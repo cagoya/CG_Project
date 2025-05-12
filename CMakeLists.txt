@@ -57,8 +57,13 @@ add_subdirectory(external/tinygltf)
 set_target_properties(tinygltf PROPERTIES FOLDER "lib")
 
 # === 添加你的主程序 ===
+# 收集所有 src 下的 .cpp 文件（包括 inside, outside 和 base）
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
+
+# 添加可执行文件
 add_executable(main ${SRC_FILES})
+
+# 添加头文件目录
 target_include_directories(main PRIVATE
     src/include
     src
@@ -69,7 +74,6 @@ target_include_directories(main PRIVATE
     external/imgui
     external/tinygltf
 )
-
 
 target_link_libraries(main glad glfw glm stb imgui tinygltf)
 

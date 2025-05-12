@@ -1,0 +1,97 @@
+#include "camera.h"
+
+Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
+    : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+{
+    Position = position;
+    WorldUp = up;
+    Yaw = yaw;
+    Pitch = pitch;
+    updateCameraVectors();
+}
+
+Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch)
+    : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+{
+    Position = glm::vec3(posX, posY, posZ);
+    WorldUp = glm::vec3(upX, upY, upZ);
+    Yaw = yaw;
+    Pitch = pitch;
+    updateCameraVectors();
+}
+
+// 获取视图矩阵
+glm::mat4 Camera::GetViewMatrix() const
+{
+    return glm::lookAt(Position, Position + Front, Up);
+}
+
+// 根据键盘输入处理移动实现
+void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
+{
+    float velocity = MovementSpeed * deltaTime * 0.5f;
+    if (direction == FORWARD)
+        Position += Front * velocity;
+    if (direction == BACKWARD)
+        Position -= Front * velocity;
+    if (direction == LEFT)
+        Position -= Right * velocity;
+    if (direction == RIGHT)
+        Position += Right * velocity;
+    if (direction == UP)
+        Position += WorldUp * velocity;
+    if (direction == DOWN)
+        Position -= WorldUp * velocity;
+	// 摄像机不应该穿过地面
+    Position.y = glm::max(Position.y, 0.5f);
+}
+
+void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch)
+{
+    xoffset *= MouseSensitivity;
+    yoffset *= MouseSensitivity;
+
+    Yaw += xoffset;
+    Pitch += yoffset;
+
+    // 限制俯仰角，避免万向锁效应 (Looking straight up or down)
+    if (constrainPitch)
+    {
+        if (Pitch > 89.0f)
+            Pitch = 89.0f;
+        if (Pitch < -89.0f)
+            Pitch = -89.0f;
+    }
+    updateCameraVectors();
+}
+
+// 根据鼠标滚轮处理视野变化实现
+void Camera::ProcessMouseScroll(float yoffset)
+{
+    Zoom -= (float)yoffset;
+    if (Zoom < 1.0f) // 限制最小视野
+        Zoom = 1.0f;
+    if (Zoom > 45.0f) // 限制最大视野
+        Zoom = 45.0f; // 避免过于畸变或看不清
+}
+
+// 根据欧拉角更新摄像机的 Front, Right 和 Up 向量实现
+void Camera::updateCameraVectors()
+{
+    // 计算新的 Front 向量
+    glm::vec3 front;
+    // 将角度从度转换为弧度
+    float yawRadians = glm::radians(Yaw);
+    float pitchRadians = glm::radians(Pitch);
+
+    front.x = cos(yawRadians) * cos(pitchRadians);
+    front.y = sin(pitchRadians);
+    front.z = sin(yawRadians) * cos(pitchRadians);
+
+    Front = glm::normalize(front);
+
+    // 重新计算 Right 和 Up 向量
+    // 使用世界坐标系的 Up 向量进行叉乘
+    Right = glm::normalize(glm::cross(Front, WorldUp));
+    Up = glm::normalize(glm::cross(Right, Front));
+}

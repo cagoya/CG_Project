@@ -14,7 +14,7 @@
 #include "floor.h"
 #include "table.h"
 #include "shader.h"
-
+#include "ObjectModel/ObjectModel.h"
 // 主程序顶点着色器
 const char* vertexShaderSource = R"(
 	#version 330 core
@@ -115,6 +115,20 @@ int main()
 
 
     // 5. 创建并设置场景中的物体对象
+    ObjectModel myModel;
+    std::string objRelativePath = "../../media/Wall_panel/Wall_Panel.obj";
+    std::string mtlBaseRelativePath = "../../media/Wall_panel/"; // 注意末尾的斜杠
+
+    // 尝试加载模型
+    if (!myModel.load(objRelativePath, mtlBaseRelativePath)) {
+        std::cerr << "Failed to load OBJ model using relative paths!" << std::endl;
+        std::cerr << "Attempted OBJ path: " << objRelativePath << std::endl;
+        std::cerr << "Attempted MTL base path: " << mtlBaseRelativePath << std::endl;
+    }
+    else {
+        std::cout << "Successfully loaded OBJ model using relative paths!" << std::endl;
+    }
+
     Ground courtyardGround;
     courtyardGround.setup();
 

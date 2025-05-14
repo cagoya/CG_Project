@@ -61,7 +61,7 @@ set_target_properties(tinygltf PROPERTIES FOLDER "lib")
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 
 # 添加可执行文件
-add_executable(main ${SRC_FILES})
+add_executable(main ${SRC_FILES} "src/include/ObjectModel/ObjectModel.h" "src/include/ObjectModel/ObjectModel.cpp")
 
 # 添加头文件目录
 target_include_directories(main PRIVATE
@@ -73,6 +73,7 @@ target_include_directories(main PRIVATE
     external/stb
     external/imgui
     external/tinygltf
+    external/tinyobjloader
 )
 
 target_link_libraries(main glad glfw glm stb imgui tinygltf)

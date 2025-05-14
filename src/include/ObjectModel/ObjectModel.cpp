@@ -1,7 +1,6 @@
-#define TINYOBJLOADER_IMPLEMENTATION // 在一个 .cpp 文件中定义，这里是 ObjectModel.cpp
+#define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
-
-#define STB_IMAGE_IMPLEMENTATION // 在一个 .cpp 文件中定义
+#define STB_IMAGE_IMPLEMENTATION 
 #include "stb_image.h"
 
 #include "ObjectModel.h"
@@ -50,11 +49,11 @@ bool ObjectModel::load(const std::string& path, const std::string& mtlBasePath) 
     for (const auto& shape : shapes) {
         size_t index_offset = 0;
         for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); ++f) {
-            int fv = shape.mesh.num_face_vertices[f]; // 通常是3，因为我们设置了三角化
+            int fv = shape.mesh.num_face_vertices[f]; // 通常是3，因为设置了三角化
 
             // TODO: 目前这个简易版本假设一个 OBJ 只有一个材质/纹理
-            // 如果需要支持每个面有不同材质，你需要更复杂的逻辑来分组顶点/处理纹理
-            // 这里我们只尝试加载第一个材质的漫反射纹理（如果有的话）
+            // 如果需要支持每个面有不同材质，需要更复杂的逻辑来分组顶点/处理纹理
+            // 这里只尝试加载第一个材质的漫反射纹理（如果有的话）
             if (!materials.empty() && textureIDs.empty()) { // 只加载一次纹理示例
                 if (!materials[0].diffuse_texname.empty()) {
                     std::string texturePath = mtlBasePath + materials[0].diffuse_texname;
@@ -84,13 +83,13 @@ bool ObjectModel::load(const std::string& path, const std::string& mtlBasePath) 
                     };
                 }
                 else {
-                    vertex.Normal = { 0.0f, 0.0f, 0.0f }; // 或者计算法线
+                    vertex.Normal = { 0.0f, 0.0f, 0.0f }; // 或者算法线
                 }
 
                 if (idx.texcoord_index >= 0) {
                     vertex.TexCoords = {
                         attrib.texcoords[2 * idx.texcoord_index + 0],
-                        1.0f - attrib.texcoords[2 * idx.texcoord_index + 1] // OBJ 通常V向上，OpenGL向下
+                        1.0f - attrib.texcoords[2 * idx.texcoord_index + 1]
                     };
                 }
                 else {
@@ -131,7 +130,7 @@ void ObjectModel::setupMesh() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-    // 顶点位置
+    // 位置
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Position));
     // 顶点法线
@@ -145,13 +144,13 @@ void ObjectModel::setupMesh() {
 }
 
 void ObjectModel::draw(unsigned int shaderProgram, const glm::mat4& modelMatrix) {
-    // glUseProgram(shaderProgram); // 通常在主渲染循环中调用
+    // glUseProgram(shaderProgram); // 主渲染循环中用了
 
     unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
     // 绑定漫反射纹理 (假设只有一个纹理且是漫反射)
-    // 你可能需要更复杂的逻辑来处理多种纹理或没有纹理的情况
+    // 可能需要更复杂的逻辑来处理多种纹理或没有纹理的情况
     if (!textureIDs.empty()) {
         glActiveTexture(GL_TEXTURE0); // 激活纹理单元0
         glBindTexture(GL_TEXTURE_2D, textureIDs[0]); // 绑定此模型的纹理

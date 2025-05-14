@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include <glad/gl.h> // 或者你的 OpenGL 头文件
+#include <glad/gl.h> 
 #include <glm/glm.hpp>
 
 // 定义顶点结构，包含位置、法线和纹理坐标
@@ -26,8 +26,7 @@ private:
     GLuint VAO, VBO, EBO;
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
-    std::vector<GLuint> textureIDs; // 存储加载的纹理ID
-
+    std::vector<GLuint> textureIDs; // 加载的纹理ID
     void setupMesh();
     GLuint loadTexture(const char* path); // 辅助函数加载纹理
 };

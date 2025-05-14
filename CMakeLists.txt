@@ -61,7 +61,13 @@ set_target_properties(tinygltf PROPERTIES FOLDER "lib")
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 
 # 添加可执行文件
-add_executable(main ${SRC_FILES} "src/include/ObjectModel/ObjectModel.h" "src/include/ObjectModel/ObjectModel.cpp")
+add_executable(main ${SRC_FILES} "src/include/ObjectModel/ObjectModel.h" 
+    "src/include/ObjectModel/ObjectModel.cpp" 
+    "src/include/UIsystem/IImGuiPanel.h" 
+    "src/include/UIsystem/ModelTransformPanel.h" 
+    "src/include/UIsystem/ModelTransformPanel.cpp"
+    "src/include/UIsystem/ImGuiController.h" 
+    "src/include/UIsystem/ImGuiController.cpp")
 
 # 添加头文件目录
 target_include_directories(main PRIVATE

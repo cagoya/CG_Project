@@ -37,3 +37,6 @@ out/
 
 # vscode
 .vscode/
+
+# JET
+.idea/

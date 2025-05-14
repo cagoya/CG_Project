@@ -14,7 +14,11 @@
 #include "floor.h"
 #include "table.h"
 #include "shader.h"
+#include "ObjectModel/ObjectModel.h"
 
+// 控制窗口
+#include "UIsystem/ImGuiController.h"
+#include "UIsystem/ModelTransformPanel.h"
 // 主程序顶点着色器
 const char* vertexShaderSource = R"(
 	#version 330 core
@@ -46,13 +50,59 @@ const char* fragmentShaderSource = R"(
 	    FragColor = vec4(ourColor, 1.0);
 	}
 )";
+const char* objModelFragmentShaderSource = R"(
+    #version 330 core
+    out vec4 FragColor;
 
+    in vec3 FragPos_worldspace;
+    in vec3 Normal_worldspace;
+
+    void main()
+    {
+        // --- 方案1: 给模型一个固定的颜色 ---
+        // FragColor = vec4(0.6, 0.6, 0.6, 1.0); // 例如：灰色
+
+        // --- 方案2: 基于法线的简单漫反射光照 (让模型看起来有立体感) ---
+        vec3 lightColor = vec3(1.0, 1.0, 1.0);    // 光源颜色 (白色)
+        vec3 objectColor = vec3(0.5, 0.7, 0.5);   // 物体基础颜色 (例如：绿色)
+        vec3 ambient = 0.2 * objectColor;         // 环境光
+
+        vec3 norm = normalize(Normal_worldspace); // 标准化法线
+        vec3 lightDir = normalize(vec3(0.5, 0.5, 1.0)); // 固定光源方向 (可以自己调整)
+        
+        float diff = max(dot(norm, lightDir), 0.0); // 计算漫反射强度
+        vec3 diffuse = diff * lightColor * objectColor;
+        
+        FragColor = vec4(ambient + diffuse, 1.0); // 最终颜色
+    }
+)";
+const char* objModelVertexShaderSource = R"(
+    #version 330 core
+    layout (location = 0) in vec3 aPos;        // 顶点位置
+    layout (location = 1) in vec3 aNormal;     // 顶点法线
+    layout (location = 2) in vec2 aTexCoords;  // 纹理坐标 (即使暂时不用，也接收它)
+
+    out vec3 FragPos_worldspace; // 给片段着色器的，在世界空间中的顶点位置
+    out vec3 Normal_worldspace;  // 给片段着色器的，在世界空间中的法线
+
+    uniform mat4 model;
+    uniform mat4 view;
+    uniform mat4 projection;
+
+    void main()
+    {
+        gl_Position = projection * view * model * vec4(aPos, 1.0);
+        FragPos_worldspace = vec3(model * vec4(aPos, 1.0));
+        // 计算法线在世界空间中的方向 (如果model矩阵有非等比缩放，这个计算需要更复杂)
+        Normal_worldspace = mat3(transpose(inverse(model))) * aNormal;
+    }
+)";
 // 回调函数，因为它们需要一些主程序的信息，所以就直接放在主程序里面了
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window, Camera& camera, float deltaTime);
-
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods); // 增加了一个回调 目的：alt
 // 窗口宽度和高度
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -64,11 +114,17 @@ Camera camera(glm::vec3(0.0f, 1.0f, 5.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
+bool cursorLocked = true; //鼠标初始状态是锁定的
 
 // 时间管理
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+// 导入模型的参数
+static float modelScaleFactor = 1.0f;// 缩放
+static glm::vec3 modelPosition = glm::vec3(0.0f, 0.0f, 0.0f);// 位置
+
+ImGuiController imguiController;
 int main()
 {
     // 1. GLFW: 初始化和配置
@@ -95,7 +151,7 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
-
+    glfwSetKeyCallback(window, key_callback);
     // 锁定鼠标光标
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -113,8 +169,35 @@ int main()
         return -1;
     }
 
+    unsigned int objModelShaderProgram = compileShaders(objModelVertexShaderSource, objModelFragmentShaderSource);
+    if (objModelShaderProgram == 0) {
+        std::cerr << "Failed to compile OBJ model shader program!" << std::endl;
+        // 根据需要处理错误，例如 glfwTerminate(); return -1;
+        glfwTerminate();
+        return -1;
+    }
+
+    imguiController.Init(window); // 初始化 ImGui
+    // 创建并注册UI一个面板 
+    auto modelPanel = std::make_shared<ModelTransformPanel>("ModelController", modelPosition, modelScaleFactor, imguiController.GetIO());
+    imguiController.AddPanel(modelPanel);
+    // 可以多做几个面板！
 
     // 5. 创建并设置场景中的物体对象
+    ObjectModel myModel;
+    std::string objRelativePath = "../../media/Minotaur_Female_Lores.obj";//只需输入.obj位置即可
+    std::string mtlBaseRelativePath = ""; // 斜杠害人不浅 如果有mtl 和.obj放在一起即可（如果在一个folder里面，空字符串也可以） 填对应文件夹位置就行 是给texture提供相关支持的
+
+    // 尝试加载模型
+    if (!myModel.load(objRelativePath, mtlBaseRelativePath)) {
+        std::cerr << "Failed to load OBJ model using relative paths!" << std::endl;
+        std::cerr << "Attempted OBJ path: " << objRelativePath << std::endl;
+        std::cerr << "Attempted MTL base path: " << mtlBaseRelativePath << std::endl;
+    }
+    else {
+        std::cout << "Successfully loaded OBJ model using relative paths!" << std::endl;
+    }
+
     Ground courtyardGround;
     courtyardGround.setup();
 
@@ -146,6 +229,10 @@ int main()
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+        
+        //ImGui 开始新帧
+        imguiController.NewFrame(); 
+        imguiController.DrawUI();
 
         processInput(window, camera, deltaTime);
 
@@ -190,7 +277,23 @@ int main()
         houseTable.draw(shaderProgram, tableModelMatrix);
 
         // --- 在这里添加其他对象的绘制 ---
+         
+        glUseProgram(objModelShaderProgram); // 换到新的着色器程序
+
+        // 为新的 objModelShaderProgram 设置 view 和 projection 矩阵
+        // (通常和上面的 view, projection 矩阵是一样的，但需要为当前激活的着色器重新设置)
+        glUniformMatrix4fv(glGetUniformLocation(objModelShaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(objModelShaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        // myModel 的模型矩阵
+        glm::mat4 modelForMyObj = glm::mat4(1.0f); // 单位矩阵
+        modelForMyObj = glm::translate(modelForMyObj, modelPosition); // 调整模型在场景中的位置
+        modelForMyObj = glm::scale(modelForMyObj, glm::vec3(modelScaleFactor));   // 调整模型的大小
+        // 实现的ObjectModel::draw 方法内部会设置自己的 model 矩阵 uniform 和绑定 VAO
+        myModel.draw(objModelShaderProgram, modelForMyObj);
+
         // --------------------------------
+        // ImGui 渲染绘制的面板数据
+        imguiController.Render();
 
         // GLFW: 交换缓冲区和轮询IO事件
         glfwSwapBuffers(window);
@@ -199,6 +302,12 @@ int main()
 
     // 8. 清理资源
     glDeleteProgram(shaderProgram);
+
+    //清理本模型资源
+    glDeleteProgram(objModelShaderProgram);
+
+    //Gui 清理
+    imguiController.Shutdown();
 
     glfwTerminate();
     return 0;
@@ -230,6 +339,9 @@ void processInput(GLFWwindow* window, Camera& camera, float deltaTime)
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
+    if(!cursorLocked){
+        return;
+    }
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 
@@ -253,4 +365,26 @@ void scroll_callback(GLFWwindow* window, double xoffsetIn, double yoffsetIn)
 {
     float yoffset = static_cast<float>(yoffsetIn);
     camera.ProcessMouseScroll(yoffset);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) // ESC退出功能
+        glfwSetWindowShouldClose(window, true);
+
+    // 关注左Alt键
+    if (key == GLFW_KEY_LEFT_ALT && action == GLFW_PRESS)
+    {
+        cursorLocked = !cursorLocked; // 切换锁定状态
+
+        if (cursorLocked) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            firstMouse = true; // 重置firstMouse，防止重新锁定时相机跳动
+            std::cout << "Cursor locked." << std::endl;
+        }
+        else {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            std::cout << "Cursor unlocked." << std::endl;
+        }
+    }
 }

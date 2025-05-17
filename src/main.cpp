@@ -5,8 +5,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "wall.h"
 #include "ground.h"
-#include "wall.h" 
 #include "camera.h"
 #include "roof.h"
 #include "door.h"
@@ -14,100 +14,24 @@
 #include "floor.h"
 #include "table.h"
 #include "shader.h"
+#include "skybox.h"
 #include "ObjectModel/ObjectModel.h"
 
 // 控制窗口
 #include "UIsystem/ImGuiController.h"
 #include "UIsystem/ModelTransformPanel.h"
-// 主程序顶点着色器
-const char* vertexShaderSource = R"(
-	#version 330 core
-	layout (location = 0) in vec3 aPos;
-	layout (location = 1) in vec3 aColor;
 
-	out vec3 ourColor;
-
-	uniform mat4 model;
-	uniform mat4 view;
-	uniform mat4 projection;
-
-	void main()
-	{
-	    gl_Position = projection * view * model * vec4(aPos, 1.0);
-	    ourColor = aColor;
-	}
-)";
-
-// 主程序片段着色器(R,G,B)
-const char* fragmentShaderSource = R"(
-	#version 330 core
-	out vec4 FragColor;
-
-	in vec3 ourColor;
-
-	void main()
-	{
-	    FragColor = vec4(ourColor, 1.0);
-	}
-)";
-const char* objModelFragmentShaderSource = R"(
-    #version 330 core
-    out vec4 FragColor;
-
-    in vec3 FragPos_worldspace;
-    in vec3 Normal_worldspace;
-
-    void main()
-    {
-        // --- 方案1: 给模型一个固定的颜色 ---
-        // FragColor = vec4(0.6, 0.6, 0.6, 1.0); // 例如：灰色
-
-        // --- 方案2: 基于法线的简单漫反射光照 (让模型看起来有立体感) ---
-        vec3 lightColor = vec3(1.0, 1.0, 1.0);    // 光源颜色 (白色)
-        vec3 objectColor = vec3(0.5, 0.7, 0.5);   // 物体基础颜色 (例如：绿色)
-        vec3 ambient = 0.2 * objectColor;         // 环境光
-
-        vec3 norm = normalize(Normal_worldspace); // 标准化法线
-        vec3 lightDir = normalize(vec3(0.5, 0.5, 1.0)); // 固定光源方向 (可以自己调整)
-        
-        float diff = max(dot(norm, lightDir), 0.0); // 计算漫反射强度
-        vec3 diffuse = diff * lightColor * objectColor;
-        
-        FragColor = vec4(ambient + diffuse, 1.0); // 最终颜色
-    }
-)";
-const char* objModelVertexShaderSource = R"(
-    #version 330 core
-    layout (location = 0) in vec3 aPos;        // 顶点位置
-    layout (location = 1) in vec3 aNormal;     // 顶点法线
-    layout (location = 2) in vec2 aTexCoords;  // 纹理坐标 (即使暂时不用，也接收它)
-
-    out vec3 FragPos_worldspace; // 给片段着色器的，在世界空间中的顶点位置
-    out vec3 Normal_worldspace;  // 给片段着色器的，在世界空间中的法线
-
-    uniform mat4 model;
-    uniform mat4 view;
-    uniform mat4 projection;
-
-    void main()
-    {
-        gl_Position = projection * view * model * vec4(aPos, 1.0);
-        FragPos_worldspace = vec3(model * vec4(aPos, 1.0));
-        // 计算法线在世界空间中的方向 (如果model矩阵有非等比缩放，这个计算需要更复杂)
-        Normal_worldspace = mat3(transpose(inverse(model))) * aNormal;
-    }
-)";
-// 回调函数，因为它们需要一些主程序的信息，所以就直接放在主程序里面了
+// 回调函数
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window, Camera& camera, float deltaTime);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods); // 增加了一个回调 目的：alt
-// 窗口宽度和高度
+
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-// 摄像机对象
+
 Camera camera(glm::vec3(0.0f, 1.0f, 5.0f));
 
 // 鼠标状态
@@ -163,27 +87,21 @@ int main()
     }
 
     // 4. 构建和编译着色器程序
-    unsigned int shaderProgram = compileShaders(vertexShaderSource, fragmentShaderSource);
-    if (shaderProgram == 0) {
-        glfwTerminate();
-        return -1;
-    }
+    Shader mainShader = Shader("../../media/shader/main/main_vs.txt", "../../media/shader/main/main_fs.txt");
+    //Shader objModelShader = Shader("../../media/shader/objModel/objModelShader_vs.txt","../../media/shader/objModel/objModelShader_fs.txt");
+    Shader skyboxShader("../../media/shader/skybox/skybox_vs.txt", "../../media/shader/skybox/skybox_fs.txt");
 
-    unsigned int objModelShaderProgram = compileShaders(objModelVertexShaderSource, objModelFragmentShaderSource);
-    if (objModelShaderProgram == 0) {
-        std::cerr << "Failed to compile OBJ model shader program!" << std::endl;
-        // 根据需要处理错误，例如 glfwTerminate(); return -1;
-        glfwTerminate();
-        return -1;
-    }
+    skyboxShader.use();
+    skyboxShader.setInt("skybox", 0);
 
-    imguiController.Init(window); // 初始化 ImGui
+    //imguiController.Init(window); // 初始化 ImGui
     // 创建并注册UI一个面板 
-    auto modelPanel = std::make_shared<ModelTransformPanel>("ModelController", modelPosition, modelScaleFactor, imguiController.GetIO());
-    imguiController.AddPanel(modelPanel);
+    //auto modelPanel = std::make_shared<ModelTransformPanel>("ModelController", modelPosition, modelScaleFactor, imguiController.GetIO());
+    //imguiController.AddPanel(modelPanel);
     // 可以多做几个面板！
 
     // 5. 创建并设置场景中的物体对象
+    /*
     ObjectModel myModel;
     std::string objRelativePath = "../../media/Minotaur_Female_Lores.obj";//只需输入.obj位置即可
     std::string mtlBaseRelativePath = ""; // 斜杠害人不浅 如果有mtl 和.obj放在一起即可（如果在一个folder里面，空字符串也可以） 填对应文件夹位置就行 是给texture提供相关支持的
@@ -196,10 +114,19 @@ int main()
     }
     else {
         std::cout << "Successfully loaded OBJ model using relative paths!" << std::endl;
-    }
+    }*/
 
-    Ground courtyardGround;
-    courtyardGround.setup();
+    // 导入天空盒
+    
+    std::vector<std::string> faces = { "right.jpg", "left.jpg", "top.jpg", "down.jpg", "front.jpg", "back.jpg" };
+    for (auto& it:faces)
+    {
+        it = "../../media/skybox/bak1/" + it;
+    }
+    Skybox sky(faces);
+
+    Ground ground;
+    ground.setup();
 
     Wall houseWall;
     houseWall.setup();
@@ -216,9 +143,8 @@ int main()
     Floor houseFloor;
     houseFloor.setup();
 
-    Table houseTable;
-    houseTable.setup();
-
+    Table table;
+    table.setup();
 
     // 6. 启用深度测试
     glEnable(GL_DEPTH_TEST);
@@ -231,65 +157,56 @@ int main()
         lastFrame = currentFrame;
         
         //ImGui 开始新帧
-        imguiController.NewFrame(); 
-        imguiController.DrawUI();
+        //imguiController.NewFrame(); 
+        //imguiController.DrawUI();
 
         processInput(window, camera, deltaTime);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
-
         // 设置视图和投影矩阵
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-
-        unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
-        unsigned int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        // 绘制天空盒
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(GL_FALSE);
+        skyboxShader.use();
+        sky.draw(skyboxShader, view, projection);
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
 
         // --- 绘制场景中的物体 ---
+        mainShader.use();
+        mainShader.setMat4("view", view);
+        mainShader.setMat4("projection", projection);
 
-        // 绘制地面，后续可以考虑实现无限大效果，这里是有限大的高度为0的正方形
-        glm::mat4 groundModelMatrix = glm::mat4(1.0f);
-        courtyardGround.draw(shaderProgram, groundModelMatrix);
+        glm::mat4 model = glm::mat4(1.0f);
 
-        // 计算房屋的模型矩阵 
-        glm::mat4 houseModelMatrix = glm::mat4(1.0f);
-        // 将 x 和 z 坐标放大 2 倍，y 坐标保持不变
-        houseModelMatrix = glm::scale(houseModelMatrix, glm::vec3(2.0f, 1.0f, 2.0f));
+        ground.draw(mainShader, model);
+        houseWall.draw(mainShader, model);
+        houseFloor.draw(mainShader, model);
+        houseRoof.draw(mainShader, model);
+        houseDoor.draw(mainShader, model);
+        houseWindow.draw(mainShader, model);
 
-        houseWall.draw(shaderProgram, houseModelMatrix);
-        houseFloor.draw(shaderProgram, houseModelMatrix);
-        houseRoof.draw(shaderProgram, houseModelMatrix);
-
-        glm::mat4 doorModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.51f)); // 略微向外贴
-        houseDoor.draw(shaderProgram, doorModelMatrix);
-
-        glm::mat4 windowModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.51f, 0.0f, 0.0f)); // 略微向外贴
-        houseWindow.draw(shaderProgram, windowModelMatrix);
-
-        // 调整桌子的大小
-        glm::mat4 tableModelMatrix = glm::mat4(1.0f);
-        tableModelMatrix = glm::scale(tableModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
-        houseTable.draw(shaderProgram, tableModelMatrix);
+        
+        
 
         // --- 在这里添加其他对象的绘制 ---
          
-        glUseProgram(objModelShaderProgram); // 换到新的着色器程序
-
+        /*objModelShader.use(); // 换到新的着色器程序
+        
         // 为新的 objModelShaderProgram 设置 view 和 projection 矩阵
         // (通常和上面的 view, projection 矩阵是一样的，但需要为当前激活的着色器重新设置)
-        glUniformMatrix4fv(glGetUniformLocation(objModelShaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(glGetUniformLocation(objModelShaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(glGetUniformLocation(objModelShader.id_, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(objModelShader.id_, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
         // myModel 的模型矩阵
         glm::mat4 modelForMyObj = glm::mat4(1.0f); // 单位矩阵
         modelForMyObj = glm::translate(modelForMyObj, modelPosition); // 调整模型在场景中的位置
         modelForMyObj = glm::scale(modelForMyObj, glm::vec3(modelScaleFactor));   // 调整模型的大小
         // 实现的ObjectModel::draw 方法内部会设置自己的 model 矩阵 uniform 和绑定 VAO
-        myModel.draw(objModelShaderProgram, modelForMyObj);
+        myModel.draw(objModelShader.id_, modelForMyObj);*/
 
         // --------------------------------
         // ImGui 渲染绘制的面板数据
@@ -301,10 +218,11 @@ int main()
     }
 
     // 8. 清理资源
-    glDeleteProgram(shaderProgram);
+    glDeleteProgram(mainShader.id_);
+    glDeleteProgram(skyboxShader.id_);
 
     //清理本模型资源
-    glDeleteProgram(objModelShaderProgram);
+    //glDeleteProgram(objModelShader.id_);
 
     //Gui 清理
     imguiController.Shutdown();

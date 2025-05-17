@@ -1,24 +1,24 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-// 编译着色器
-unsigned int compileShaders(const char* vertexSource, const char* fragmentSource) {
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexSource, NULL);
-    glCompileShader(vertexShader);
+#include <string>
+#include <glad/gl.h>
+#include <glm/glm.hpp>
 
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
-    glCompileShader(fragmentShader);
+class Shader {
+public:
+    // 着色器 ID
+    unsigned int id_;
 
-    unsigned int program = glCreateProgram();
-    glAttachShader(program, vertexShader);
-    glAttachShader(program, fragmentShader);
-    glLinkProgram(program);
+    // 加载并编译着色器
+    Shader(const char* vertexPath, const char* fragmentPath);
+    // 更换着色器
+    void use() const;
 
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    return program;
-}
+    // 设置 uniform 变量
+    void setBool(const std::string& name, bool value) const;
+    void setInt(const std::string& name, int value) const;
+    void setFloat(const std::string& name, float value) const;
+    void setMat4(const std::string& name, const glm::mat4& mat) const;
+};
 #endif

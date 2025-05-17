@@ -1,0 +1,19 @@
+#version 330 core
+layout (location = 0) in vec3 aPos;        // 顶点位置
+layout (location = 1) in vec3 aNormal;     // 顶点法线
+layout (location = 2) in vec2 aTexCoords;  // 纹理坐标 (即使暂时不用，也接收它)
+
+out vec3 FragPos_worldspace; // 给片段着色器的，在世界空间中的顶点位置
+out vec3 Normal_worldspace;  // 给片段着色器的，在世界空间中的法线
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
+void main()
+{
+    gl_Position = projection * view * model * vec4(aPos, 1.0);
+    FragPos_worldspace = vec3(model * vec4(aPos, 1.0));
+    // 计算法线在世界空间中的方向 (如果model矩阵有非等比缩放，这个计算需要更复杂)
+    Normal_worldspace = mat3(transpose(inverse(model))) * aNormal;
+}

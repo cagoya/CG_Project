@@ -1,0 +1,24 @@
+#version 330 core
+out vec4 FragColor;
+
+in vec3 FragPos_worldspace;
+in vec3 Normal_worldspace;
+
+void main()
+{
+    // --- 方案1: 给模型一个固定的颜色 ---
+    // FragColor = vec4(0.6, 0.6, 0.6, 1.0); // 例如：灰色
+
+    // --- 方案2: 基于法线的简单漫反射光照 (让模型看起来有立体感) ---
+    vec3 lightColor = vec3(1.0, 1.0, 1.0);    // 光源颜色 (白色)
+    vec3 objectColor = vec3(0.5, 0.7, 0.5);   // 物体基础颜色 (例如：绿色)
+    vec3 ambient = 0.2 * objectColor;         // 环境光
+
+    vec3 norm = normalize(Normal_worldspace); // 标准化法线
+    vec3 lightDir = normalize(vec3(0.5, 0.5, 1.0)); // 固定光源方向 (可以自己调整)
+        
+    float diff = max(dot(norm, lightDir), 0.0); // 计算漫反射强度
+    vec3 diffuse = diff * lightColor * objectColor;
+        
+    FragColor = vec4(ambient + diffuse, 1.0); // 最终颜色
+}

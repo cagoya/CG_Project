@@ -4,10 +4,10 @@
 
 // 窗户顶点：贴在右侧墙面，居中
 static const float windowVertices[] = {
-     0.501f, 0.35f, -0.15f,    0.4f, 0.7f, 1.0f, // 左下
-     0.501f, 0.35f,  0.15f,    0.4f, 0.7f, 1.0f, // 右下
-     0.501f, 0.65f,  0.15f,    0.4f, 0.7f, 1.0f, // 右上
-     0.501f, 0.65f, -0.15f,    0.4f, 0.7f, 1.0f, // 左上
+     0.501f, 0.175f, -0.15f,    0.4f, 0.7f, 1.0f, // 左下
+     0.501f, 0.175f,  0.15f,    0.4f, 0.7f, 1.0f, // 右下
+     0.501f, 0.325f,  0.15f,    0.4f, 0.7f, 1.0f, // 右上
+     0.501f, 0.325f, -0.15f,    0.4f, 0.7f, 1.0f, // 左上
 };
 
 static const unsigned int windowIndices[] = {
@@ -43,9 +43,8 @@ void Window::setup() {
     glBindVertexArray(0);
 }
 
-void Window::draw(unsigned int shaderProgramID, const glm::mat4& modelMatrix) const {
-    unsigned int modelLoc = glGetUniformLocation(shaderProgramID, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+void Window::draw(Shader shader, const glm::mat4& modelMatrix) const {
+    shader.setMat4("model", modelMatrix);
 
     glBindVertexArray(vao_);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

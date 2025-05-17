@@ -8,42 +8,42 @@ static const float WallVertices[] = {
     // 背面
     -0.5f, 0.0f, -0.5f,  0.5f, 0.5f, 0.5f,
      0.5f, 0.0f, -0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f,  1.0f, -0.5f,  0.5f, 0.5f, 0.5f,
-    -0.5f,  1.0f, -0.5f,  0.5f, 0.5f, 0.5f,
+     0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f,
+    -0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f,
 
     // 正面
     -0.5f, 0.0f,  0.5f,  0.5f, 0.5f, 0.5f,
      0.5f, 0.0f,  0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f,  1.0f,  0.5f,  0.5f, 0.5f, 0.5f,
-    -0.5f,  1.0f,  0.5f,  0.5f, 0.5f, 0.5f,
+     0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,
+    -0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,
 
     // 左面
-    -0.5f,  1.0f,  0.5f,  0.5f, 0.5f, 0.5f,
-    -0.5f,  1.0f, -0.5f,  0.5f, 0.5f, 0.5f,
+    -0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,
+    -0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f,
     -0.5f, 0.0f, -0.5f,  0.5f, 0.5f, 0.5f,
     -0.5f, 0.0f,  0.5f,  0.5f, 0.5f, 0.5f,
 
     // 右面
-     0.5f,  1.0f,  0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f,  1.0f, -0.5f,  0.5f, 0.5f, 0.5f,
+     0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,
+     0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f,
      0.5f, 0.0f, -0.5f,  0.5f, 0.5f, 0.5f,
      0.5f, 0.0f,  0.5f,  0.5f, 0.5f, 0.5f,
 
     // 正面的三角形
-     -0.5f, 1.0f, 0.5f, 0.5f, 0.5f, 0.5f,
-     0.5f, 1.0f, 0.5f, 0.5f, 0.5f, 0.5f,
-     0.0f, 1.25f, 0.5f, 0.5f, 0.5f, 0.5f,
+     -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+     0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+     0.0f, 0.625f, 0.5f, 0.5f, 0.5f, 0.5f,
 
     // 背面的三角形
-     -0.5f, 1.0f, -0.5f, 0.5f, 0.5f, 0.5f,
-     0.5f, 1.0f, -0.5f, 0.5f, 0.5f, 0.5f,
-     0.0f, 1.25f, -0.5f, 0.5f, 0.5f, 0.5f,
+     -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f,
+     0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f,
+     0.0f, 0.625f, -0.5f, 0.5f, 0.5f, 0.5f,
 
      // 顶面（Y = 1.0）
-	 -0.5f, 1.0f, -0.5f,  0.6f, 0.6f, 0.6f,
-	  0.5f, 1.0f, -0.5f,  0.6f, 0.6f, 0.6f,
-	  0.5f, 1.0f,  0.5f,  0.6f, 0.6f, 0.6f,
-	 -0.5f, 1.0f,  0.5f,  0.6f, 0.6f, 0.6f
+	 -0.5f, 0.5f, -0.5f,  0.6f, 0.6f, 0.6f,
+	  0.5f, 0.5f, -0.5f,  0.6f, 0.6f, 0.6f,
+	  0.5f, 0.5f,  0.5f,  0.6f, 0.6f, 0.6f,
+	 -0.5f, 0.5f,  0.5f,  0.6f, 0.6f, 0.6f
 
 };
 
@@ -90,9 +90,8 @@ void Wall::setup() {
 }
 
 
-void Wall::draw(unsigned int shaderProgramID, const glm::mat4& modelMatrix) const {
-    unsigned int modelLoc = glGetUniformLocation(shaderProgramID, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+void Wall::draw(Shader shader, const glm::mat4& modelMatrix) const {
+    shader.setMat4("model", modelMatrix);
 
     glBindVertexArray(vao_);
 

@@ -46,9 +46,8 @@ void Floor::setup() {
     glBindVertexArray(0);
 }
 
-void Floor::draw(unsigned int shaderProgramID, const glm::mat4& modelMatrix) const {
-    unsigned int modelLoc = glGetUniformLocation(shaderProgramID, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+void Floor::draw(Shader shader, const glm::mat4& modelMatrix) const {
+    shader.setMat4("model", modelMatrix);
 
     glBindVertexArray(vao_);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

@@ -11,6 +11,6 @@ public:
     ~Window();
 
     void setup();
-    void draw(unsigned int shaderProgramID, const glm::mat4& modelMatrix) const;
+    void draw(Shader shader, const glm::mat4& modelMatrix) const;
 };
 #endif

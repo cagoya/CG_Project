@@ -6,8 +6,8 @@
 static const float doorVertices[] = {
     -0.2f, 0.0f, 0.501f,   0.4f, 0.2f, 0.0f,
      0.2f, 0.0f, 0.501f,   0.4f, 0.2f, 0.0f,
-     0.2f, 0.6f, 0.501f,   0.4f, 0.2f, 0.0f,
-    -0.2f, 0.6f, 0.501f,   0.4f, 0.2f, 0.0f,
+     0.2f, 0.3f, 0.501f,   0.4f, 0.2f, 0.0f,
+    -0.2f, 0.3f, 0.501f,   0.4f, 0.2f, 0.0f,
 };
 
 static const unsigned int doorIndices[] = {
@@ -43,9 +43,8 @@ void Door::setup() {
     glBindVertexArray(0);
 }
 
-void Door::draw(unsigned int shaderProgramID, const glm::mat4& modelMatrix) const {
-    unsigned int modelLoc = glGetUniformLocation(shaderProgramID, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+void Door::draw(Shader shader, const glm::mat4& modelMatrix) const {
+    shader.setMat4("model", modelMatrix);
 
     glBindVertexArray(vao_);
     glDrawElements(GL_TRIANGLES, sizeof(doorIndices) / sizeof(unsigned int), GL_UNSIGNED_INT, 0);

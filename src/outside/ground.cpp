@@ -6,10 +6,10 @@
 
 // 一个正方形作为地面，颜色为绿色，之后贴图为草地
 static const float vertices[] = {
-     5.0f, 0.0f,  5.0f,  0.0f, 0.3f, 0.0f,
-     5.0f, 0.0f, -5.0f,  0.0f, 0.3f, 0.0f,
-    -5.0f, 0.0f, -5.0f,  0.0f, 0.3f, 0.0f,
-    -5.0f, 0.0f,  5.0f,  0.0f, 0.3f, 0.0f
+     1.0f, 0.0f,  1.0f,  0.0f, 0.3f, 0.0f,
+     1.0f, 0.0f, -1.0f,  0.0f, 0.3f, 0.0f,
+    -1.0f, 0.0f, -1.0f,  0.0f, 0.3f, 0.0f,
+    -1.0f, 0.0f,  1.0f,  0.0f, 0.3f, 0.0f
 };
 
 static const unsigned int indices[] = {
@@ -46,9 +46,8 @@ void Ground::setup() {
 }
 
 // 绘制地面
-void Ground::draw(unsigned int shaderProgramID, const glm::mat4& modelMatrix) const {
-    unsigned int modelLoc = glGetUniformLocation(shaderProgramID, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+void Ground::draw(Shader shader, const glm::mat4& modelMatrix) const {
+    shader.setMat4("model", modelMatrix);
     glBindVertexArray(vao_);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);

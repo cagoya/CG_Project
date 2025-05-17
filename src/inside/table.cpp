@@ -84,9 +84,8 @@ void Table::setup() {
     glBindVertexArray(0);
 }
 
-void Table::draw(unsigned int shaderProgramID, const glm::mat4& modelMatrix) const {
-    unsigned int modelLoc = glGetUniformLocation(shaderProgramID, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+void Table::draw(Shader shader, const glm::mat4& modelMatrix) const {
+    shader.setMat4("model", modelMatrix);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, sizeof(tableIndices) / sizeof(unsigned int), GL_UNSIGNED_INT, 0);

@@ -48,6 +48,14 @@ float lastFrame = 0.0f;
 static float modelScaleFactor = 1.0f;// 缩放
 static glm::vec3 modelPosition = glm::vec3(0.0f, 0.0f, 0.0f);// 位置
 
+// 准备实现模型拖动
+//bool isInEditMode = false;
+//ObjectModel* selectedModel = nullptr; // 指向当前选中的 ObjectModel
+//bool isDragging = false;              // 是否正在拖动模型
+//glm::vec3 dragInitialIntersectPoint;  // 拖动开始时射线与拖动平面的交点 (世界空间)
+//glm::vec3 dragInitialModelPosition;
+
+
 ImGuiController imguiController;
 int main()
 {
@@ -88,20 +96,20 @@ int main()
 
     // 4. 构建和编译着色器程序
     Shader mainShader = Shader("../../media/shader/main/main_vs.txt", "../../media/shader/main/main_fs.txt");
-    //Shader objModelShader = Shader("../../media/shader/objModel/objModelShader_vs.txt","../../media/shader/objModel/objModelShader_fs.txt");
+    Shader objModelShader = Shader("../../media/shader/objModel/objModel_vs.txt","../../media/shader/objModel/objModel_fs.txt");
     Shader skyboxShader("../../media/shader/skybox/skybox_vs.txt", "../../media/shader/skybox/skybox_fs.txt");
 
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
-    //imguiController.Init(window); // 初始化 ImGui
+    imguiController.Init(window); // 初始化 ImGui
     // 创建并注册UI一个面板 
-    //auto modelPanel = std::make_shared<ModelTransformPanel>("ModelController", modelPosition, modelScaleFactor, imguiController.GetIO());
-    //imguiController.AddPanel(modelPanel);
+    auto modelPanel = std::make_shared<ModelTransformPanel>("ModelController", modelPosition, modelScaleFactor, imguiController.GetIO());
+    imguiController.AddPanel(modelPanel);
     // 可以多做几个面板！
 
     // 5. 创建并设置场景中的物体对象
-    /*
+    
     ObjectModel myModel;
     std::string objRelativePath = "../../media/Minotaur_Female_Lores.obj";//只需输入.obj位置即可
     std::string mtlBaseRelativePath = ""; // 斜杠害人不浅 如果有mtl 和.obj放在一起即可（如果在一个folder里面，空字符串也可以） 填对应文件夹位置就行 是给texture提供相关支持的
@@ -114,7 +122,7 @@ int main()
     }
     else {
         std::cout << "Successfully loaded OBJ model using relative paths!" << std::endl;
-    }*/
+    }
 
     // 导入天空盒
     
@@ -157,9 +165,12 @@ int main()
         lastFrame = currentFrame;
         
         //ImGui 开始新帧
-        //imguiController.NewFrame(); 
-        //imguiController.DrawUI();
-
+        imguiController.NewFrame(); 
+        imguiController.DrawUI();
+        ImGui::Begin("Global Debug Values");
+        ImGui::Text("Global modelScaleFactor: %.3f", modelScaleFactor);
+        ImGui::Text("Global modelPosition: (%.2f, %.2f, %.2f)", modelPosition.x, modelPosition.y, modelPosition.z);
+        ImGui::End();
         processInput(window, camera, deltaTime);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -195,7 +206,7 @@ int main()
 
         // --- 在这里添加其他对象的绘制 ---
          
-        /*objModelShader.use(); // 换到新的着色器程序
+        objModelShader.use(); // 换到新的着色器程序
         
         // 为新的 objModelShaderProgram 设置 view 和 projection 矩阵
         // (通常和上面的 view, projection 矩阵是一样的，但需要为当前激活的着色器重新设置)
@@ -206,7 +217,7 @@ int main()
         modelForMyObj = glm::translate(modelForMyObj, modelPosition); // 调整模型在场景中的位置
         modelForMyObj = glm::scale(modelForMyObj, glm::vec3(modelScaleFactor));   // 调整模型的大小
         // 实现的ObjectModel::draw 方法内部会设置自己的 model 矩阵 uniform 和绑定 VAO
-        myModel.draw(objModelShader.id_, modelForMyObj);*/
+        myModel.draw(objModelShader.id_, modelForMyObj);
 
         // --------------------------------
         // ImGui 渲染绘制的面板数据
@@ -222,7 +233,7 @@ int main()
     glDeleteProgram(skyboxShader.id_);
 
     //清理本模型资源
-    //glDeleteProgram(objModelShader.id_);
+    glDeleteProgram(objModelShader.id_);
 
     //Gui 清理
     imguiController.Shutdown();

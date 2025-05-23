@@ -1,6 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
-#include "draw_object.h"
+#include "base/draw_object.h"
 
 // ×À×Ó
 class Table :DrawObject {

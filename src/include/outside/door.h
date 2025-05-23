@@ -2,7 +2,7 @@
 #define DOOR_H
 
 #include <glm/glm.hpp>
-#include "draw_object.h"
+#include "base/draw_object.h"
 
 // це
 class Door : DrawObject {
@@ -12,5 +12,7 @@ public:
 
     void setup();
     void draw(Shader shader, const glm::mat4& modelMatrix) const;
+private:
+    GLuint textureID_;
 };
 #endif // !DOOR_H

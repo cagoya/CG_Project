@@ -6,7 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
-#include "draw_object.h"
+#include "base\draw_object.h"
 
 // ǽ
 class Wall: DrawObject{

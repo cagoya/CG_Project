@@ -6,7 +6,19 @@
 class DrawObject {
 public:
 	DrawObject(): vao_(0), vbo_(0), ebo_(0){}
-	virtual ~DrawObject(){}
+	virtual ~DrawObject()
+	{
+		if (vao_) {
+			glDeleteVertexArrays(1, &vao_);
+		}
+		if (vbo_) {
+			glDeleteBuffers(1, &vbo_);
+		}
+		if (ebo_)
+		{
+			glDeleteBuffers(1, &ebo_);
+		}
+	}
 
 	// 初始化顶点数据和OpenGL缓冲区对象
 	virtual void setup(){};

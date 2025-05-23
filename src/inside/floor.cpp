@@ -1,32 +1,30 @@
-#include "outside/door.h"
+#include "inside/floor.h"
 #include <glad/gl.h>
-#include<stb_image.h>
 #include<iostream>
+#include<stb_image.h>
 #include <glm/gtc/type_ptr.hpp>
 
-// 门的顶点数据（一个竖直长方形，贴在正面墙上）
-static const float doorVertices[] = {
-    -0.1f, 0.0f, 0.501f,   0.0f, 0.0f, // 左下
-     0.1f, 0.0f, 0.501f,   1.0f, 0.0f, // 右下
-     0.1f, 0.3f, 0.501f,   1.0f, 1.0f, // 右上
-    -0.1f, 0.3f, 0.501f,   0.0f, 1.0f  // 左上
+static const float floorVertices[] = {
+    -0.5f, 0.02f, -0.5f,  0.0f, 0.5f,
+     0.5f, 0.02f, -0.5f,  0.5f, 1.0f,
+     0.5f, 0.02f,  0.5f,  0.5f, 0.0f,
+    -0.5f, 0.02f,  0.5f,  0.0f, 0.0f
 };
 
-static const unsigned int doorIndices[] = {
+static const unsigned int floorIndices[] = {
     0, 1, 2,
     0, 2, 3
 };
 
-Door::Door() : DrawObject() {}
+Floor::Floor() : DrawObject() {}
 
-Door::~Door()
-{
-    if (textureID_ != 0) {
+Floor::~Floor() {
+    if (textureID_) {
         glDeleteTextures(1, &textureID_);
     }
 }
 
-void Door::setup() {
+void Floor::setup() {
     glGenVertexArrays(1, &vao_);
     glGenBuffers(1, &vbo_);
     glGenBuffers(1, &ebo_);
@@ -34,10 +32,10 @@ void Door::setup() {
     glBindVertexArray(vao_);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(doorVertices), doorVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices), floorVertices, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(doorIndices), doorIndices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(floorIndices), floorIndices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -62,7 +60,7 @@ void Door::setup() {
     // 加载图像数据
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); // 大多数图像格式的原点在左上角，OpenGL纹理坐标原点在左下角，所以需要翻转
-    unsigned char* data = stbi_load("../../media/textures/door.png", &width, &height, &nrChannels, 0);
+    unsigned char* data = stbi_load("../../media/textures/floor.jpg", &width, &height, &nrChannels, 0);
     if (data) {
         GLenum format;
         if (nrChannels == 1)
@@ -81,14 +79,14 @@ void Door::setup() {
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else {
-        std::cerr << "Failed to load texture: door.png" << std::endl;
+        std::cerr << "Failed to load texture: floor.jpg" << std::endl;
     }
     stbi_image_free(data);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Door::draw(Shader shader, const glm::mat4& modelMatrix) const {
+void Floor::draw(Shader shader, const glm::mat4& modelMatrix) const {
     shader.setMat4("model", modelMatrix);
     glActiveTexture(GL_TEXTURE0); // 激活纹理单元0
     glBindTexture(GL_TEXTURE_2D, textureID_);

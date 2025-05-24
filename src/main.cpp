@@ -51,7 +51,6 @@ static glm::vec3 modelPosition = glm::vec3(0.0f, 0.0f, 0.0f);// 位置
 //光线
 AmbientLight ambientLight;
 SpotLight spotLight;
-PointLight pointLight;
 DirectionalLight directionalLight;
 Material material;
 
@@ -112,7 +111,7 @@ int main()
     imguiController.Init(window);
     auto modelPanel = std::make_shared<ModelTransformPanel>("ModelController", modelPosition, modelScaleFactor, imguiController.GetIO());
     imguiController.AddPanel(modelPanel);
-    auto lightPanel = std::make_shared<LightingPanel>("LightController", imguiController.GetIO(), spotLight, ambientLight, pointLight, directionalLight, material);
+    auto lightPanel = std::make_shared<LightingPanel>("LightController", imguiController.GetIO(), spotLight, ambientLight, directionalLight, material);
     imguiController.AddPanel(lightPanel);
 
     // 5. 创建并设置场景中的物体对象

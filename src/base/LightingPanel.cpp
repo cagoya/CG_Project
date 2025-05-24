@@ -29,12 +29,6 @@ void LightingPanel::Draw() {
         ImGui::SliderFloat(
             "angle##3", (float*)&spotLightRef.angle, 0.0f, glm::radians(180.0f), "%f rad");
         ImGui::NewLine();
-
-        ImGui::Text("point light");
-        ImGui::Separator();
-        ImGui::SliderFloat("intensity##4", &pointLightRef.intensity, 0.0f, 5.0f);
-        ImGui::ColorEdit3("color##4", (float*)&pointLightRef.color);
-        ImGui::NewLine();
     }
     ImGui::End();
 }

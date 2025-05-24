@@ -12,12 +12,10 @@ public:
     // 引用操作 main.cpp 里面的变量
 	AmbientLight& ambientLightRef;
     SpotLight& spotLightRef;
-    PointLight& pointLightRef;
     DirectionalLight& directionalLightRef;
-    LightingPanel(const char* name,ImGuiIO& io,SpotLight& spotlightref, AmbientLight& ambientlightref, PointLight& pointlightref, DirectionalLight
+    LightingPanel(const char* name,ImGuiIO& io,SpotLight& spotlightref, AmbientLight& ambientlightref, DirectionalLight
         & directionalightref,Material& materialref) 
-        : ambientLightRef(ambientlightref),spotLightRef(spotlightref),
-        pointLightRef(pointlightref),directionalLightRef(directionalightref)
+        : ambientLightRef(ambientlightref),spotLightRef(spotlightref),directionalLightRef(directionalightref)
     {
         PanelName = name;
         IsVisible = true;

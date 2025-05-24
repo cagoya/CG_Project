@@ -64,11 +64,11 @@ file(GLOB_RECURSE SRC_FILES src/*.cpp)
 add_executable(main ${SRC_FILES} "src/include/ObjectModel/ObjectModel.h" 
     "src/base/ourloader.cpp"
     "src/base/ObjectModel.cpp" 
-    "src/include/UIsystem/IImGuiPanel.h" 
-    "src/include/UIsystem/ModelTransformPanel.h" 
-    "src/base/ModelTransformPanel.cpp"
-    "src/include/UIsystem/ImGuiController.h" 
-    "src/base/ImGuiController.cpp" "src/include/OurObjLoader/OurObjLoader.h")
+    "src/include/base/IImGuiPanel.h" 
+    "src/include/base/ModelTransformPanel.h" 
+    
+    "src/include/base/ImGuiController.h" 
+     "src/include/OurObjLoader/OurObjLoader.h")
 
 # 添加头文件目录
 target_include_directories(main PRIVATE

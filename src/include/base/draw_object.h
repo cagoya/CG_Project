@@ -1,7 +1,8 @@
 #ifndef DRAW_OBJECT_H
 #define DRAW_OBJECT_H
 
-#include"shader.h"
+#include"base/shader.h"
+#include"base/light.h"
 
 class DrawObject {
 public:
@@ -30,5 +31,7 @@ public:
 protected:
 	// 存储地面的 VAO, VBO, EBO 的 ID
 	unsigned int vao_, vbo_, ebo_;
+	//材质信息
+	Material material_;
 };
 #endif // !DRAW_OBJECT_H

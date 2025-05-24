@@ -27,29 +27,41 @@ void Square::setup() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_.size() * sizeof(unsigned int), indices_.data(), GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    // Calculate stride based on all attributes: position(3) + normal(3) + color(3) + texture(2) = 11 floats
+    GLsizei stride = 11 * sizeof(float);
+
+    // Position attribute - location 0
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    // Normal attribute - location 1
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // Color attribute - location 2
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    // Texture attribute - location 3
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, stride, (void*)(9 * sizeof(float)));
+    glEnableVertexAttribArray(3);
 
     glBindVertexArray(0);
 
-    // 纹理加载
+    // Texture loading (unchanged)
     glGenTextures(1, &textureID_);
     glBindTexture(GL_TEXTURE_2D, textureID_);
 
-    // 设置纹理环绕参数
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // S轴重复
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // T轴重复
+    // Set texture wrapping parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    // 设置纹理过滤参数
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // 缩小使用Mipmap线性过滤
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);             // 放大使用线性过滤
+    // Set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // 加载图像数据
+    // Load image data
     int width, height, nrChannels;
-    // 大多数图像格式的原点在左上角，OpenGL纹理坐标原点在左下角，所以需要翻转
     stbi_set_flip_vertically_on_load(true);
     unsigned char* data = stbi_load(texture_path_.data(), &width, &height, &nrChannels, 0);
     if (data) {
@@ -70,7 +82,7 @@ void Square::setup() {
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else {
-        std::cerr << "Failed to load texture: grass.jpg" << std::endl;
+        std::cerr << "Failed to load texture: " << texture_path_ << std::endl;
     }
     stbi_image_free(data);
 
@@ -82,7 +94,7 @@ void Square::draw(Shader& shader, const glm::mat4& modelMatrix) const {
     shader.setMat4("model", modelMatrix);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureID_);
-    shader.setInt("texture", 0);
+    shader.setInt("texture_sampler", 0);
     glBindVertexArray(vao_);
     glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);

@@ -2,7 +2,6 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "outside/wall.h"
@@ -14,12 +13,13 @@
 #include "inside/floor.h"
 #include "base/shader.h"
 #include "base/skybox.h"
-#include "base/square.h"
+#include "base/light.h"
+#include "base/LightingPanel.h"
 #include "ObjectModel/ObjectModel.h"
 
 // 控制窗口
-#include "UIsystem/ImGuiController.h"
-#include "UIsystem/ModelTransformPanel.h"
+#include "base/ImGuiController.h"
+#include  "base/ModelTransformPanel.h"
 
 // 回调函数
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -47,6 +47,13 @@ float lastFrame = 0.0f;
 // 导入模型的参数
 static float modelScaleFactor = 1.0f;// 缩放
 static glm::vec3 modelPosition = glm::vec3(0.0f, 0.0f, 0.0f);// 位置
+
+//光线
+AmbientLight ambientLight;
+SpotLight spotLight;
+PointLight pointLight;
+DirectionalLight directionalLight;
+Material material;
 
 // 准备实现模型拖动
 //bool isInEditMode = false;
@@ -95,21 +102,18 @@ int main()
     }
 
     // 4. 构建和编译着色器程序
-    Shader mainShader = Shader("../../media/shader/main/main_vs.txt", "../../media/shader/main/main_fs.txt");
     Shader objModelShader = Shader("../../media/shader/objModel/objModel_vs.txt","../../media/shader/objModel/objModel_fs.txt");
     Shader skyboxShader("../../media/shader/skybox/skybox_vs.txt", "../../media/shader/skybox/skybox_fs.txt");
-    Shader singleTextureShader = Shader("../../media/shader/singleTexture/singleTexture_vs.txt", 
-																"../../media/shader/singleTexture/singleTexture_fs.txt");
-    Shader windowShader = Shader("../../media/shader/window/window_vs.txt", "../../media/shader/window/window_fs.txt");
+    Shader mainShader = Shader("../../media/shader/main/main.vert.glsl", "../../media/shader/main/main.frag.glsl");
 
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
-    imguiController.Init(window); // 初始化 ImGui
-    // 创建并注册UI一个面板 
+    imguiController.Init(window);
     auto modelPanel = std::make_shared<ModelTransformPanel>("ModelController", modelPosition, modelScaleFactor, imguiController.GetIO());
     imguiController.AddPanel(modelPanel);
-    // 可以多做几个面板！
+    auto lightPanel = std::make_shared<LightingPanel>("LightController", imguiController.GetIO(), spotLight, ambientLight, pointLight, directionalLight, material);
+    imguiController.AddPanel(lightPanel);
 
     // 5. 创建并设置场景中的物体对象
     
@@ -160,6 +164,9 @@ int main()
     // 7. 渲染循环
     while (!glfwWindowShouldClose(window))
     {
+        GLenum err = glGetError();
+        if (err != GL_NO_ERROR) std::cerr << "OpenGL Error: " << err << std::endl;
+
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -190,30 +197,37 @@ int main()
         // --- 绘制场景中的物体 ---
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 houseModel = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
-        glm::mat4 insideModel = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
-
-        singleTextureShader.use();
-        singleTextureShader.setMat4("view", view);
-        singleTextureShader.setMat4("projection", projection);
-
-        ground.draw(singleTextureShader, model);
-        houseDoor.draw(singleTextureShader, houseModel);
-        houseRoof.draw(singleTextureShader, houseModel);
-        houseFloor.draw(singleTextureShader, houseModel);
-        houseWall.draw(singleTextureShader, houseModel);
 
         mainShader.use();
+        // 这些是共用的，材质是每个物品的属性
         mainShader.setMat4("view", view);
         mainShader.setMat4("projection", projection);
+        mainShader.setVec3("cameraPosition", camera.Position);
+        mainShader.setFloat("material.ns", material.ns);
+        mainShader.setVec3("ambientLight.color", ambientLight.color);
+        mainShader.setFloat("ambientLight.intensity", ambientLight.intensity);
+        mainShader.setVec3("directionalLight.direction", directionalLight.direction);
+        mainShader.setVec3("directionalLight.color", directionalLight.color);
+        mainShader.setFloat("directionalLight.intensity", directionalLight.intensity);
+        mainShader.setVec3("spotLight.position", spotLight.position);
+        mainShader.setVec3("spotLight.direction", spotLight.direction);
+        mainShader.setVec3("spotLight.color", spotLight.color);
+        mainShader.setFloat("spotLight.intensity", spotLight.intensity);
+        mainShader.setFloat("spotLight.angle", spotLight.angle);
+        mainShader.setFloat("spotLight.kc", spotLight.kc);
+        mainShader.setFloat("spotLight.kl", spotLight.kl);
+        mainShader.setFloat("spotLight.kq", spotLight.kq);
 
-        windowShader.use();
-        windowShader.setMat4("view", view);
-        windowShader.setMat4("projection", projection);
+        ground.draw(mainShader, model);
+        houseRoof.draw(mainShader, houseModel);
+        houseDoor.draw(mainShader, houseModel);
+        houseWall.draw(mainShader, houseModel);
+        houseFloor.draw(mainShader, houseModel);
         houseWindow.draw(mainShader, houseModel);
-        
+
 
         // --- 在这里添加其他对象的绘制 ---
-         
+         /*
         objModelShader.use(); // 换到新的着色器程序
         
         // 为新的 objModelShaderProgram 设置 view 和 projection 矩阵
@@ -225,7 +239,7 @@ int main()
         modelForMyObj = glm::translate(modelForMyObj, modelPosition); // 调整模型在场景中的位置
         modelForMyObj = glm::scale(modelForMyObj, glm::vec3(modelScaleFactor));   // 调整模型的大小
         // 实现的ObjectModel::draw 方法内部会设置自己的 model 矩阵 uniform 和绑定 VAO
-        myModel.draw(objModelShader.id_, modelForMyObj);
+        myModel.draw(objModelShader.id_, modelForMyObj);*/
 
         // --------------------------------
         // ImGui 渲染绘制的面板数据
@@ -237,7 +251,6 @@ int main()
     }
 
     // 8. 清理资源
-    glDeleteProgram(mainShader.id_);
     glDeleteProgram(skyboxShader.id_);
 
     //清理本模型资源

@@ -2,17 +2,17 @@
 #define DOOR_H
 
 #include <glm/glm.hpp>
+#include "base/square.h"
 #include "base/draw_object.h"
 
-// це
 class Door : DrawObject {
 public:
     Door();
-    ~Door();
+    ~Door() = default;
 
     void setup();
-    void draw(Shader shader, const glm::mat4& modelMatrix) const;
+    void draw(Shader& shader, const glm::mat4& modelMatrix) const;
 private:
-    GLuint textureID_;
+    Square square_;
 };
 #endif // !DOOR_H

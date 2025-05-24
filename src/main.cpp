@@ -12,10 +12,9 @@
 #include "outside/door.h"
 #include "outside/window.h"
 #include "inside/floor.h"
-#include "inside/table.h"
 #include "base/shader.h"
 #include "base/skybox.h"
-#include "inside/chair.h"
+#include "base/square.h"
 #include "ObjectModel/ObjectModel.h"
 
 // 控制窗口
@@ -155,12 +154,6 @@ int main()
     Floor houseFloor;
     houseFloor.setup();
 
-    Table table;
-    table.setup();
-
-    Chair chair;
-    chair.setup();
-
     // 6. 启用深度测试
     glEnable(GL_DEPTH_TEST);
 
@@ -207,14 +200,11 @@ int main()
         houseDoor.draw(singleTextureShader, houseModel);
         houseRoof.draw(singleTextureShader, houseModel);
         houseFloor.draw(singleTextureShader, houseModel);
+        houseWall.draw(singleTextureShader, houseModel);
 
         mainShader.use();
         mainShader.setMat4("view", view);
         mainShader.setMat4("projection", projection);
-
-        houseWall.draw(mainShader, houseModel);
-        table.draw(mainShader, insideModel);
-        chair.draw(mainShader, glm::translate(insideModel, glm::vec3(0.0f, 0.0f, -0.3f)));
 
         windowShader.use();
         windowShader.setMat4("view", view);

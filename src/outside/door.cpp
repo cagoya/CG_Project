@@ -4,97 +4,27 @@
 #include<iostream>
 #include <glm/gtc/type_ptr.hpp>
 
-// 门的顶点数据（一个竖直长方形，贴在正面墙上）
-static const float doorVertices[] = {
-    -0.1f, 0.0f, 0.501f,   0.0f, 0.0f, // 左下
-     0.1f, 0.0f, 0.501f,   1.0f, 0.0f, // 右下
-     0.1f, 0.3f, 0.501f,   1.0f, 1.0f, // 右上
-    -0.1f, 0.3f, 0.501f,   0.0f, 1.0f  // 左上
-};
-
-static const unsigned int doorIndices[] = {
-    0, 1, 2,
-    0, 2, 3
-};
-
-Door::Door() : DrawObject() {}
-
-Door::~Door()
+Door::Door() : DrawObject(),square_()
 {
-    if (textureID_ != 0) {
-        glDeleteTextures(1, &textureID_);
-    }
+    square_.getVertices() = {
+        -0.1f, 0.0f, 0.501f,   0.0f, 0.0f, // 左下
+	     0.1f, 0.0f, 0.501f,   1.0f, 0.0f, // 右下
+	     0.1f, 0.3f, 0.501f,   1.0f, 1.0f, // 右上
+	    -0.1f, 0.3f, 0.501f,   0.0f, 1.0f  // 左上
+    };
+
+    square_.getIndices() = {
+        0, 1, 2,
+		0, 2, 3
+    };
+
+    square_.getTexturePath() = "../../media/textures/door.png";
 }
 
 void Door::setup() {
-    glGenVertexArrays(1, &vao_);
-    glGenBuffers(1, &vbo_);
-    glGenBuffers(1, &ebo_);
-
-    glBindVertexArray(vao_);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(doorVertices), doorVertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(doorIndices), doorIndices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
-
-    // 纹理加载
-    glGenTextures(1, &textureID_);
-    glBindTexture(GL_TEXTURE_2D, textureID_);
-
-    // 设置纹理环绕参数
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // S轴重复
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // T轴重复
-
-    // 设置纹理过滤参数
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // 缩小使用Mipmap线性过滤
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);             // 放大使用线性过滤
-
-    // 加载图像数据
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true); // 大多数图像格式的原点在左上角，OpenGL纹理坐标原点在左下角，所以需要翻转
-    unsigned char* data = stbi_load("../../media/textures/door.png", &width, &height, &nrChannels, 0);
-    if (data) {
-        GLenum format;
-        if (nrChannels == 1)
-            format = GL_RED;
-        else if (nrChannels == 3)
-            format = GL_RGB;
-        else if (nrChannels == 4)
-            format = GL_RGBA;
-        else {
-            std::cerr << "Texture format not supported: " << nrChannels << " channels" << std::endl;
-            stbi_image_free(data);
-            return;
-        }
-
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else {
-        std::cerr << "Failed to load texture: door.png" << std::endl;
-    }
-    stbi_image_free(data);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
+    square_.setup();
 }
 
-void Door::draw(Shader shader, const glm::mat4& modelMatrix) const {
-    shader.setMat4("model", modelMatrix);
-    glActiveTexture(GL_TEXTURE0); // 激活纹理单元0
-    glBindTexture(GL_TEXTURE_2D, textureID_);
-    shader.setInt("texture", 0);
-    glBindVertexArray(vao_);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+void Door::draw(Shader& shader, const glm::mat4& modelMatrix) const {
+    square_.draw(shader, modelMatrix);
 }

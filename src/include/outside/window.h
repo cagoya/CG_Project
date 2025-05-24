@@ -3,16 +3,17 @@
 
 #include <glm/glm.hpp>
 #include "base/draw_object.h"
+#include "base/square.h"
 
 // ´°»§
 class Window:DrawObject {
 public:
     Window();
-    ~Window();
+    ~Window() = default;
 
     void setup();
-    void draw(Shader shader, const glm::mat4& modelMatrix) const;
+    void draw(Shader& shader, const glm::mat4& modelMatrix) const;
 private:
-    GLuint textureID_ = 0;
+    Square square_;
 };
 #endif

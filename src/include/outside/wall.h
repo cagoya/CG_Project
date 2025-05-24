@@ -1,22 +1,22 @@
-#ifndef CUBE_H
-#define CUBE_H
+#ifndef WALL_H
+#define WALL_H
 
-#include <glad/gl.h>
+
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <vector>
-#include "base\draw_object.h"
 
-// ǽ
+#include "base/draw_object.h"
+#include "base/square.h"
+
 class Wall: DrawObject{
 public:
     Wall();
-    ~Wall();
+    ~Wall() = default;
 
     void setup();
 
-    void draw(Shader shader, const glm::mat4& modelMatrix) const;
+    void draw(Shader& shader, const glm::mat4& modelMatrix) const;
+private:
+    Square square_;
 };
 
-#endif // CUBE_H
+#endif

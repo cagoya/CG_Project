@@ -29,15 +29,35 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
     vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, NULL);
     glCompileShader(vertex);
+    // ºÏ≤È±‡“Î¥ÌŒÛ
+    int success;
+    char infoLog[1024];
+    glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertex, 1024, NULL, infoLog);
+        std::cerr << "∂•µ„◊≈…´∆˜±‡“Î ß∞‹: " << vertexPath << std::endl << infoLog << std::endl;
+    }
 
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fShaderCode, NULL);
     glCompileShader(fragment);
+    // ºÏ≤È±‡“Î¥ÌŒÛ
+    glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragment, 1024, NULL, infoLog);
+        std::cerr << "∆¨∂Œ◊≈…´∆˜±‡“Î ß∞‹: " << fragmentPath << std::endl << infoLog << std::endl;
+    }
 
     id_ = glCreateProgram();
     glAttachShader(id_, vertex);
     glAttachShader(id_, fragment);
     glLinkProgram(id_);
+    // ºÏ≤È¡¥Ω”¥ÌŒÛ
+    glGetProgramiv(id_, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(id_, 1024, NULL, infoLog);
+        std::cerr << "◊≈…´∆˜≥Ã–Ú¡¥Ω” ß∞‹: " << std::endl << infoLog << std::endl;
+    }
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);
@@ -58,4 +78,8 @@ void Shader::setFloat(const std::string& name, float value) const {
 }
 void Shader::setMat4(const std::string& name, const glm::mat4& mat) const {
     glUniformMatrix4fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+
+void Shader::setVec3(const std::string& name, const glm::vec3& vec) const {
+    glUniform3fv(glGetUniformLocation(id_, name.c_str()), 1, &vec[0]);
 }

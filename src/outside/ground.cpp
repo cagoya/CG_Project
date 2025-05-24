@@ -6,11 +6,13 @@
 
 // 一个正方形作为地面，颜色为绿色，之后贴图为草地
 static const float vertices[] = {
-     1.0f, 0.0f,  1.0f,  0.0f, 0.3f, 0.0f,
-     1.0f, 0.0f, -1.0f,  0.0f, 0.3f, 0.0f,
-    -1.0f, 0.0f, -1.0f,  0.0f, 0.3f, 0.0f,
-    -1.0f, 0.0f,  1.0f,  0.0f, 0.3f, 0.0f
+    // 位置            // 法线         // 颜色
+     1.0f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.3f, 0.0f,
+     1.0f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.3f, 0.0f,
+    -1.0f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.3f, 0.0f,
+    -1.0f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.3f, 0.0f
 };
+
 
 static const unsigned int indices[] = {
     0, 1, 3,
@@ -36,11 +38,16 @@ void Ground::setup() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    // 位置
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    // 法线
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // 颜色
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
 
     glBindVertexArray(0);
 }

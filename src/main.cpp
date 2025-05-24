@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "light.h"
 #include "wall.h"
 #include "ground.h"
 #include "camera.h"
@@ -20,6 +21,7 @@
 // 控制窗口
 #include "UIsystem/ImGuiController.h"
 #include "UIsystem/ModelTransformPanel.h"
+#include "UIsystem/LightingPanel.h"
 
 // 回调函数
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -47,6 +49,14 @@ float lastFrame = 0.0f;
 // 导入模型的参数
 static float modelScaleFactor = 1.0f;// 缩放
 static glm::vec3 modelPosition = glm::vec3(0.0f, 0.0f, 0.0f);// 位置
+
+//光线
+AmbientLight ambientLight;
+SpotLight spotLight;
+PointLight pointLight;
+DirectionalLight directionalLight;
+Material material;
+
 
 ImGuiController imguiController;
 int main()
@@ -94,14 +104,16 @@ int main()
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
-    //imguiController.Init(window); // 初始化 ImGui
+    // 初始化 ImGui
     // 创建并注册UI一个面板 
-    //auto modelPanel = std::make_shared<ModelTransformPanel>("ModelController", modelPosition, modelScaleFactor, imguiController.GetIO());
-    //imguiController.AddPanel(modelPanel);
-    // 可以多做几个面板！
-
+     //可以多做几个面板！
+    imguiController.Init(window);
+    auto modelPanel = std::make_shared<ModelTransformPanel>("ModelController", modelPosition, modelScaleFactor, imguiController.GetIO());
+    imguiController.AddPanel(modelPanel);
+    auto lightPanel = std::make_shared<LightingPanel>("LightController", imguiController.GetIO(),spotLight,ambientLight,pointLight,directionalLight,material );
+	imguiController.AddPanel(lightPanel);
     // 5. 创建并设置场景中的物体对象
-    /*
+    
     ObjectModel myModel;
     std::string objRelativePath = "../../media/Minotaur_Female_Lores.obj";//只需输入.obj位置即可
     std::string mtlBaseRelativePath = ""; // 斜杠害人不浅 如果有mtl 和.obj放在一起即可（如果在一个folder里面，空字符串也可以） 填对应文件夹位置就行 是给texture提供相关支持的
@@ -114,7 +126,7 @@ int main()
     }
     else {
         std::cout << "Successfully loaded OBJ model using relative paths!" << std::endl;
-    }*/
+    }
 
     // 导入天空盒
     
@@ -152,13 +164,16 @@ int main()
     // 7. 渲染循环
     while (!glfwWindowShouldClose(window))
     {
+        GLenum err = glGetError();
+        if (err != GL_NO_ERROR) std::cerr << "OpenGL Error: " << err << std::endl;
+
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         
         //ImGui 开始新帧
-        //imguiController.NewFrame(); 
-        //imguiController.DrawUI();
+        imguiController.NewFrame(); 
+        imguiController.DrawUI();
 
         processInput(window, camera, deltaTime);
 
@@ -176,20 +191,42 @@ int main()
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
 
+		spotLight.position = camera.Position;
+        spotLight.direction = camera.Front;
         // --- 绘制场景中的物体 ---
         mainShader.use();
         mainShader.setMat4("view", view);
         mainShader.setMat4("projection", projection);
+		mainShader.setVec3("cameraPosition", camera.Position);   
+        mainShader.setVec3("material.ka", material.ka);
+        mainShader.setVec3("material.kd", material.kd);
+        mainShader.setVec3("material.ks", material.ks);
+        mainShader.setFloat("material.ns", material.ns);
+        mainShader.setVec3("ambientLight.color", ambientLight.color);
+        mainShader.setFloat("ambientLight.intensity", ambientLight.intensity);
+        mainShader.setVec3("directionalLight.direction", directionalLight.direction);
+        mainShader.setVec3("directionalLight.color", directionalLight.color);
+        mainShader.setFloat("directionalLight.intensity", directionalLight.intensity);
+        mainShader.setVec3("spotLight.position", spotLight.position);
+        mainShader.setVec3("spotLight.direction", spotLight.direction);
+        mainShader.setVec3("spotLight.color", spotLight.color);
+        mainShader.setFloat("spotLight.intensity", spotLight.intensity);
+        mainShader.setFloat("spotLight.angle", spotLight.angle);
+        mainShader.setFloat("spotLight.kc", spotLight.kc);
+        mainShader.setFloat("spotLight.kl", spotLight.kl);
+        mainShader.setFloat("spotLight.kq", spotLight.kq);
+        glm::mat4 outmodel = glm::mat4(1.0f);
+		glm::mat4 inmodel = glm::mat4(1.0f);
 
-        glm::mat4 model = glm::mat4(1.0f);
+        outmodel = glm::scale(outmodel,glm::vec3(modelScaleFactor) );
 
-        ground.draw(mainShader, model);
-        houseWall.draw(mainShader, model);
-        houseFloor.draw(mainShader, model);
-        houseRoof.draw(mainShader, model);
-        houseDoor.draw(mainShader, model);
-        houseWindow.draw(mainShader, model);
-
+        ground.draw(mainShader, outmodel);
+        houseWall.draw(mainShader, outmodel);
+        houseFloor.draw(mainShader, outmodel);
+        houseRoof.draw(mainShader, outmodel);
+        houseDoor.draw(mainShader, outmodel);
+        houseWindow.draw(mainShader, outmodel);
+		table.draw(mainShader, inmodel);
         
         
 

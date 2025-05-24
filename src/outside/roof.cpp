@@ -9,17 +9,17 @@ GableRoof::~GableRoof() {}
 
 void GableRoof::setup() {
     std::vector<float> vertices = {
-        // 左斜面矩形
-        -0.6f, 0.475f,  0.6f,  0.6f, 0.4f, 0.2f, // 0: 左底前
-        -0.6f, 0.475f, -0.6f,  0.6f, 0.4f, 0.2f, // 1: 左底后
-         0.0f,  0.625f, -0.6f,  0.6f, 0.4f, 0.2f, // 2: 屋脊后
-         0.0f,  0.625f,  0.6f,  0.6f, 0.4f, 0.2f, // 3: 屋脊前
+        // 左斜面矩形（法线约为(-0.8944, 0.4472, 0.0)）
+        -0.6f, 0.475f,  0.6f,  -0.8944f, 0.4472f, 0.0f,  0.6f, 0.4f, 0.2f, // 0: 左底前
+        -0.6f, 0.475f, -0.6f,  -0.8944f, 0.4472f, 0.0f,  0.6f, 0.4f, 0.2f, // 1: 左底后
+         0.0f,  0.625f, -0.6f, -0.8944f, 0.4472f, 0.0f,  0.6f, 0.4f, 0.2f, // 2: 屋脊后
+         0.0f,  0.625f,  0.6f, -0.8944f, 0.4472f, 0.0f,  0.6f, 0.4f, 0.2f, // 3: 屋脊前
 
-         // 右斜面矩形
-          0.6f, 0.475f,  0.6f,  0.6f, 0.4f, 0.2f, // 4: 右底前
-          0.6f, 0.475f, -0.6f,  0.6f, 0.4f, 0.2f, // 5: 右底后
-          0.0f,  0.625f, -0.6f,  0.6f, 0.4f, 0.2f, // 6: 屋脊后 (同 2)
-          0.0f,  0.625f,  0.6f,  0.6f, 0.4f, 0.2f  // 7: 屋脊前 (同 3)
+         // 右斜面矩形（法线约为(0.8944, 0.4472, 0.0)）
+          0.6f, 0.475f,  0.6f,   0.8944f, 0.4472f, 0.0f,  0.6f, 0.4f, 0.2f, // 4: 右底前
+          0.6f, 0.475f, -0.6f,   0.8944f, 0.4472f, 0.0f,  0.6f, 0.4f, 0.2f, // 5: 右底后
+          0.0f,  0.625f, -0.6f,  0.8944f, 0.4472f, 0.0f,  0.6f, 0.4f, 0.2f, // 6: 屋脊后 (同 2)
+          0.0f,  0.625f,  0.6f,  0.8944f, 0.4472f, 0.0f,  0.6f, 0.4f, 0.2f  // 7: 屋脊前 (同 3)
     };
 
     std::vector<unsigned int> indices = {
@@ -43,12 +43,15 @@ void GableRoof::setup() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
     // 位置
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    // 颜色
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    // 法线
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // 颜色
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
 
     glBindVertexArray(0);
 }

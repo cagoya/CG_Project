@@ -26,6 +26,7 @@ glm::mat4 Camera::GetViewMatrix() const
     return glm::lookAt(Position, Position + Front, Up);
 }
 
+
 // 根据键盘输入处理移动实现
 void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
 {

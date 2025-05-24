@@ -3,11 +3,13 @@
 #include <glm/gtc/type_ptr.hpp>
 
 static const float floorVertices[] = {
-    -0.5f, 0.01f, -0.5f,  0.0f, 0.0f, 0.0f,
-     0.5f, 0.01f, -0.5f,  0.0f, 0.0f, 0.0f,
-     0.5f, 0.01f,  0.5f,  0.0f, 0.0f, 0.0f,
-    -0.5f, 0.01f,  0.5f,  0.0f, 0.0f, 0.0f,
+    // 位置              // 法线         // 颜色
+    -0.5f, 0.01f, -0.5f,  0.0f, 1.0f, 0.0f,  0.7f, 0.7f, 0.7f,
+     0.5f, 0.01f, -0.5f,  0.0f, 1.0f, 0.0f,  0.7f, 0.7f, 0.7f,
+     0.5f, 0.01f,  0.5f,  0.0f, 1.0f, 0.0f,  0.7f, 0.7f, 0.7f,
+    -0.5f, 0.01f,  0.5f,  0.0f, 1.0f, 0.0f,  0.7f, 0.7f, 0.7f,
 };
+
 
 static const unsigned int floorIndices[] = {
     0, 1, 2,
@@ -36,12 +38,15 @@ void Floor::setup() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(floorIndices), floorIndices, GL_STATIC_DRAW);
 
     // 位置
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    // 颜色
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    // 法线
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // 颜色
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
 
     glBindVertexArray(0);
 }

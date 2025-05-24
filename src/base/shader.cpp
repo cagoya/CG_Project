@@ -11,10 +11,10 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
         std::cerr << "¶¥µã×ÅÉ«Æ÷¶ÁÈ¡Ê§°Ü£º" << vertexPath << std::endl;
     }
     if (!fShaderFile.is_open()) {
-        std::cerr << "Æ¬¶Î×ÅÉ«Æ÷¶ÁÈ¡Ê§°Ü" << fragmentPath << std::endl;
+        std::cerr << "Æ¬¶Î×ÅÉ«Æ÷¶ÁÈ¡Ê§°Ü£º" << fragmentPath << std::endl;
     }
-    std::stringstream vShaderStream, fShaderStream;
 
+    std::stringstream vShaderStream, fShaderStream;
     vShaderStream << vShaderFile.rdbuf();
     fShaderStream << fShaderFile.rdbuf();
 
@@ -24,24 +24,46 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
     const char* vShaderCode = vertexCode.c_str();
     const char* fShaderCode = fragmentCode.c_str();
 
-    // ±àÒëÁ´½Ó×ÅÉ«Æ÷
-    unsigned int vertex, fragment;
-    vertex = glCreateShader(GL_VERTEX_SHADER);
+    // ±àÒë¶¥µã×ÅÉ«Æ÷
+    unsigned int vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, NULL);
     glCompileShader(vertex);
+    // ¼ì²é±àÒë´íÎó
+    int success;
+    char infoLog[1024];
+    glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertex, 1024, NULL, infoLog);
+        std::cerr << "¶¥µã×ÅÉ«Æ÷±àÒëÊ§°Ü: " << vertexPath << std::endl << infoLog << std::endl;
+    }
 
-    fragment = glCreateShader(GL_FRAGMENT_SHADER);
+    // ±àÒëÆ¬¶Î×ÅÉ«Æ÷
+    unsigned int fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fShaderCode, NULL);
     glCompileShader(fragment);
+    // ¼ì²é±àÒë´íÎó
+    glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragment, 1024, NULL, infoLog);
+        std::cerr << "Æ¬¶Î×ÅÉ«Æ÷±àÒëÊ§°Ü: " << fragmentPath << std::endl << infoLog << std::endl;
+    }
 
+    // Á´½Ó×ÅÉ«Æ÷³ÌÐò
     id_ = glCreateProgram();
     glAttachShader(id_, vertex);
     glAttachShader(id_, fragment);
     glLinkProgram(id_);
+    // ¼ì²éÁ´½Ó´íÎó
+    glGetProgramiv(id_, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(id_, 1024, NULL, infoLog);
+        std::cerr << "×ÅÉ«Æ÷³ÌÐòÁ´½ÓÊ§°Ü: " << std::endl << infoLog << std::endl;
+    }
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 }
+
 
 void Shader::use() const {
     glUseProgram(id_);
@@ -58,4 +80,7 @@ void Shader::setFloat(const std::string& name, float value) const {
 }
 void Shader::setMat4(const std::string& name, const glm::mat4& mat) const {
     glUniformMatrix4fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+void Shader::setVec3(const std::string& name, const glm::vec3& vec) const {
+	glUniform3fv(glGetUniformLocation(id_, name.c_str()), 1, &vec[0]);
 }

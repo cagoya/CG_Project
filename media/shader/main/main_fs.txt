@@ -1,9 +1,89 @@
 #version 330 core
-out vec4 FragColor;
+in vec3 fPosition;
+in vec3 fNormal;
+in vec3 fColor;
+out vec4 color;
+struct Material {
+    vec3 ka;
+    vec3 kd;
+    vec3 ks;
+    float ns;
+};
+// ambient light data structure declaration
+struct AmbientLight {
+    vec3 color;
+    float intensity;
+};
 
-in vec3 ourColor;
+uniform AmbientLight ambientLight;
 
-void main()
-{
-	FragColor = vec4(ourColor, 1.0);
+// directional light data structure declaration
+struct DirectionalLight {
+    vec3 direction;
+    float intensity;
+    vec3 color;
+};
+
+// spot light data structure declaration
+struct SpotLight {
+    vec3 position;
+    vec3 direction;
+    float intensity;
+    vec3 color;
+    float angle;
+    float kc;
+    float kl;
+    float kq;
+};
+
+// uniform variables
+uniform Material material;
+uniform DirectionalLight directionalLight;
+uniform SpotLight spotLight;
+uniform vec3 cameraPosition;
+vec3 calcDirectionalLightdiff(vec3 normal) {
+    vec3 lightDir = normalize(-directionalLight.direction);
+    vec3 diffuse = directionalLight.color * max(dot(lightDir, normal), 0.0f) * material.kd;
+    return directionalLight.intensity * diffuse ;
+}
+
+vec3 calcSpotLightdiff(vec3 normal) {
+    vec3 lightDir = normalize(spotLight.position - fPosition);
+    float theta = acos(-dot(lightDir, normalize(spotLight.direction)));
+    if (theta > spotLight.angle) {
+        return vec3(0.0f, 0.0f, 0.0f);
+    }
+    vec3 diffuse = spotLight.color * max(dot(lightDir, normal), 0.0f) * material.kd;
+    float distance = length(spotLight.position - fPosition);
+    float attenuation = 1.0f / (spotLight.kc + spotLight.kl * distance + spotLight.kq * distance * distance);
+    return spotLight.intensity * attenuation * diffuse;
+}
+vec3 calcDirectionalSpecular(vec3 normal, vec3 viewDir) {
+    vec3 lightDir = normalize(-directionalLight.direction);
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.ns);
+    vec3 specular = material.ks * spec * directionalLight.color;
+    return directionalLight.intensity * specular;
+}
+vec3 calcSpotSpecular(vec3 normal, vec3 viewDir) {
+    vec3 lightDir = normalize(spotLight.position - fPosition);
+    float distance = length(spotLight.position - fPosition);
+    float attenuation = 1.0 / (spotLight.kc + spotLight.kl * distance + spotLight.kq * distance * distance);
+    float theta = acos(dot(lightDir, normalize(-spotLight.direction)));
+    if (theta > spotLight.angle) {
+        return vec3(0.0);
+    }
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.ns);
+    vec3 specular = material.ks * spec * spotLight.color;
+    return spotLight.intensity * attenuation * specular;
+};
+
+void main() {
+    vec3 ambient = material.ka * ambientLight.color * ambientLight.intensity;
+    vec3 normal = normalize(fNormal);
+    vec3 viewDir = normalize(cameraPosition - fPosition);
+    vec3 diffuse = calcDirectionalLightdiff(normal) + calcSpotLightdiff(normal);
+    vec3 specular = calcDirectionalSpecular(normal, viewDir) + calcSpotSpecular(normal, viewDir);
+    color = vec4((ambient + diffuse + specular), 1.0);
 }

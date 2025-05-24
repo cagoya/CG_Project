@@ -4,38 +4,40 @@
 
 // 顶点：桌面 + 四个桌腿，每个面用颜色区分为深棕色
 static const float tableVertices[] = {
-    -0.5f, 0.75f, -0.3f,  0.4f, 0.2f, 0.0f, // 0
-     0.5f, 0.75f, -0.3f,  0.4f, 0.2f, 0.0f, // 1
-     0.5f, 0.75f,  0.3f,  0.4f, 0.2f, 0.0f, // 2
-    -0.5f, 0.75f,  0.3f,  0.4f, 0.2f, 0.0f, // 3
-    -0.5f, 0.80f, -0.3f,  0.4f, 0.2f, 0.0f, // 4
-     0.5f, 0.80f, -0.3f,  0.4f, 0.2f, 0.0f, // 5
-     0.5f, 0.80f,  0.3f,  0.4f, 0.2f, 0.0f, // 6
-    -0.5f, 0.80f,  0.3f,  0.4f, 0.2f, 0.0f, // 7
 
-    // 左前
-    -0.48f, 0.0f,  0.28f,  0.3f, 0.15f, 0.0f,
-    -0.43f, 0.0f,  0.28f,  0.3f, 0.15f, 0.0f,
-    -0.43f, 0.75f, 0.28f,  0.3f, 0.15f, 0.0f,
-    -0.48f, 0.75f, 0.28f,  0.3f, 0.15f, 0.0f,
+    // 桌面顶面 (0,1,0)
+    -0.5f, 0.25f, -0.3f,  0.0f, 1.0f, 0.0f,  0.4f, 0.2f, 0.0f,
+     0.5f, 0.25f, -0.3f,  0.0f, 1.0f, 0.0f,  0.4f, 0.2f, 0.0f,
+     0.5f, 0.25f,  0.3f,  0.0f, 1.0f, 0.0f,  0.4f, 0.2f, 0.0f,
+    -0.5f, 0.25f,  0.3f,  0.0f, 1.0f, 0.0f,  0.4f, 0.2f, 0.0f,
+    // 桌面底面 (0,-1,0)
+    -0.5f, 0.20f, -0.3f,  0.0f, -1.0f, 0.0f,  0.4f, 0.2f, 0.0f,
+     0.5f, 0.20f, -0.3f,  0.0f, -1.0f, 0.0f,  0.4f, 0.2f, 0.0f,
+     0.5f, 0.20f,  0.3f,  0.0f, -1.0f, 0.0f,  0.4f, 0.2f, 0.0f,
+    -0.5f, 0.20f,  0.3f,  0.0f, -1.0f, 0.0f,  0.4f, 0.2f, 0.0f,
+    // 桌腿（以左前腿为例，法线可简化为(0,0,1)或按实际面方向填写）
+    -0.48f, 0.0f,  0.28f,  0.0f, 0.0f, 1.0f,  0.3f, 0.15f, 0.0f,
+    -0.43f, 0.0f,  0.28f,  0.0f, 0.0f, 1.0f,  0.3f, 0.15f, 0.0f,
+    -0.43f, 0.25f, 0.28f,  0.0f, 0.0f, 1.0f,  0.3f, 0.15f, 0.0f,
+    -0.48f, 0.25f, 0.28f,  0.0f, 0.0f, 1.0f,  0.3f, 0.15f, 0.0f,
 
     // 右前
-     0.43f, 0.0f,  0.28f,  0.3f, 0.15f, 0.0f,
-     0.48f, 0.0f,  0.28f,  0.3f, 0.15f, 0.0f,
-     0.48f, 0.75f, 0.28f,  0.3f, 0.15f, 0.0f,
-     0.43f, 0.75f, 0.28f,  0.3f, 0.15f, 0.0f,
+     0.43f, 0.0f,  0.28f, 0.0f, 0.0f, 1.0f, 0.3f, 0.15f, 0.0f,
+     0.48f, 0.0f,  0.28f, 0.0f, 0.0f, 1.0f, 0.3f, 0.15f, 0.0f,
+     0.48f, 0.25f, 0.28f, 0.0f, 0.0f, 1.0f, 0.3f, 0.15f, 0.0f,
+     0.43f, 0.25f, 0.28f, 0.0f, 0.0f, 1.0f, 0.3f, 0.15f, 0.0f,
 
      // 左后
-     -0.48f, 0.0f, -0.28f,  0.3f, 0.15f, 0.0f,
-     -0.43f, 0.0f, -0.28f,  0.3f, 0.15f, 0.0f,
-     -0.43f, 0.75f, -0.28f, 0.3f, 0.15f, 0.0f,
-     -0.48f, 0.75f, -0.28f, 0.3f, 0.15f, 0.0f,
+     -0.48f, 0.0f, -0.28f, 0.0f, 0.0f, 1.0f, 0.3f, 0.15f, 0.0f,
+     -0.43f, 0.0f, -0.28f, 0.0f, 0.0f, 1.0f, 0.3f, 0.15f, 0.0f,
+     -0.43f, 0.25f, -0.28f,0.0f, 0.0f, 1.0f, 0.3f, 0.15f, 0.0f,
+     -0.48f, 0.25f, -0.28f,0.0f, 0.0f, 1.0f, 0.3f, 0.15f, 0.0f,
 
      // 右后
-      0.43f, 0.0f, -0.28f,  0.3f, 0.15f, 0.0f,
-      0.48f, 0.0f, -0.28f,  0.3f, 0.15f, 0.0f,
-      0.48f, 0.75f, -0.28f, 0.3f, 0.15f, 0.0f,
-      0.43f, 0.75f, -0.28f, 0.3f, 0.15f, 0.0f,
+      0.43f, 0.0f, -0.28f, 0.0f, 0.0f, 1.0f, 0.3f, 0.15f, 0.0f,
+      0.48f, 0.0f, -0.28f, 0.0f, 0.0f, 1.0f, 0.3f, 0.15f, 0.0f,
+      0.48f, 0.25f, -0.28f,0.0f, 0.0f, 1.0f, 0.3f, 0.15f, 0.0f,
+      0.43f, 0.25f, -0.28f,0.0f, 0.0f, 1.0f, 0.3f, 0.15f, 0.0f,
 };
 
 static unsigned int tableIndices[] = {
@@ -75,11 +77,15 @@ void Table::setup() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(tableIndices), tableIndices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    // 位置
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    // 法线
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // 颜色
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
 }

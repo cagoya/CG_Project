@@ -3,11 +3,13 @@
 #include <glm/gtc/type_ptr.hpp>
 
 // 门的顶点数据（一个竖直长方形，贴在正面墙上）
+
 static const float doorVertices[] = {
-    -0.2f, 0.0f, 0.501f,   0.4f, 0.2f, 0.0f,
-     0.2f, 0.0f, 0.501f,   0.4f, 0.2f, 0.0f,
-     0.2f, 0.3f, 0.501f,   0.4f, 0.2f, 0.0f,
-    -0.2f, 0.3f, 0.501f,   0.4f, 0.2f, 0.0f,
+        // 位置           // 法线         // 颜色
+        -0.2f, 0.0f, 0.501f,  0.0f, 0.0f, 1.0f,  0.4f, 0.2f, 0.0f,
+         0.2f, 0.0f, 0.501f,  0.0f, 0.0f, 1.0f,  0.4f, 0.2f, 0.0f,
+         0.2f, 0.3f, 0.501f,  0.0f, 0.0f, 1.0f,  0.4f, 0.2f, 0.0f,
+        -0.2f, 0.3f, 0.501f,  0.0f, 0.0f, 1.0f,  0.4f, 0.2f, 0.0f,
 };
 
 static const unsigned int doorIndices[] = {
@@ -33,12 +35,14 @@ void Door::setup() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(doorIndices), doorIndices, GL_STATIC_DRAW);
 
     // 位置
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    // 颜色
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    // 法线
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // 颜色
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
 }

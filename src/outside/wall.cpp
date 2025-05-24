@@ -5,47 +5,47 @@
 
 // 这个用于绘制房屋的墙面
 static const float WallVertices[] = {
-    // 背面
-    -0.5f, 0.0f, -0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f, 0.0f, -0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f,
-    -0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f,
+    // 背面 (0,0,-1)
+    -0.5f, 0.0f, -0.5f,   0.0f, 0.0f, -1.0f,  0.5f, 0.5f, 0.5f,
+     0.5f, 0.0f, -0.5f,   0.0f, 0.0f, -1.0f,  0.5f, 0.5f, 0.5f,
+     0.5f, 0.5f, -0.5f,   0.0f, 0.0f, -1.0f,  0.5f, 0.5f, 0.5f,
+    -0.5f, 0.5f, -0.5f,   0.0f, 0.0f, -1.0f,  0.5f, 0.5f, 0.5f,
 
-    // 正面
-    -0.5f, 0.0f,  0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f, 0.0f,  0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,
-    -0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,
+    // 正面 (0,0,1)
+    -0.5f, 0.0f,  0.5f,   0.0f, 0.0f, 1.0f,   0.5f, 0.5f, 0.5f,
+     0.5f, 0.0f,  0.5f,   0.0f, 0.0f, 1.0f,   0.5f, 0.5f, 0.5f,
+     0.5f, 0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   0.5f, 0.5f, 0.5f,
+    -0.5f, 0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   0.5f, 0.5f, 0.5f,
 
-    // 左面
-    -0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,
-    -0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f,
-    -0.5f, 0.0f, -0.5f,  0.5f, 0.5f, 0.5f,
-    -0.5f, 0.0f,  0.5f,  0.5f, 0.5f, 0.5f,
+    // 左面 (-1,0,0)
+    -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f, 0.0f,   0.5f, 0.5f, 0.5f,
+    -0.5f, 0.5f, -0.5f,  -1.0f, 0.0f, 0.0f,   0.5f, 0.5f, 0.5f,
+    -0.5f, 0.0f, -0.5f,  -1.0f, 0.0f, 0.0f,   0.5f, 0.5f, 0.5f,
+    -0.5f, 0.0f,  0.5f,  -1.0f, 0.0f, 0.0f,   0.5f, 0.5f, 0.5f,
 
-    // 右面
-     0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f, 0.0f, -0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f, 0.0f,  0.5f,  0.5f, 0.5f, 0.5f,
+    // 右面 (1,0,0)
+     0.5f, 0.5f,  0.5f,   1.0f, 0.0f, 0.0f,   0.5f, 0.5f, 0.5f,
+     0.5f, 0.5f, -0.5f,   1.0f, 0.0f, 0.0f,   0.5f, 0.5f, 0.5f,
+     0.5f, 0.0f, -0.5f,   1.0f, 0.0f, 0.0f,   0.5f, 0.5f, 0.5f,
+     0.5f, 0.0f,  0.5f,   1.0f, 0.0f, 0.0f,   0.5f, 0.5f, 0.5f,
 
-    // 正面的三角形
-     -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
-     0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
-     0.0f, 0.625f, 0.5f, 0.5f, 0.5f, 0.5f,
+     // 正面三角形 (0,0,1)
+     -0.5f, 0.5f, 0.5f,    0.0f, 0.0f, 1.0f,   0.5f, 0.5f, 0.5f,
+      0.5f, 0.5f, 0.5f,    0.0f, 0.0f, 1.0f,   0.5f, 0.5f, 0.5f,
+      0.0f, 0.625f, 0.5f,  0.0f, 0.0f, 1.0f,   0.5f, 0.5f, 0.5f,
 
-    // 背面的三角形
-     -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f,
-     0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f,
-     0.0f, 0.625f, -0.5f, 0.5f, 0.5f, 0.5f,
+      // 背面三角形 (0,0,-1)
+      -0.5f, 0.5f, -0.5f,   0.0f, 0.0f, -1.0f,  0.5f, 0.5f, 0.5f,
+       0.5f, 0.5f, -0.5f,   0.0f, 0.0f, -1.0f,  0.5f, 0.5f, 0.5f,
+       0.0f, 0.625f, -0.5f, 0.0f, 0.0f, -1.0f,  0.5f, 0.5f, 0.5f,
 
-     // 顶面（Y = 1.0）
-	 -0.5f, 0.5f, -0.5f,  0.6f, 0.6f, 0.6f,
-	  0.5f, 0.5f, -0.5f,  0.6f, 0.6f, 0.6f,
-	  0.5f, 0.5f,  0.5f,  0.6f, 0.6f, 0.6f,
-	 -0.5f, 0.5f,  0.5f,  0.6f, 0.6f, 0.6f
-
+       // 顶面 (0,1,0)
+       -0.5f, 0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.6f, 0.6f, 0.6f,
+        0.5f, 0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.6f, 0.6f, 0.6f,
+        0.5f, 0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   0.6f, 0.6f, 0.6f,
+       -0.5f, 0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   0.6f, 0.6f, 0.6f
 };
+
 
 // 立方体的索引数据 (绘制12个三角形)
 static const unsigned int WallIndices[] = {
@@ -79,12 +79,15 @@ void Wall::setup() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(WallIndices), WallIndices, GL_STATIC_DRAW);
 
     // 位置
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    // 颜色
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    // 法线
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // 颜色
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
 
     glBindVertexArray(0);
 }

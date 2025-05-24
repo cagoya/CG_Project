@@ -67,7 +67,7 @@ add_executable(main ${SRC_FILES} "src/include/ObjectModel/ObjectModel.h"
     "src/include/UIsystem/ModelTransformPanel.h" 
     "src/include/UIsystem/ModelTransformPanel.cpp"
     "src/include/UIsystem/ImGuiController.h" 
-    "src/include/UIsystem/ImGuiController.cpp")
+    "src/include/UIsystem/ImGuiController.cpp" "src/include/UIsystem/LightingPanel.h" "src/include/UIsystem/LightingPanel.cpp"   "src/include/light.h")
 
 # 添加头文件目录
 target_include_directories(main PRIVATE

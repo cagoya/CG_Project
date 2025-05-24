@@ -4,10 +4,11 @@
 
 // 窗户顶点：贴在右侧墙面，居中
 static const float windowVertices[] = {
-     0.501f, 0.175f, -0.15f,    0.4f, 0.7f, 1.0f, // 左下
-     0.501f, 0.175f,  0.15f,    0.4f, 0.7f, 1.0f, // 右下
-     0.501f, 0.325f,  0.15f,    0.4f, 0.7f, 1.0f, // 右上
-     0.501f, 0.325f, -0.15f,    0.4f, 0.7f, 1.0f, // 左上
+    // 位置                // 法线         // 颜色
+     0.501f, 0.175f, -0.15f,  1.0f, 0.0f, 0.0f,  0.4f, 0.7f, 1.0f, // 左下
+     0.501f, 0.175f,  0.15f,  1.0f, 0.0f, 0.0f,  0.4f, 0.7f, 1.0f, // 右下
+     0.501f, 0.325f,  0.15f,  1.0f, 0.0f, 0.0f,  0.4f, 0.7f, 1.0f, // 右上
+     0.501f, 0.325f, -0.15f,  1.0f, 0.0f, 0.0f,  0.4f, 0.7f, 1.0f, // 左上
 };
 
 static const unsigned int windowIndices[] = {
@@ -33,12 +34,15 @@ void Window::setup() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(windowIndices), windowIndices, GL_STATIC_DRAW);
 
     // 位置
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    // 颜色
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    // 法线
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // 颜色
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
 
     glBindVertexArray(0);
 }

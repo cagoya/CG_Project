@@ -1,0 +1,30 @@
+#ifndef LIGHTINGPANEL_H
+#define LIGHTINGPANEL_H
+
+#include "IImGuiPanel.h"
+#include "light.h"
+#include <glm/glm.hpp>     
+#include <glm/gtc/type_ptr.hpp> 
+// 前向声明 ImGuiIO，避免在头文件中包含 "imgui_internal.h" 或过多 ImGui 细节 
+
+class LightingPanel : public IImGuiPanel {
+public:
+    // 引用操作 main.cpp 里面的变量
+	AmbientLight& ambientLightRef;
+    SpotLight& spotLightRef;
+    PointLight& pointLightRef;
+    DirectionalLight& directionalLightRef;
+    Material& materialRef;
+    LightingPanel(const char* name,ImGuiIO& io,SpotLight& spotlightref, AmbientLight& ambientlightref, PointLight& pointlightref, DirectionalLight
+        & directionalightref,Material& materialref) 
+        : ambientLightRef(ambientlightref),spotLightRef(spotlightref),
+        pointLightRef(pointlightref),directionalLightRef(directionalightref),materialRef(materialref)
+    {
+        PanelName = name;
+        IsVisible = true;
+    }
+
+    void Draw() override;
+};
+
+#endif 

@@ -1,100 +1,101 @@
-#include "wall.h"
+#include "outside/wall.h" 
 #include <glad/gl.h>
-#include <GLFW/glfw3.h>
 #include <iostream>
 
-// 这个用于绘制房屋的墙面
-static const float WallVertices[] = {
+Wall::Wall() : DrawObject()
+{
+    square_.getVertices() = {
+    // --- 原有顶点 0-29 ---
+    // 背面 (索引 0-3) - 使用独立纹理区域
+    -0.5f, 0.0f, -0.5f,  0.0f, 0.5f,  // 左下
+     0.5f, 0.0f, -0.5f,  0.5f, 0.5f,  // 右下
+     0.5f, 0.5f, -0.5f,  0.5f, 1.0f,  // 右上
+    -0.5f, 0.5f, -0.5f,  0.0f, 1.0f,  // 左上
+
+    // 正面基础顶点 (索引 4-7)
+    -0.5f, 0.0f, 0.5f,  0.0f, 0.0f,  // V4 左下
+     0.5f, 0.0f, 0.5f,  1.0f, 0.0f,  // V5 右下
+     0.5f, 0.5f, 0.5f,  1.0f, 0.5f,  // V6 右上
+    -0.5f, 0.5f, 0.5f,  0.0f, 0.5f,  // V7 左上
+
+    // 左面 (索引 8-11) - 使用独立纹理区域
+    -0.5f, 0.5f, 0.5f,  0.0f, 0.5f,
+    -0.5f, 0.5f, -0.5f, 0.5f, 0.5f,
+    -0.5f, 0.0f, -0.5f, 0.5f, 1.0f,
+    -0.5f, 0.0f, 0.5f,  0.0f, 1.0f,
+
+    // 右面 (索引 12-15) - 使用独立纹理区域
+     0.5f, 0.5f, 0.5f,  0.5f, 0.5f,
+     0.5f, 0.5f, -0.5f, 1.0f, 0.5f,
+     0.5f, 0.0f, -0.5f, 1.0f, 1.0f,
+     0.5f, 0.0f, 0.5f,  0.5f, 1.0f,
+
+    // 屋顶前面三角形 (索引 16-18)
+    -0.5f, 0.5f, 0.5f,  0.0f, 0.5f,
+     0.5f, 0.5f, 0.5f,  1.0f, 0.5f,
+     0.0f, 0.625f, 0.5f, 0.5f, 0.625f,
+
+    // 屋顶后面三角形 (索引 19-21)
+    -0.5f, 0.5f, -0.5f,  0.0f, 0.5f,
+     0.5f, 0.5f, -0.5f,  1.0f, 0.5f,
+     0.0f, 0.625f, -0.5f,0.5f, 0.625f,
+
+    // 顶面 (索引 22-25) - 使用独立纹理区域
+    -0.5f, 0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, 0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f, 0.5f, 0.5f,   1.0f, 1.0f,
+    -0.5f, 0.5f, 0.5f,   0.0f, 1.0f,
+
+    // 右面小矩形 (索引 26-29) - 使用独立纹理区域
+    0.5f, 0.175f, -0.15f,  0.0f, 0.0f,
+    0.5f, 0.175f, 0.15f,   0.3f, 0.0f,
+    0.5f, 0.325f, 0.15f,   0.3f, 0.3f,
+    0.5f, 0.325f, -0.15f,  0.0f, 0.3f,
+
+    // --- 新增顶点 (索引 30-35) ---
+    /*30 Hole_LB*/ -0.1f, 0.0f, 0.5f,  0.4f, 0.0f,
+    /*31 Hole_RB*/ 0.1f, 0.0f, 0.5f,   0.6f, 0.0f,
+    /*32 Hole_RT*/ 0.1f, 0.3f, 0.5f,   0.6f, 0.3f,
+    /*33 Hole_LT*/ -0.1f, 0.3f, 0.5f,  0.4f, 0.3f,
+    /*34 Aux_L*/ -0.5f, 0.3f, 0.5f,    0.0f, 0.3f,
+    /*35 Aux_R*/ 0.5f, 0.3f, 0.5f,     1.0f, 0.3f
+};
+
+// 索引保持不变
+square_.getIndices() = {
     // 背面
-    -0.5f, 0.0f, -0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f, 0.0f, -0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f,
-    -0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f,
-
-    // 正面
-    -0.5f, 0.0f,  0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f, 0.0f,  0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,
-    -0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,
-
+    0, 1, 2,  0, 2, 3,
     // 左面
-    -0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,
-    -0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f,
-    -0.5f, 0.0f, -0.5f,  0.5f, 0.5f, 0.5f,
-    -0.5f, 0.0f,  0.5f,  0.5f, 0.5f, 0.5f,
+    8, 9,10,  8,10,11,
+    // 右面特征
+    15, 27, 28, 15, 28, 12,
+    12, 28, 29, 12, 29, 13,
+    13, 29, 26, 13, 26, 14,
+    14, 26, 27, 14, 27, 15,
+    // 屋顶前面
+    16, 17, 18,
+    // 屋顶后面
+    19, 20, 21,
+    // 顶面
+    22, 23, 24,  22, 24, 25,
 
-    // 右面
-     0.5f,  0.5f,  0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f, 0.0f, -0.5f,  0.5f, 0.5f, 0.5f,
-     0.5f, 0.0f,  0.5f,  0.5f, 0.5f, 0.5f,
-
-    // 正面的三角形
-     -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
-     0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
-     0.0f, 0.625f, 0.5f, 0.5f, 0.5f, 0.5f,
-
-    // 背面的三角形
-     -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f,
-     0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f,
-     0.0f, 0.625f, -0.5f, 0.5f, 0.5f, 0.5f,
-
-     // 顶面（Y = 1.0）
-	 -0.5f, 0.5f, -0.5f,  0.6f, 0.6f, 0.6f,
-	  0.5f, 0.5f, -0.5f,  0.6f, 0.6f, 0.6f,
-	  0.5f, 0.5f,  0.5f,  0.6f, 0.6f, 0.6f,
-	 -0.5f, 0.5f,  0.5f,  0.6f, 0.6f, 0.6f
-
+    // 正面墙带门洞
+    4, 30, 33,
+    4, 33, 34,
+    31, 5, 35,
+    31, 35, 32,
+    34, 35, 6,
+    34, 6, 7
 };
 
-// 立方体的索引数据 (绘制12个三角形)
-static const unsigned int WallIndices[] = {
-    0, 1, 2,  0, 2, 3,    // 背面
-    4, 5, 6,  4, 6, 7,    // 正面
-    8, 9,10,  8,10,11,    // 左面
-    12,13,14, 12,14,15,   // 右面
-    16, 17, 18, //左半屋顶
-    19, 20, 21, //右半屋顶
-	22, 23, 24,  22, 24, 25 // 顶面
-
-};
-
-
-
-Wall::Wall() : DrawObject() {}
-
-Wall::~Wall() {}
+    square_.getTexturePath() = "../../media/textures/wall.jpg";
+} 
 
 void Wall::setup() {
-    glGenVertexArrays(1, &vao_);
-    glGenBuffers(1, &vbo_);
-    glGenBuffers(1, &ebo_);
-
-    glBindVertexArray(vao_);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(WallVertices), WallVertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(WallIndices), WallIndices, GL_STATIC_DRAW);
-
-    // 位置
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // 颜色
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
+    square_.setup();
 }
 
 
-void Wall::draw(Shader shader, const glm::mat4& modelMatrix) const {
-    shader.setMat4("model", modelMatrix);
-
-    glBindVertexArray(vao_);
-
-    glDrawElements(GL_TRIANGLES, sizeof(WallIndices) / sizeof(unsigned int), GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
+void Wall::draw(Shader& shader, const glm::mat4& modelMatrix) const {
+    square_.draw(shader, modelMatrix);
 }

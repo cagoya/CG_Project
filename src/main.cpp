@@ -5,16 +5,16 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "wall.h"
-#include "ground.h"
-#include "camera.h"
-#include "roof.h"
-#include "door.h"
-#include "window.h"
-#include "floor.h"
-#include "table.h"
-#include "shader.h"
-#include "skybox.h"
+#include "outside/wall.h"
+#include "outside/ground.h"
+#include "base/camera.h"
+#include "outside/roof.h"
+#include "outside/door.h"
+#include "outside/window.h"
+#include "inside/floor.h"
+#include "base/shader.h"
+#include "base/skybox.h"
+#include "base/square.h"
 #include "ObjectModel/ObjectModel.h"
 
 // 控制窗口
@@ -98,6 +98,9 @@ int main()
     Shader mainShader = Shader("../../media/shader/main/main_vs.txt", "../../media/shader/main/main_fs.txt");
     Shader objModelShader = Shader("../../media/shader/objModel/objModel_vs.txt","../../media/shader/objModel/objModel_fs.txt");
     Shader skyboxShader("../../media/shader/skybox/skybox_vs.txt", "../../media/shader/skybox/skybox_fs.txt");
+    Shader singleTextureShader = Shader("../../media/shader/singleTexture/singleTexture_vs.txt", 
+																"../../media/shader/singleTexture/singleTexture_fs.txt");
+    Shader windowShader = Shader("../../media/shader/window/window_vs.txt", "../../media/shader/window/window_fs.txt");
 
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
@@ -151,9 +154,6 @@ int main()
     Floor houseFloor;
     houseFloor.setup();
 
-    Table table;
-    table.setup();
-
     // 6. 启用深度测试
     glEnable(GL_DEPTH_TEST);
 
@@ -180,28 +180,36 @@ int main()
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         // 绘制天空盒
+        skyboxShader.use();
         glDepthFunc(GL_LEQUAL);
         glDepthMask(GL_FALSE);
-        skyboxShader.use();
         sky.draw(skyboxShader, view, projection);
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
 
         // --- 绘制场景中的物体 ---
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 houseModel = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
+        glm::mat4 insideModel = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+
+        singleTextureShader.use();
+        singleTextureShader.setMat4("view", view);
+        singleTextureShader.setMat4("projection", projection);
+
+        ground.draw(singleTextureShader, model);
+        houseDoor.draw(singleTextureShader, houseModel);
+        houseRoof.draw(singleTextureShader, houseModel);
+        houseFloor.draw(singleTextureShader, houseModel);
+        houseWall.draw(singleTextureShader, houseModel);
+
         mainShader.use();
         mainShader.setMat4("view", view);
         mainShader.setMat4("projection", projection);
 
-        glm::mat4 model = glm::mat4(1.0f);
-
-        ground.draw(mainShader, model);
-        houseWall.draw(mainShader, model);
-        houseFloor.draw(mainShader, model);
-        houseRoof.draw(mainShader, model);
-        houseDoor.draw(mainShader, model);
-        houseWindow.draw(mainShader, model);
-
-        
+        windowShader.use();
+        windowShader.setMat4("view", view);
+        windowShader.setMat4("projection", projection);
+        houseWindow.draw(mainShader, houseModel);
         
 
         // --- 在这里添加其他对象的绘制 ---

@@ -11,6 +11,9 @@
 #include "outside/door.h"
 #include "outside/window.h"
 #include "inside/floor.h"
+#include "base/column.h"
+#include "base/sphere.h"
+#include "base/tapering.h"
 #include "base/shader.h"
 #include "base/skybox.h"
 #include "base/light.h"
@@ -157,6 +160,15 @@ int main()
     Floor houseFloor;
     houseFloor.setup();
 
+    Column column(0.5f, 1.0f, 20, glm::vec3(0.0f, 0.0f, 0.0f), "../../media/textures/wall.jpg");
+    column.setup();
+
+    Sphere sphere(0.5f, 20, glm::vec3(0.0f, 0.0f, 0.0f), "../../media/textures/wall.jpg");
+    sphere.setup();
+
+    Tapering tapering(0.5f, 0.5f, 20, glm::vec3(0.5f, 0.5f, 0.5f), "../../media/textures/wall.jpg");
+	tapering.setup();
+
     // 6. 启用深度测试
     glEnable(GL_DEPTH_TEST);
 
@@ -222,6 +234,9 @@ int main()
         houseDoor.draw(mainShader, houseModel);
         houseWall.draw(mainShader, houseModel);
         houseFloor.draw(mainShader, houseModel);
+        column.draw(mainShader, glm::translate(model, glm::vec3(2.0f, 0.01f, 2.0f)));
+        sphere.draw(mainShader, translate(model, glm::vec3(-2.0f, 0.5f, -2.0f)));
+        tapering.draw(mainShader, translate(model, glm::vec3(2.0f, 0.5f, -2.0f)));
         houseWindow.draw(mainShader, houseModel);
 
 

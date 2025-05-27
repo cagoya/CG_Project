@@ -26,7 +26,7 @@ void Column::generateColumnSideData() {
 
         // 顶部环的顶点
         vertices.push_back(radius_ * x_norm);
-        vertices.push_back(height_ / 2.0f);
+        vertices.push_back(height_);
         vertices.push_back(radius_ * z_norm);
         vertices.push_back(x_norm);
         vertices.push_back(0.0f);
@@ -39,7 +39,7 @@ void Column::generateColumnSideData() {
 
         // 底部环的顶点
         vertices.push_back(radius_ * x_norm);
-        vertices.push_back(-height_ / 2.0f);
+        vertices.push_back(0.0f);
         vertices.push_back(radius_ * z_norm);
         vertices.push_back(x_norm);
         vertices.push_back(0.0f);
@@ -65,7 +65,7 @@ void Column::generateColumnSideData() {
     // 顶部圆心
 	    unsigned int top_center_idx = vertices.size() / 11; // 每个顶点有11个分量
 	    vertices.push_back(0.0f);                 // posX
-	    vertices.push_back(height_ / 2.0f);        // posY
+	    vertices.push_back(height_);        // posY
 	    vertices.push_back(0.0f);                 // posZ
 	    vertices.push_back(0.0f);                 // normX (顶部法线朝上)
 	    vertices.push_back(1.0f);                 // normY
@@ -86,7 +86,7 @@ void Column::generateColumnSideData() {
 	        float v_tex = (z / radius_ + 1.0f) / 2.0f;
 
 	        vertices.push_back(x);                     // posX
-	        vertices.push_back(height_ / 2.0f);        // posY
+	        vertices.push_back(height_);        // posY
 	        vertices.push_back(z);                     // posZ
 	        vertices.push_back(0.0f);                  // normX (顶部法线朝上)
 	        vertices.push_back(1.0f);                  // normY
@@ -109,7 +109,7 @@ void Column::generateColumnSideData() {
 	    // 底部圆心
 	    unsigned int bottom_center_idx = vertices.size() / 11;
 	    vertices.push_back(0.0f);                 // posX
-	    vertices.push_back(-height_ / 2.0f);       // posY
+	    vertices.push_back(0.0f);       // posY
 	    vertices.push_back(0.0f);                 // posZ
 	    vertices.push_back(0.0f);                 // normX (底部法线朝下)
 	    vertices.push_back(-1.0f);                // normY
@@ -129,7 +129,7 @@ void Column::generateColumnSideData() {
 	        float v_tex = (z / radius_ + 1.0f) / 2.0f;
 
 	        vertices.push_back(x);                     // posX
-	        vertices.push_back(-height_ / 2.0f);       // posY
+	        vertices.push_back(0.0f);       // posY
 	        vertices.push_back(z);                     // posZ
 	        vertices.push_back(0.0f);                  // normX (底部法线朝下)
 	        vertices.push_back(-1.0f);                 // normY

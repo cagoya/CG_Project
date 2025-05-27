@@ -1,8 +1,5 @@
 #include "inside/floor.h"
-#include <glad/gl.h>
 #include<iostream>
-#include<stb_image.h>
-#include <glm/gtc/type_ptr.hpp>
 
 Floor::Floor() : DrawObject()
 {

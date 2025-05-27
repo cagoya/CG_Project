@@ -94,5 +94,10 @@ void main() {
     vec3 diffuse = calcDirectionalLightdiff(normal, texColor.rgb) + calcSpotLightdiff(normal, texColor.rgb);
     vec3 specular = calcDirectionalSpecular(normal, viewDir) + calcSpotSpecular(normal, viewDir);
 
+    if (texColor.a < 0.1)
+    {
+        discard;
+    }
+
     FragColor = vec4((ambient + diffuse + specular), texColor.a);
 }

@@ -9,9 +9,11 @@
 #include "outside/roof.h"
 #include "outside/door.h"
 #include "outside/window.h"
+#include "outside/fence.h"
 #include "inside/floor.h"
 #include "inside/table.h"
 #include "inside/chair.h"
+#include "inside/clock.h"
 #include "base/shader.h"
 #include "base/skybox.h"
 #include "base/light.h"
@@ -164,6 +166,12 @@ int main()
     Chair chair;
     chair.setup();
 
+    Clock clock;
+    clock.setup();
+
+    Fence fence;
+    fence.setup();
+
     // 6. 启用深度测试
     glEnable(GL_DEPTH_TEST);
 
@@ -223,14 +231,19 @@ int main()
         mainShader.setFloat("spotLight.kc", spotLight.kc);
         mainShader.setFloat("spotLight.kl", spotLight.kl);
         mainShader.setFloat("spotLight.kq", spotLight.kq);
-
-        ground.draw(mainShader, model);
+        
         houseRoof.draw(mainShader, houseModel);
         houseDoor.draw(mainShader, houseModel);
         houseWall.draw(mainShader, houseModel);
-        houseFloor.draw(mainShader, houseModel);
+        houseWall.draw(mainShader, glm::scale(houseModel, glm::vec3(0.99f, 0.99f, 0.99f)));
+        
         table.draw(mainShader, model);
         chair.draw(mainShader, model);
+        clock.draw(mainShader, model);
+        ground.draw(mainShader, model);
+        
+        houseFloor.draw(mainShader, houseModel);
+        fence.draw(mainShader, model);
         houseWindow.draw(mainShader, houseModel);
 
 

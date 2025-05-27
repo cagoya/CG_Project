@@ -10,10 +10,14 @@
 #include "outside/door.h"
 #include "outside/window.h"
 #include "outside/fence.h"
+#include "outside/path.h"
+#include "outside/stone.h"
+#include "outside/grain_heap.h"
 #include "inside/floor.h"
 #include "inside/table.h"
 #include "inside/chair.h"
 #include "inside/clock.h"
+#include "inside/calligraphy.h"
 #include "base/shader.h"
 #include "base/skybox.h"
 #include "base/light.h"
@@ -172,6 +176,18 @@ int main()
     Fence fence;
     fence.setup();
 
+    Path path;
+    path.setup();
+
+    Stone stone;
+    stone.setup();
+
+    Grain grain;
+    grain.setup();
+
+    Calligraphy calligraphy;
+    calligraphy.setup();
+
     // 6. 启用深度测试
     glEnable(GL_DEPTH_TEST);
 
@@ -231,10 +247,10 @@ int main()
         mainShader.setFloat("spotLight.kc", spotLight.kc);
         mainShader.setFloat("spotLight.kl", spotLight.kl);
         mainShader.setFloat("spotLight.kq", spotLight.kq);
-        
         houseRoof.draw(mainShader, houseModel);
         houseDoor.draw(mainShader, houseModel);
         houseWall.draw(mainShader, houseModel);
+        path.draw(mainShader, houseModel);
         houseWall.draw(mainShader, glm::scale(houseModel, glm::vec3(0.99f, 0.99f, 0.99f)));
         
         table.draw(mainShader, model);
@@ -244,7 +260,13 @@ int main()
         
         houseFloor.draw(mainShader, houseModel);
         fence.draw(mainShader, model);
+        calligraphy.draw(mainShader, model);
+        stone.draw(mainShader, glm::translate(model, glm::vec3(-0.7f,0.0f,4.0f)));
+        stone.draw(mainShader, glm::translate(model, glm::vec3(0.7f, 0.0f, 4.0f)));
+        grain.draw(mainShader, glm::translate(model, glm::vec3(1.5f,0.0f,1.5f)));
+        grain.draw(mainShader, glm::translate(model, glm::vec3(-1.5f, 0.0f, 1.5f)));
         houseWindow.draw(mainShader, houseModel);
+
 
 
         // --- 在这里添加其他对象的绘制 ---

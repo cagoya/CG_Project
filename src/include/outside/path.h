@@ -1,10 +1,10 @@
-#ifndef INNER_WALL_H
-#define INNER_WALL_H
+#ifndef PATH_H
+#define PATH_H
 #include "base/square.h"
 
-class InnerWall {
+class Path {
 public:
-	InnerWall();
+	Path();
 	void setup();
 	void draw(Shader& shader, const glm::mat4& modelMatrix) const;
 private:

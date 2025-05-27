@@ -2,7 +2,6 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include "outside/wall.h"
 #include "outside/ground.h"
@@ -10,7 +9,11 @@
 #include "outside/roof.h"
 #include "outside/door.h"
 #include "outside/window.h"
+#include "outside/fence.h"
 #include "inside/floor.h"
+#include "inside/table.h"
+#include "inside/chair.h"
+#include "inside/clock.h"
 #include "base/shader.h"
 #include "base/skybox.h"
 #include "base/light.h"
@@ -45,8 +48,8 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 // 导入模型的参数
-static float modelScaleFactor = 1.0f;// 缩放
-static glm::vec3 modelPosition = glm::vec3(0.0f, 0.0f, 0.0f);// 位置
+static float modelScaleFactor = 0.01f;// 缩放
+static glm::vec3 modelPosition = glm::vec3(2.0f, 0.0f, 2.0f);// 位置
 
 //光线
 AmbientLight ambientLight;
@@ -55,11 +58,11 @@ DirectionalLight directionalLight;
 Material material;
 
 // 准备实现模型拖动
-//bool isInEditMode = false;
-//ObjectModel* selectedModel = nullptr; // 指向当前选中的 ObjectModel
-//bool isDragging = false;              // 是否正在拖动模型
-//glm::vec3 dragInitialIntersectPoint;  // 拖动开始时射线与拖动平面的交点 (世界空间)
-//glm::vec3 dragInitialModelPosition;
+bool isInEditMode = false;
+ObjectModel* selectedModel = nullptr; // 指向当前选中的 ObjectModel
+bool isDragging = false;              // 是否正在拖动模型
+glm::vec3 dragInitialIntersectPoint;  // 拖动开始时射线与拖动平面的交点 (世界空间)
+glm::vec3 dragInitialModelPosition;
 
 
 ImGuiController imguiController;
@@ -117,7 +120,7 @@ int main()
     // 5. 创建并设置场景中的物体对象
     
     ObjectModel myModel;
-    std::string objRelativePath = "../../media/Minotaur_Female_Lores.obj";//只需输入.obj位置即可
+    std::string objRelativePath = "";//只需输入.obj位置即可
     std::string mtlBaseRelativePath = ""; // 斜杠害人不浅 如果有mtl 和.obj放在一起即可（如果在一个folder里面，空字符串也可以） 填对应文件夹位置就行 是给texture提供相关支持的
 
     // 尝试加载模型
@@ -138,7 +141,7 @@ int main()
         it = "../../media/skybox/bak1/" + it;
     }
     Skybox sky(faces);
-
+    
     Ground ground;
     ground.setup();
 
@@ -157,14 +160,26 @@ int main()
     Floor houseFloor;
     houseFloor.setup();
 
+    Table table;
+    table.setup();
+
+    Chair chair;
+    chair.setup();
+
+    Clock clock;
+    clock.setup();
+
+    Fence fence;
+    fence.setup();
+
     // 6. 启用深度测试
     glEnable(GL_DEPTH_TEST);
 
     // 7. 渲染循环
     while (!glfwWindowShouldClose(window))
     {
-        GLenum err = glGetError();
-        if (err != GL_NO_ERROR) std::cerr << "OpenGL Error: " << err << std::endl;
+       // GLenum err = glGetError();
+        //if (err != GL_NO_ERROR) std::cerr << "OpenGL Error: " << err << std::endl;
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -216,17 +231,23 @@ int main()
         mainShader.setFloat("spotLight.kc", spotLight.kc);
         mainShader.setFloat("spotLight.kl", spotLight.kl);
         mainShader.setFloat("spotLight.kq", spotLight.kq);
-
-        ground.draw(mainShader, model);
+        
         houseRoof.draw(mainShader, houseModel);
         houseDoor.draw(mainShader, houseModel);
         houseWall.draw(mainShader, houseModel);
+        houseWall.draw(mainShader, glm::scale(houseModel, glm::vec3(0.99f, 0.99f, 0.99f)));
+        
+        table.draw(mainShader, model);
+        chair.draw(mainShader, model);
+        clock.draw(mainShader, model);
+        ground.draw(mainShader, model);
+        
         houseFloor.draw(mainShader, houseModel);
+        fence.draw(mainShader, model);
         houseWindow.draw(mainShader, houseModel);
 
 
         // --- 在这里添加其他对象的绘制 ---
-         /*
         objModelShader.use(); // 换到新的着色器程序
         
         // 为新的 objModelShaderProgram 设置 view 和 projection 矩阵
@@ -238,7 +259,7 @@ int main()
         modelForMyObj = glm::translate(modelForMyObj, modelPosition); // 调整模型在场景中的位置
         modelForMyObj = glm::scale(modelForMyObj, glm::vec3(modelScaleFactor));   // 调整模型的大小
         // 实现的ObjectModel::draw 方法内部会设置自己的 model 矩阵 uniform 和绑定 VAO
-        myModel.draw(objModelShader.id_, modelForMyObj);*/
+        myModel.draw(objModelShader.id_, modelForMyObj);
 
         // --------------------------------
         // ImGui 渲染绘制的面板数据

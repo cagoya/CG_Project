@@ -10,10 +10,14 @@
 #include "outside/door.h"
 #include "outside/window.h"
 #include "outside/fence.h"
+#include "outside/path.h"
+#include "outside/stone.h"
+#include "outside/grain_heap.h"
 #include "inside/floor.h"
 #include "inside/table.h"
 #include "inside/chair.h"
 #include "inside/clock.h"
+#include "inside/calligraphy.h"
 #include "base/shader.h"
 #include "base/skybox.h"
 #include "base/light.h"
@@ -23,6 +27,7 @@
 // 控制窗口
 #include "base/ImGuiController.h"
 #include  "base/ModelTransformPanel.h"
+#include "base/characterPanel.h"
 
 // 回调函数
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -63,6 +68,9 @@ ObjectModel* selectedModel = nullptr; // 指向当前选中的 ObjectModel
 bool isDragging = false;              // 是否正在拖动模型
 glm::vec3 dragInitialIntersectPoint;  // 拖动开始时射线与拖动平面的交点 (世界空间)
 glm::vec3 dragInitialModelPosition;
+
+// 汉字
+std::string sentence;
 
 
 ImGuiController imguiController;
@@ -116,6 +124,8 @@ int main()
     imguiController.AddPanel(modelPanel);
     auto lightPanel = std::make_shared<LightingPanel>("LightController", imguiController.GetIO(), spotLight, ambientLight, directionalLight, material);
     imguiController.AddPanel(lightPanel);
+    auto characterPanel = std::make_shared<CharacterPanel>("CharacterController", imguiController.GetIO(), sentence);
+    imguiController.AddPanel(characterPanel);
 
     // 5. 创建并设置场景中的物体对象
     
@@ -172,6 +182,17 @@ int main()
 
     Fence fence;
     fence.setup();
+
+    Path path;
+    path.setup();
+
+    Stone stone;
+    stone.setup();
+
+    Grain grain;
+    grain.setup();
+
+    Calligraphy calligraphy;
 
     // 6. 启用深度测试
     glEnable(GL_DEPTH_TEST);
@@ -232,20 +253,29 @@ int main()
         mainShader.setFloat("spotLight.kc", spotLight.kc);
         mainShader.setFloat("spotLight.kl", spotLight.kl);
         mainShader.setFloat("spotLight.kq", spotLight.kq);
-        
+        /*
         houseRoof.draw(mainShader, houseModel);
         houseDoor.draw(mainShader, houseModel);
         houseWall.draw(mainShader, houseModel);
+        path.draw(mainShader, houseModel);
         houseWall.draw(mainShader, glm::scale(houseModel, glm::vec3(0.99f, 0.99f, 0.99f)));
-        
+
         table.draw(mainShader, model);
         chair.draw(mainShader, model);
         clock.draw(mainShader, model);
         ground.draw(mainShader, model);
         
         houseFloor.draw(mainShader, houseModel);
-        fence.draw(mainShader, model);
-        houseWindow.draw(mainShader, houseModel);
+        fence.draw(mainShader, model);*/
+        calligraphy.generateTexture(sentence);
+        calligraphy.setup();
+        calligraphy.draw(mainShader, model);
+        /*stone.draw(mainShader, glm::translate(model, glm::vec3(-0.7f,0.0f,4.0f)));
+        stone.draw(mainShader, glm::translate(model, glm::vec3(0.7f, 0.0f, 4.0f)));
+        grain.draw(mainShader, glm::translate(model, glm::vec3(1.5f,0.0f,1.5f)));
+        grain.draw(mainShader, glm::translate(model, glm::vec3(-1.5f, 0.0f, 1.5f)));
+        houseWindow.draw(mainShader, houseModel);*/
+
 
 
         // --- 在这里添加其他对象的绘制 ---

@@ -27,6 +27,7 @@
 // 控制窗口
 #include "base/ImGuiController.h"
 #include  "base/ModelTransformPanel.h"
+#include "base/characterPanel.h"
 
 // 回调函数
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -67,6 +68,9 @@ ObjectModel* selectedModel = nullptr; // 指向当前选中的 ObjectModel
 bool isDragging = false;              // 是否正在拖动模型
 glm::vec3 dragInitialIntersectPoint;  // 拖动开始时射线与拖动平面的交点 (世界空间)
 glm::vec3 dragInitialModelPosition;
+
+// 汉字
+std::string sentence;
 
 
 ImGuiController imguiController;
@@ -120,6 +124,8 @@ int main()
     imguiController.AddPanel(modelPanel);
     auto lightPanel = std::make_shared<LightingPanel>("LightController", imguiController.GetIO(), spotLight, ambientLight, directionalLight, material);
     imguiController.AddPanel(lightPanel);
+    auto characterPanel = std::make_shared<CharacterPanel>("CharacterController", imguiController.GetIO(), sentence);
+    imguiController.AddPanel(characterPanel);
 
     // 5. 创建并设置场景中的物体对象
     
@@ -260,7 +266,7 @@ int main()
         
         houseFloor.draw(mainShader, houseModel);
         fence.draw(mainShader, model);*/
-        calligraphy.generateTexture("浙江大学");
+        calligraphy.generateTexture(sentence);
         calligraphy.setup();
         calligraphy.draw(mainShader, model);
         /*stone.draw(mainShader, glm::translate(model, glm::vec3(-0.7f,0.0f,4.0f)));

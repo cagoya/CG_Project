@@ -13,7 +13,6 @@ Square::~Square()
 	}
 }
 
-// ∞Û∂® vao_ vbo_ ebo_ 
 void Square::setup() {
     glGenVertexArrays(1, &vao_);
     glGenBuffers(1, &vbo_);
@@ -89,7 +88,6 @@ void Square::setup() {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-// ªÊ÷∆
 void Square::draw(Shader& shader, const glm::mat4& modelMatrix) const {
     shader.setMat4("model", modelMatrix);
     glActiveTexture(GL_TEXTURE0);

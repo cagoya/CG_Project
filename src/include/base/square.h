@@ -8,7 +8,6 @@
 
 #include "base/draw_object.h"
 
-// 长方形，其实不止长方形，任何图形都可以画，只要指定好顶点坐标和索引
 class Square : DrawObject {
 public:
 	Square() = default;

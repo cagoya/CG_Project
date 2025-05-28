@@ -88,6 +88,7 @@ target_include_directories(main PRIVATE
     external/imgui
     external/tinygltf
     external/utf8
+
 )
 
 target_link_libraries(main glad glfw glm stb imgui tinygltf utf8)

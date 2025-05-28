@@ -48,8 +48,8 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 // 导入模型的参数
-static float modelScaleFactor = 0.01f;// 缩放
-static glm::vec3 modelPosition = glm::vec3(2.0f, 0.0f, 2.0f);// 位置
+static float modelScaleFactor = 0.003f;// 缩放
+static glm::vec3 modelPosition = glm::vec3(4.0f, 0.2f, 2.0f);// 位置
 
 //光线
 AmbientLight ambientLight;
@@ -107,7 +107,7 @@ int main()
     Shader objModelShader = Shader("../../media/shader/objModel/objModel_vs.txt","../../media/shader/objModel/objModel_fs.txt");
     Shader skyboxShader("../../media/shader/skybox/skybox_vs.txt", "../../media/shader/skybox/skybox_fs.txt");
     Shader mainShader = Shader("../../media/shader/main/main.vert.glsl", "../../media/shader/main/main.frag.glsl");
-
+    //Shader waterShader = Shader("", "../../media/shader/water/water_fs.glsl");
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
@@ -120,8 +120,9 @@ int main()
     // 5. 创建并设置场景中的物体对象
     
     ObjectModel myModel;
-    std::string objRelativePath = "";//只需输入.obj位置即可
-    std::string mtlBaseRelativePath = ""; // 斜杠害人不浅 如果有mtl 和.obj放在一起即可（如果在一个folder里面，空字符串也可以） 填对应文件夹位置就行 是给texture提供相关支持的
+    std::string objRelativePath = "../../media/model/new_pool/source/swimmingPool.obj";//只需输入.obj位置即可
+    std::string mtlBaseRelativePath = "../../media/model/new_pool/source/"; // 斜杠害人不浅 如果有mtl 和.obj放在一起即可（如果在一个folder里面，空字符串也可以） 填对应文件夹位置就行 是给texture提供相关支持的
+
 
     // 尝试加载模型
     if (!myModel.load(objRelativePath, mtlBaseRelativePath)) {
@@ -254,6 +255,14 @@ int main()
         // (通常和上面的 view, projection 矩阵是一样的，但需要为当前激活的着色器重新设置)
         glUniformMatrix4fv(glGetUniformLocation(objModelShader.id_, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(objModelShader.id_, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+        GLint diffuseTexSamplerLoc = glGetUniformLocation(objModelShader.id_, "texture_diffuse1"); // "texture_diffuse1" 必须与片段着色器中的 sampler 名称一致
+        if (diffuseTexSamplerLoc != -1) {
+            glUniform1i(diffuseTexSamplerLoc, 0); // ObjectModel::draw 会将纹理绑定到 GL_TEXTURE0
+        }
+        else {
+            std::cout << "WARNING: Sampler uniform 'texture_diffuse1' not found in objModelShader!" << std::endl;
+        }
         // myModel 的模型矩阵
         glm::mat4 modelForMyObj = glm::mat4(1.0f); // 单位矩阵
         modelForMyObj = glm::translate(modelForMyObj, modelPosition); // 调整模型在场景中的位置

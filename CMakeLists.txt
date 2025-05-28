@@ -6,7 +6,7 @@ set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "utility")
 project(cg_projects LANGUAGES C CXX VERSION 1.1)
 
 # 编译器设置
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -83,7 +83,6 @@ target_include_directories(main PRIVATE
     external/stb
     external/imgui
     external/tinygltf
-    external/tinyobjloader
 )
 
 target_link_libraries(main glad glfw glm stb imgui tinygltf)

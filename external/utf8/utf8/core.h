@@ -37,7 +37,8 @@ DEALINGS IN THE SOFTWARE.
 // Otherwise, trust the unreliable predefined macro __cplusplus
 
 #if !defined UTF_CPP_CPLUSPLUS
-    #define UTF_CPP_CPLUSPLUS __cplusplus
+    //#define UTF_CPP_CPLUSPLUS __cplusplus
+    #define  UTF_CPP_CPLUSPLUS 201701L
 #endif
 
 #if UTF_CPP_CPLUSPLUS >= 201103L // C++ 11 or later

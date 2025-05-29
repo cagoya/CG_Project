@@ -1,0 +1,52 @@
+name: Windows Graphics Project CI Build
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+  workflow_dispatch: # 允许手动触发此工作流
+
+jobs:
+  build:
+    runs-on: windows-latest # 指定使用最新的 Windows 运行器
+
+    steps:
+      - name: Checkout code # 步骤1: 检出代码
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Configure CMake # 步骤2: 配置 CMake 项目
+        run: |
+          # 创建一个构建目录
+          mkdir build
+          cd build
+          # 使用 CMake 配置项目
+          # Generator: Visual Studio 17 2022 是 GitHub Actions Windows 运行器上默认的最新 VS 版本
+          # CMAKE_BUILD_TYPE 已经在你的 CMakeLists.txt 中默认设置为 Release，所以这里可以省略，
+          # 但明确指定也无妨。
+          cmake .. `
+            -DCMAKE_BUILD_TYPE=Release `
+            -G "Visual Studio 17 2022"
+        shell: pwsh # 使用 PowerShell 运行此脚本
+
+      - name: Build Project # 步骤3: 编译项目
+        run: |
+          cd build
+          # 使用 cmake --build 命令编译项目
+          # --config Release 指定构建配置
+          cmake --build . --config Release
+        shell: pwsh
+
+      - name: Upload Build Artifacts (Optional) # 步骤4: 上传构建产物 (可执行文件等)
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-graphics-project-build # Artifact 的名称
+          # 根据你的 CMakeLists.txt 中的 OUTDIR 设置，你的可执行文件应该在 build/bin/Release/ 目录下
+          path: build/bin/Release/ # 指定输出路径
+          retention-days: 7 # Artifact 保留天数

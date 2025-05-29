@@ -57,8 +57,8 @@ add_subdirectory(external/tinygltf)
 set_target_properties(tinygltf PROPERTIES FOLDER "lib")
 
 # utf8
-add_subdirectory(./external/utf8)
-set_target_properties(utf8 PROPERTIES FOLDER "lib")
+#add_subdirectory(./external/utf8)
+#set_target_properties(utf8 PROPERTIES FOLDER "lib")
 
 # === 添加你的主程序 ===
 # 收集所有 src 下的 .cpp 文件（包括 inside, outside 和 base）
@@ -87,11 +87,11 @@ target_include_directories(main PRIVATE
     external/stb
     external/imgui
     external/tinygltf
-    external/utf8
+    #external/utf8
 
 )
 
-target_link_libraries(main glad glfw glm stb imgui tinygltf utf8)
+target_link_libraries(main glad glfw glm stb imgui tinygltf)
 
 # 设置输出路径（封装函数也可）
 if (MSVC OR XCODE)

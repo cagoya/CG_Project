@@ -1,4 +1,4 @@
-﻿#include "inside/calligraphy.h"
+﻿/*#include "inside/calligraphy.h"
 #include<iostream>
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"
@@ -209,4 +209,4 @@ void Calligraphy::generateTexture(std::string sentence)
     else {
         std::cout << "成功保存图片到: " << output_file << std::endl;
     }
-}
+}*/

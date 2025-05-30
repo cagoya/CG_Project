@@ -1,30 +1,30 @@
-#version 330 core
-layout (location = 0) in vec3 aPos;       // ¶¥µãÎ»ÖÃ (À´×Ô VBO)
-layout (location = 1) in vec3 aNormal;    // ¶¥µã·¨Ïß (À´×Ô VBO)
-layout (location = 2) in vec2 aTexCoords; // ÎÆÀí×ø±ê (À´×Ô VBO)
+ï»¿#version 330 core
+layout (location = 0) in vec3 aPos;       // é¡¶ç‚¹ä½ç½® (æ¥è‡ª VBO)
+layout (location = 1) in vec3 aNormal;    // é¡¶ç‚¹æ³•çº¿ (æ¥è‡ª VBO)
+layout (location = 2) in vec2 aTexCoords; // çº¹ç†åæ ‡ (æ¥è‡ª VBO)
 
-// Êä³öµ½Æ¬¶Î×ÅÉ«Æ÷
-out vec3 FragPos_worldspace; // Æ¬¶ÎÔÚÊÀ½ç¿Õ¼äÖĞµÄÎ»ÖÃ
-out vec3 Normal_worldspace;  // ·¨ÏßÔÚÊÀ½ç¿Õ¼äÖĞµÄ·½Ïò
-out vec2 TexCoords_FS;       // ÎÆÀí×ø±ê
+// è¾“å‡ºåˆ°ç‰‡æ®µç€è‰²å™¨
+out vec3 FragPos_worldspace; // ç‰‡æ®µåœ¨ä¸–ç•Œç©ºé—´ä¸­çš„ä½ç½®
+out vec3 Normal_worldspace;  // æ³•çº¿åœ¨ä¸–ç•Œç©ºé—´ä¸­çš„æ–¹å‘
+out vec2 TexCoords_FS;       // çº¹ç†åæ ‡
 
-// Uniform ±äÁ¿
+// Uniform å˜é‡
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
 void main()
 {
-    // ¼ÆËã²Ã¼ô¿Õ¼äÖĞµÄ¶¥µãÎ»ÖÃ
+    // è®¡ç®—è£å‰ªç©ºé—´ä¸­çš„é¡¶ç‚¹ä½ç½®
     gl_Position = projection * view * model * vec4(aPos, 1.0);
 
-    // ¼ÆËãÊÀ½ç¿Õ¼äÖĞµÄ¶¥µãÎ»ÖÃ (ÓÃÓÚ¹âÕÕ¼ÆËã)
+    // è®¡ç®—ä¸–ç•Œç©ºé—´ä¸­çš„é¡¶ç‚¹ä½ç½® (ç”¨äºå…‰ç…§è®¡ç®—)
     FragPos_worldspace = vec3(model * vec4(aPos, 1.0));
 
-    // ¼ÆËãÊÀ½ç¿Õ¼äÖĞµÄ·¨Ïß·½Ïò
-    // Èç¹û model ¾ØÕó°üº¬²»µÈ±ÈËõ·Å£¬ĞèÒªÊ¹ÓÃÄæ×ªÖÃ¾ØÕóÀ´ÕıÈ·±ä»»·¨Ïß
+    // è®¡ç®—ä¸–ç•Œç©ºé—´ä¸­çš„æ³•çº¿æ–¹å‘
+    // å¦‚æœ model çŸ©é˜µåŒ…å«ä¸ç­‰æ¯”ç¼©æ”¾ï¼Œéœ€è¦ä½¿ç”¨é€†è½¬ç½®çŸ©é˜µæ¥æ­£ç¡®å˜æ¢æ³•çº¿
     Normal_worldspace = mat3(transpose(inverse(model))) * aNormal;
 
-    // Ö±½Ó´«µİÎÆÀí×ø±ê¸øÆ¬¶Î×ÅÉ«Æ÷
+    // ç›´æ¥ä¼ é€’çº¹ç†åæ ‡ç»™ç‰‡æ®µç€è‰²å™¨
     TexCoords_FS = aTexCoords;
 }

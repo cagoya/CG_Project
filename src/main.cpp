@@ -253,7 +253,7 @@ int main()
         mainShader.setFloat("spotLight.kc", spotLight.kc);
         mainShader.setFloat("spotLight.kl", spotLight.kl);
         mainShader.setFloat("spotLight.kq", spotLight.kq);
-        /*
+        
         houseRoof.draw(mainShader, houseModel);
         houseDoor.draw(mainShader, houseModel);
         houseWall.draw(mainShader, houseModel);
@@ -266,15 +266,15 @@ int main()
         ground.draw(mainShader, model);
         
         houseFloor.draw(mainShader, houseModel);
-        fence.draw(mainShader, model);*/
+        fence.draw(mainShader, model);
         calligraphy.generateTexture(sentence);
         calligraphy.setup();
         calligraphy.draw(mainShader, model);
-        /*stone.draw(mainShader, glm::translate(model, glm::vec3(-0.7f,0.0f,4.0f)));
+        stone.draw(mainShader, glm::translate(model, glm::vec3(-0.7f,0.0f,4.0f)));
         stone.draw(mainShader, glm::translate(model, glm::vec3(0.7f, 0.0f, 4.0f)));
         grain.draw(mainShader, glm::translate(model, glm::vec3(1.5f,0.0f,1.5f)));
         grain.draw(mainShader, glm::translate(model, glm::vec3(-1.5f, 0.0f, 1.5f)));
-        houseWindow.draw(mainShader, houseModel);*/
+        houseWindow.draw(mainShader, houseModel);
 
 
 

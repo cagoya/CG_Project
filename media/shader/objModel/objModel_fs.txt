@@ -1,62 +1,62 @@
-#version 330 core
-out vec4 FragColor; // Êä³öµÄ×îÖÕÑÕÉ«
+ï»¿#version 330 core
+out vec4 FragColor; // è¾“å‡ºçš„æœ€ç»ˆé¢œè‰²
 
-// ´Ó¶¥µã×ÅÉ«Æ÷½ÓÊÕµÄÊäÈë
+// ä»é¡¶ç‚¹ç€è‰²å™¨æ¥æ”¶çš„è¾“å…¥
 in vec3 FragPos_worldspace;
 in vec3 Normal_worldspace;
 in vec2 TexCoords_FS;
 
-// Uniform ±äÁ¿
-uniform sampler2D texture_diffuse1; // Âş·´ÉäÎÆÀí²ÉÑùÆ÷
-// uniform vec3 viewPos; // Èç¹ûĞèÒª¾µÃæ¹âÕÕ£¬¿ÉÒÔ´«ÈëÏà»úÎ»ÖÃ (ÊÀ½ç¿Õ¼ä)
+// Uniform å˜é‡
+uniform sampler2D texture_diffuse1; // æ¼«åå°„çº¹ç†é‡‡æ ·å™¨
+// uniform vec3 viewPos; // å¦‚æœéœ€è¦é•œé¢å…‰ç…§ï¼Œå¯ä»¥ä¼ å…¥ç›¸æœºä½ç½® (ä¸–ç•Œç©ºé—´)
 
-// Èç¹ûµÄ²ÄÖÊ²»½ö½öÊÇÎÆÀí£¬»¹¿ÉÒÔ¶¨ÒåÆäËûuniform£¬ÀıÈç:
-// uniform vec3 u_objectBaseColor; // Ò»¸ö»ù´¡ÑÕÉ«£¬¿ÉÒÔÓëÎÆÀí»ìºÏ
+// å¦‚æœçš„æè´¨ä¸ä»…ä»…æ˜¯çº¹ç†ï¼Œè¿˜å¯ä»¥å®šä¹‰å…¶ä»–uniformï¼Œä¾‹å¦‚:
+// uniform vec3 u_objectBaseColor; // ä¸€ä¸ªåŸºç¡€é¢œè‰²ï¼Œå¯ä»¥ä¸çº¹ç†æ··åˆ
 // uniform float u_materialShininess;
 // uniform vec3 u_specularColor;
 
 void main()
 {
-    // 1. ´ÓÎÆÀí²ÉÑùÑÕÉ«
+    // 1. ä»çº¹ç†é‡‡æ ·é¢œè‰²
     vec4 texColor = texture(texture_diffuse1, TexCoords_FS);
 
-    // Èç¹ûÎÆÀíµÄalphaÖµĞ¡ÓÚÄ³¸öãĞÖµ£¬¿ÉÒÔ¶ªÆúÆ¬¶Î£¨ÀıÈçÓÃÓÚÍ¸Ã÷ÌùÍ¼µÄïÎ¿ÕĞ§¹û£©
+    // å¦‚æœçº¹ç†çš„alphaå€¼å°äºæŸä¸ªé˜ˆå€¼ï¼Œå¯ä»¥ä¸¢å¼ƒç‰‡æ®µï¼ˆä¾‹å¦‚ç”¨äºé€æ˜è´´å›¾çš„é•‚ç©ºæ•ˆæœï¼‰
     // if(texColor.a < 0.1)
     //     discard;
 
-    // 2. ¹âÕÕ¼ÆËã (Ò»¸ö¼òµ¥µÄBlinn-Phong»ò½öÂş·´Éä¹âÕÕÄ£ĞÍ)
+    // 2. å…‰ç…§è®¡ç®— (ä¸€ä¸ªç®€å•çš„Blinn-Phongæˆ–ä»…æ¼«åå°„å…‰ç…§æ¨¡å‹)
 
-    // »·¾³¹â
-    float ambientStrength = 0.2; // »·¾³¹âÇ¿¶È (¿ÉÒÔ×÷Îªuniform´«Èë)
-    // vec3 ambientLightColor = vec3(1.0, 1.0, 1.0); // »·¾³¹âÑÕÉ« (Í¨³£ÊÇ³¡¾°È«¾ÖµÄ, ¿ÉÒÔ×÷Îªuniform´«Èë)
-    vec3 ambient = ambientStrength * texColor.rgb; // »·¾³¹âÖ±½Ó×÷ÓÃÓÚÎÆÀíÑÕÉ«
+    // ç¯å¢ƒå…‰
+    float ambientStrength = 0.2; // ç¯å¢ƒå…‰å¼ºåº¦ (å¯ä»¥ä½œä¸ºuniformä¼ å…¥)
+    // vec3 ambientLightColor = vec3(1.0, 1.0, 1.0); // ç¯å¢ƒå…‰é¢œè‰² (é€šå¸¸æ˜¯åœºæ™¯å…¨å±€çš„, å¯ä»¥ä½œä¸ºuniformä¼ å…¥)
+    vec3 ambient = ambientStrength * texColor.rgb; // ç¯å¢ƒå…‰ç›´æ¥ä½œç”¨äºçº¹ç†é¢œè‰²
 
-    // Âş·´Éä¹â
+    // æ¼«åå°„å…‰
     vec3 norm = normalize(Normal_worldspace);
-    vec3 lightDir_worldspace = normalize(vec3(0.5, 1.0, 0.7)); // ¶¨ÒåÒ»¸ö¹Ì¶¨µÄ¹âÔ´·½Ïò (ÊÀ½ç¿Õ¼ä)
-                                                              //  Ò²¿ÉÒÔ½«Æä×÷Îªuniform vec3´ÓC++´«Èë
-    vec3 lightColor = vec3(1.0, 1.0, 1.0); // ¹âÔ´ÑÕÉ« (°×É«, ¿ÉÒÔ×÷Îªuniform´«Èë)
+    vec3 lightDir_worldspace = normalize(vec3(0.5, 1.0, 0.7)); // å®šä¹‰ä¸€ä¸ªå›ºå®šçš„å…‰æºæ–¹å‘ (ä¸–ç•Œç©ºé—´)
+                                                              //  ä¹Ÿå¯ä»¥å°†å…¶ä½œä¸ºuniform vec3ä»C++ä¼ å…¥
+    vec3 lightColor = vec3(1.0, 1.0, 1.0); // å…‰æºé¢œè‰² (ç™½è‰², å¯ä»¥ä½œä¸ºuniformä¼ å…¥)
 
-    float diff = max(dot(norm, lightDir_worldspace), 0.0); // ¼ÆËãÂş·´ÉäÒò×Ó
-    vec3 diffuse = diff * lightColor * texColor.rgb; // Âş·´Éä¹â×÷ÓÃÓÚÎÆÀíÑÕÉ«,²¢³ËÒÔ¹âÔ´ÑÕÉ«
+    float diff = max(dot(norm, lightDir_worldspace), 0.0); // è®¡ç®—æ¼«åå°„å› å­
+    vec3 diffuse = diff * lightColor * texColor.rgb; // æ¼«åå°„å…‰ä½œç”¨äºçº¹ç†é¢œè‰²,å¹¶ä¹˜ä»¥å…‰æºé¢œè‰²
 
-    // (¿ÉÑ¡) ¾µÃæ¹âÕÕ - Èç¹ûĞèÒª£¬È¡Ïû×¢ÊÍ²¢È·±£Ïà¹Øuniform (viewPos, u_materialShininess, u_specularColor) ÒÑ¶¨ÒåºÍ´«µİ
+    // (å¯é€‰) é•œé¢å…‰ç…§ - å¦‚æœéœ€è¦ï¼Œå–æ¶ˆæ³¨é‡Šå¹¶ç¡®ä¿ç›¸å…³uniform (viewPos, u_materialShininess, u_specularColor) å·²å®šä¹‰å’Œä¼ é€’
     /*
-    float specularStrength = 0.5; // ¾µÃæ¹âÇ¿¶È (¿ÉÒÔ×÷Îªuniform´«Èë)
-    vec3 viewDir_worldspace = normalize(viewPos - FragPos_worldspace); // ¼ÆËã¹Û²ì·½Ïò
-    vec3 halfwayDir = normalize(lightDir_worldspace + viewDir_worldspace); // Blinn-PhongµÄ°ë³ÌÏòÁ¿
-    // vec3 reflectDir = reflect(-lightDir_worldspace, norm); // PhongµÄ·´ÉäÏòÁ¿
+    float specularStrength = 0.5; // é•œé¢å…‰å¼ºåº¦ (å¯ä»¥ä½œä¸ºuniformä¼ å…¥)
+    vec3 viewDir_worldspace = normalize(viewPos - FragPos_worldspace); // è®¡ç®—è§‚å¯Ÿæ–¹å‘
+    vec3 halfwayDir = normalize(lightDir_worldspace + viewDir_worldspace); // Blinn-Phongçš„åŠç¨‹å‘é‡
+    // vec3 reflectDir = reflect(-lightDir_worldspace, norm); // Phongçš„åå°„å‘é‡
     // float spec = pow(max(dot(viewDir_worldspace, reflectDir), 0.0), u_materialShininess);
-    float spec = pow(max(dot(norm, halfwayDir), 0.0), u_materialShininess); // u_materialShininess ±ÈÈç 32.0
-    vec3 specular = specularStrength * spec * lightColor * u_specularColor; // ¾µÃæÑÕÉ«Í¨³£ÊÇ¹âÔ´ÑÕÉ«³ËÒÔ²ÄÖÊµÄ¾µÃæ·´ÉäÑÕÉ«
+    float spec = pow(max(dot(norm, halfwayDir), 0.0), u_materialShininess); // u_materialShininess æ¯”å¦‚ 32.0
+    vec3 specular = specularStrength * spec * lightColor * u_specularColor; // é•œé¢é¢œè‰²é€šå¸¸æ˜¯å…‰æºé¢œè‰²ä¹˜ä»¥æè´¨çš„é•œé¢åå°„é¢œè‰²
     */
 
-    // 3. ×îÖÕÑÕÉ«×éºÏ
-    // vec3 resultColor = ambient + diffuse + specular; // Èç¹ûÓĞ¾µÃæ¹â
+    // 3. æœ€ç»ˆé¢œè‰²ç»„åˆ
+    // vec3 resultColor = ambient + diffuse + specular; // å¦‚æœæœ‰é•œé¢å…‰
     vec3 resultColor = ambient + diffuse;
 
-    FragColor = vec4(resultColor, texColor.a); // Ê¹ÓÃÎÆÀíµÄalphaÖµ×÷Îª×îÖÕÑÕÉ«µÄalpha
+    FragColor = vec4(resultColor, texColor.a); // ä½¿ç”¨çº¹ç†çš„alphaå€¼ä½œä¸ºæœ€ç»ˆé¢œè‰²çš„alpha
 
-    // --- Èç¹ûÏëÔİÊ±ºöÂÔ¹âÕÕ£¬Ö±½Ó¿´ÎÆÀíĞ§¹û£¬¿ÉÒÔÈ¡ÏûÏÂÃæÕâĞĞµÄ×¢ÊÍ£¬²¢×¢ÊÍµôÉÏÃæµÄ¹âÕÕºÍÑÕÉ«×éºÏ ---
+    // --- å¦‚æœæƒ³æš‚æ—¶å¿½ç•¥å…‰ç…§ï¼Œç›´æ¥çœ‹çº¹ç†æ•ˆæœï¼Œå¯ä»¥å–æ¶ˆä¸‹é¢è¿™è¡Œçš„æ³¨é‡Šï¼Œå¹¶æ³¨é‡Šæ‰ä¸Šé¢çš„å…‰ç…§å’Œé¢œè‰²ç»„åˆ ---
     // FragColor = texColor;
 }

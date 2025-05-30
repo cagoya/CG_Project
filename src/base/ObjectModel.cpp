@@ -1,12 +1,12 @@
 #include "ObjectModel.h"
 #include "OurObjLoader.h"
 #include <iostream>
-#include <set> // ÓÃÓÚÊÕ¼¯Î¨Ò»ÎÆÀíID
+#include <set> // ç”¨äºæ”¶é›†å”¯ä¸€çº¹ç†ID
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
 
 
-// ¸¨Öúº¯Êı£º·Ö¸î×Ö·û´®
+// è¾…åŠ©å‡½æ•°ï¼šåˆ†å‰²å­—ç¬¦ä¸²
 static inline std::vector<std::string> objSplitString(const std::string& s, char delimiter) {
     std::vector<std::string> tokens;
     std::string token;
@@ -19,7 +19,7 @@ static inline std::vector<std::string> objSplitString(const std::string& s, char
     return tokens;
 }
 
-// ¸¨Öúº¯Êı£º½âÎöÃæ¶¥µã×Ö·û´® 
+// è¾…åŠ©å‡½æ•°ï¼šè§£æé¢é¡¶ç‚¹å­—ç¬¦ä¸² 
 static inline bool objParseFaceVertexIndices(const std::string& faceVertexStr,
     int& v_idx, int& vt_idx, int& vn_idx,
     int max_v_idx, int max_vt_idx, int max_vn_idx) {
@@ -49,7 +49,7 @@ static inline bool objParseFaceVertexIndices(const std::string& faceVertexStr,
 ObjectModel::ObjectModel() {}
 
 ObjectModel::~ObjectModel() {
-    // ÇåÀíËùÓĞ×ÓÍø¸ñµÄOpenGL×ÊÔ´
+    // æ¸…ç†æ‰€æœ‰å­ç½‘æ ¼çš„OpenGLèµ„æº
     for (SubMesh& sm : subMeshes) {
         if (sm.VAO != 0) glDeleteVertexArrays(1, &sm.VAO);
         if (sm.VBO != 0) glDeleteBuffers(1, &sm.VBO);
@@ -57,10 +57,10 @@ ObjectModel::~ObjectModel() {
     }
     subMeshes.clear();
 
-    // ÇåÀíËùÓĞÊÕ¼¯µ½µÄÎ¨Ò»ÎÆÀíID
-    // OurObjLoader ¼ÓÔØÁËÕâĞ©ÎÆÀí£¬ObjectModel ÔÚÕâÀï¸ºÔğÊÍ·ÅËüÃÇ
+    // æ¸…ç†æ‰€æœ‰æ”¶é›†åˆ°çš„å”¯ä¸€çº¹ç†ID
+    // OurObjLoader åŠ è½½äº†è¿™äº›çº¹ç†ï¼ŒObjectModel åœ¨è¿™é‡Œè´Ÿè´£é‡Šæ”¾å®ƒä»¬
     for (GLuint textureID : uniqueTextureIDsForCleanup) {
-        if (textureID != 0) { // È·±£IDÓĞĞ§
+        if (textureID != 0) { // ç¡®ä¿IDæœ‰æ•ˆ
             glDeleteTextures(1, &textureID);
         }
     }
@@ -69,7 +69,7 @@ ObjectModel::~ObjectModel() {
 }
 
 void ObjectModel::setupGpuResourcesForSubMesh(SubMesh& meshToSetup,
-    const std::vector<Vertex>& vertices, // Ê¹ÓÃ¹«¹²µÄ Vertex ½á¹¹
+    const std::vector<Vertex>& vertices, // ä½¿ç”¨å…¬å…±çš„ Vertex ç»“æ„
     const std::vector<unsigned int>& indices) {
     if (vertices.empty() || indices.empty()) {
         std::cerr << "OBJECTMODEL ERROR: Attempted to setup GPU resources for submesh with no vertex or index data." << std::endl;
@@ -88,28 +88,28 @@ void ObjectModel::setupGpuResourcesForSubMesh(SubMesh& meshToSetup,
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshToSetup.EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-    // ¶¥µãÎ»ÖÃÊôĞÔ
+    // é¡¶ç‚¹ä½ç½®å±æ€§
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Position));
-    // ¶¥µã·¨ÏßÊôĞÔ
+    // é¡¶ç‚¹æ³•çº¿å±æ€§
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-    // ¶¥µãÎÆÀí×ø±êÊôĞÔ
+    // é¡¶ç‚¹çº¹ç†åæ ‡å±æ€§
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 
-    glBindVertexArray(0); // ½â°óVAO
+    glBindVertexArray(0); // è§£ç»‘VAO
     meshToSetup.indexCount = static_cast<GLsizei>(indices.size());
 }
 
 
 bool ObjectModel::load(const std::string& objFilePath, const std::string& mtlBasePath) {
-    // 1. ÇåÀí¾ÉÊı¾İ
+    // 1. æ¸…ç†æ—§æ•°æ®
     for (SubMesh& sm : subMeshes) {
         if (sm.VAO != 0) glDeleteVertexArrays(1, &sm.VAO);
         if (sm.VBO != 0) glDeleteBuffers(1, &sm.VBO);
         if (sm.EBO != 0) glDeleteBuffers(1, &sm.EBO);
-        sm.VAO = sm.VBO = sm.EBO = 0; // ÖØÖÃID
+        sm.VAO = sm.VBO = sm.EBO = 0; // é‡ç½®ID
     }
     subMeshes.clear();
 
@@ -118,9 +118,9 @@ bool ObjectModel::load(const std::string& objFilePath, const std::string& mtlBas
     }
     uniqueTextureIDsForCleanup.clear();
 
-    // 2. Ê¹ÓÃ OurObjLoader ¼ÓÔØÄ£ĞÍÊı¾İ
-    OurObjLoader loaderInstance; // ´´½¨¼ÓÔØÆ÷ÊµÀı
-    std::vector<OurObjMesh> loadedMeshesFromLoader; // OurObjLoader.h ÖĞ¶¨ÒåµÄ½á¹¹
+    // 2. ä½¿ç”¨ OurObjLoader åŠ è½½æ¨¡å‹æ•°æ®
+    OurObjLoader loaderInstance; // åˆ›å»ºåŠ è½½å™¨å®ä¾‹
+    std::vector<OurObjMesh> loadedMeshesFromLoader; // OurObjLoader.h ä¸­å®šä¹‰çš„ç»“æ„
 
     std::cout << "ObjectModel: Attempting to load model '" << objFilePath << "' with OurObjLoader." << std::endl;
     if (!loaderInstance.loadObj(objFilePath, mtlBasePath, loadedMeshesFromLoader)) {
@@ -130,14 +130,14 @@ bool ObjectModel::load(const std::string& objFilePath, const std::string& mtlBas
 
     if (loadedMeshesFromLoader.empty()) {
         std::cout << "ObjectModel: OurObjLoader returned no meshes for " << objFilePath << "." << std::endl;
-        // Õâ²»Ò»¶¨ÊÇ´íÎó£¬¿ÉÄÜÊÇ¿ÕÄ£ĞÍ£¬µ«Í¨³£Ä£ĞÍÖÁÉÙÓĞÒ»¸öÍø¸ñ
-        return true; // »òÕß false£¬È¡¾öÓÚÈçºÎ¶¨Òå¡°³É¹¦¼ÓÔØ¿ÕÄ£ĞÍ¡±
+        // è¿™ä¸ä¸€å®šæ˜¯é”™è¯¯ï¼Œå¯èƒ½æ˜¯ç©ºæ¨¡å‹ï¼Œä½†é€šå¸¸æ¨¡å‹è‡³å°‘æœ‰ä¸€ä¸ªç½‘æ ¼
+        return true; // æˆ–è€… falseï¼Œå–å†³äºå¦‚ä½•å®šä¹‰â€œæˆåŠŸåŠ è½½ç©ºæ¨¡å‹â€
     }
 
     std::cout << "ObjectModel: OurObjLoader provided " << loadedMeshesFromLoader.size() << " mesh parts." << std::endl;
 
-    // 3. ÎªÃ¿¸ö OurObjMesh ´´½¨²¢ÉèÖÃ ObjectModel::SubMesh
-    std::set<GLuint> tempUniqueTextureIDs; // ÓÃÓÚÊÕ¼¯´Ë¼ÓÔØ²Ù×÷ÖĞµÄÎ¨Ò»ÎÆÀíID
+    // 3. ä¸ºæ¯ä¸ª OurObjMesh åˆ›å»ºå¹¶è®¾ç½® ObjectModel::SubMesh
+    std::set<GLuint> tempUniqueTextureIDs; // ç”¨äºæ”¶é›†æ­¤åŠ è½½æ“ä½œä¸­çš„å”¯ä¸€çº¹ç†ID
 
     for (const OurObjMesh& sourceMesh : loadedMeshesFromLoader) {
         if (sourceMesh.vertices.empty() || sourceMesh.indices.empty()) {
@@ -146,13 +146,13 @@ bool ObjectModel::load(const std::string& objFilePath, const std::string& mtlBas
         }
 
         SubMesh newSubMesh;
-        newSubMesh.diffuseTextureId = sourceMesh.diffuseTextureId; // Ö±½ÓÊ¹ÓÃ¼ÓÔØÆ÷Ìá¹©µÄÎÆÀíID
+        newSubMesh.diffuseTextureId = sourceMesh.diffuseTextureId; // ç›´æ¥ä½¿ç”¨åŠ è½½å™¨æä¾›çš„çº¹ç†ID
 
         if (newSubMesh.diffuseTextureId != 0) {
             tempUniqueTextureIDs.insert(newSubMesh.diffuseTextureId);
         }
 
-        // ½« OurObjVertex ×ª»»Îª ObjectModel::Vertex (Èç¹ûËüÃÇ²»ÍêÈ«ÏàÍ¬)
+        // å°† OurObjVertex è½¬æ¢ä¸º ObjectModel::Vertex (å¦‚æœå®ƒä»¬ä¸å®Œå…¨ç›¸åŒ)
         std::vector<Vertex> modelVertices;
         modelVertices.reserve(sourceMesh.vertices.size());
         for (const auto& ov : sourceMesh.vertices) {
@@ -165,44 +165,44 @@ bool ObjectModel::load(const std::string& objFilePath, const std::string& mtlBas
             //<< "' with " << newSubMesh.indexCount << " indices and TextureID: " << newSubMesh.diffuseTextureId << std::endl;
     }
 
-    // 4. ´æ´¢Î¨Ò»µÄÎÆÀíIDÒÔ¹©½«À´ÇåÀí
+    // 4. å­˜å‚¨å”¯ä¸€çš„çº¹ç†IDä»¥ä¾›å°†æ¥æ¸…ç†
     uniqueTextureIDsForCleanup.assign(tempUniqueTextureIDs.begin(), tempUniqueTextureIDs.end());
 
     //std::cout << "ObjectModel: Successfully loaded and processed '" << objFilePath << "'." << std::endl;
     //std::cout << "  Total sub-meshes: " << subMeshes.size() << std::endl;
     //std::cout << "  Total unique textures for cleanup: " << uniqueTextureIDsForCleanup.size() << std::endl;
 
-    return !subMeshes.empty(); // ³É¹¦¼ÓÔØµÄ±ê×¼ÊÇÖÁÉÙÓĞÒ»¸öÓĞĞ§µÄ×ÓÍø¸ñ
+    return !subMeshes.empty(); // æˆåŠŸåŠ è½½çš„æ ‡å‡†æ˜¯è‡³å°‘æœ‰ä¸€ä¸ªæœ‰æ•ˆçš„å­ç½‘æ ¼
 }
 
 void ObjectModel::draw(unsigned int shaderProgram, const glm::mat4& modelMatrix) {
-    // ÉèÖÃÄ£ĞÍ±ä»»¾ØÕó (Í¨³£Ò»´Î¼´¿É£¬³ı·Ç×ÓÍø¸ñÓĞ²»Í¬±ä»»)
+    // è®¾ç½®æ¨¡å‹å˜æ¢çŸ©é˜µ (é€šå¸¸ä¸€æ¬¡å³å¯ï¼Œé™¤éå­ç½‘æ ¼æœ‰ä¸åŒå˜æ¢)
     unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
-    // Í¨³££¬ÎÆÀíµ¥ÔªµÄuniformÔÚ×ÅÉ«Æ÷³õÊ¼»¯Ê±ÉèÖÃÒ»´Î£¬ÀıÈç£º
+    // é€šå¸¸ï¼Œçº¹ç†å•å…ƒçš„uniformåœ¨ç€è‰²å™¨åˆå§‹åŒ–æ—¶è®¾ç½®ä¸€æ¬¡ï¼Œä¾‹å¦‚ï¼š
     // glUseProgram(shaderProgram);
-    // glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse1"), 0); // Âş·´ÉäÎÆÀíÊ¹ÓÃµ¥Ôª0
+    // glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse1"), 0); // æ¼«åå°„çº¹ç†ä½¿ç”¨å•å…ƒ0
 
     for (const SubMesh& sm : subMeshes) {
-        if (sm.VAO == 0 || sm.indexCount == 0) continue; // Ìø¹ıÎŞĞ§»ò¿ÕµÄ×ÓÍø¸ñ
+        if (sm.VAO == 0 || sm.indexCount == 0) continue; // è·³è¿‡æ— æ•ˆæˆ–ç©ºçš„å­ç½‘æ ¼
 
-        // °ó¶¨¸Ã×ÓÍø¸ñµÄÂş·´ÉäÎÆÀí (Èç¹û´æÔÚ)
+        // ç»‘å®šè¯¥å­ç½‘æ ¼çš„æ¼«åå°„çº¹ç† (å¦‚æœå­˜åœ¨)
         if (sm.diffuseTextureId != 0) {
-            glActiveTexture(GL_TEXTURE0); // ¼¤»îÎÆÀíµ¥Ôª0 (»òÆäËûÖ¸¶¨µÄµ¥Ôª)
+            glActiveTexture(GL_TEXTURE0); // æ¿€æ´»çº¹ç†å•å…ƒ0 (æˆ–å…¶ä»–æŒ‡å®šçš„å•å…ƒ)
             glBindTexture(GL_TEXTURE_2D, sm.diffuseTextureId);
         }
         else {
-            // Èç¹ûÃ»ÓĞÎÆÀí£¬¿ÉÒÔÑ¡Ôñ°ó¶¨Ò»¸öÄ¬ÈÏÎÆÀí»òÈ·±£×ÅÉ«Æ÷ÄÜ´¦ÀíÎŞÎÆÀíÇé¿ö
-            //glBindTexture(GL_TEXTURE_2D, 0); // ½â°óÈÎºÎÏÈÇ°°ó¶¨µÄÎÆÀí£¨Èç¹ûĞèÒª£©
+            // å¦‚æœæ²¡æœ‰çº¹ç†ï¼Œå¯ä»¥é€‰æ‹©ç»‘å®šä¸€ä¸ªé»˜è®¤çº¹ç†æˆ–ç¡®ä¿ç€è‰²å™¨èƒ½å¤„ç†æ— çº¹ç†æƒ…å†µ
+            //glBindTexture(GL_TEXTURE_2D, 0); // è§£ç»‘ä»»ä½•å…ˆå‰ç»‘å®šçš„çº¹ç†ï¼ˆå¦‚æœéœ€è¦ï¼‰
         }
 
-        // °ó¶¨²¢»æÖÆ×ÓÍø¸ñ
+        // ç»‘å®šå¹¶ç»˜åˆ¶å­ç½‘æ ¼
         glBindVertexArray(sm.VAO);
         glDrawElements(GL_TRIANGLES, sm.indexCount, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0); // »æÖÆÍê±Ïºó½â°óVAOÊÇ¸öºÃÏ°¹ß
+        glBindVertexArray(0); // ç»˜åˆ¶å®Œæ¯•åè§£ç»‘VAOæ˜¯ä¸ªå¥½ä¹ æƒ¯
     }
-    // ¿ÉÑ¡£º»æÖÆÍêËùÓĞ×ÓÍø¸ñºó£¬½â°óÎÆÀí
+    // å¯é€‰ï¼šç»˜åˆ¶å®Œæ‰€æœ‰å­ç½‘æ ¼åï¼Œè§£ç»‘çº¹ç†
     // glActiveTexture(GL_TEXTURE0);
     // glBindTexture(GL_TEXTURE_2D, 0);
 }

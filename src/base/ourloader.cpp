@@ -6,13 +6,13 @@
 #include <map>
 #include <tuple>
 
-// STB Image (È·±£Õâ¸öºêÖ»ÔÚÒ»¸ö±àÒëµ¥ÔªÖĞ¶¨Òå£¬Èç¹û¶à´¦Ê¹ÓÃstb_image.h)
-#ifndef STB_IMAGE_IMPLEMENTATION // Í¨³£·ÅÔÚÒ»¸ö×¨ÃÅµÄ .c »ò .cpp ÎÄ¼ş£¬»òÕßÈ·±£Ö»ÔÚÖ÷ÎÄ¼ş¶¨ÒåÒ»´Î
-#include "stb_image.h" // ÓÃÓÚ¼ÓÔØÎÆÀíÍ¼Æ¬
+// STB Image (ç¡®ä¿è¿™ä¸ªå®åªåœ¨ä¸€ä¸ªç¼–è¯‘å•å…ƒä¸­å®šä¹‰ï¼Œå¦‚æœå¤šå¤„ä½¿ç”¨stb_image.h)
+#ifndef STB_IMAGE_IMPLEMENTATION // é€šå¸¸æ”¾åœ¨ä¸€ä¸ªä¸“é—¨çš„ .c æˆ– .cpp æ–‡ä»¶ï¼Œæˆ–è€…ç¡®ä¿åªåœ¨ä¸»æ–‡ä»¶å®šä¹‰ä¸€æ¬¡
+#include "stb_image.h" // ç”¨äºåŠ è½½çº¹ç†å›¾ç‰‡
 #define STB_IMAGE_IMPLEMENTATION
 #endif
 
-// ¸¨Öúº¯Êı£º·Ö¸î×Ö·û´®
+// è¾…åŠ©å‡½æ•°ï¼šåˆ†å‰²å­—ç¬¦ä¸²
 static inline std::vector<std::string> splitString_OurObj(const std::string& s, char delimiter) {
     std::vector<std::string> tokens;
     std::string token;
@@ -26,14 +26,14 @@ static inline std::vector<std::string> splitString_OurObj(const std::string& s, 
  bool OurObjLoader::objParseFaceVertexIndices(const std::string& faceVertexStr,
                                             int& v_idx, int& vt_idx, int& vn_idx,
                                             size_t max_v, size_t max_vt, size_t max_vn) {
-     v_idx = vt_idx = vn_idx = -1; //Ä¬ÈÏÖµ±íÊ¾È±Ê§
+     v_idx = vt_idx = vn_idx = -1; //é»˜è®¤å€¼è¡¨ç¤ºç¼ºå¤±
      std::vector<std::string> parts = splitString_OurObj(faceVertexStr, '/');
      try {
          if (parts.size() > 0 && !parts[0].empty()) v_idx = std::stoi(parts[0]) - 1;
          if (parts.size() > 1 && !parts[1].empty()) vt_idx = std::stoi(parts[1]) - 1;
          if (parts.size() > 2 && !parts[2].empty()) vn_idx = std::stoi(parts[2]) - 1;
 
-         // »ù´¡Ë÷ÒıÓĞĞ§ĞÔ¼ì²é (×¢ÒâOBJË÷ÒıÊÇ1»ùµÄ£¬ÎÒÃÇ×ª»»Îª0»ù)
+         // åŸºç¡€ç´¢å¼•æœ‰æ•ˆæ€§æ£€æŸ¥ (æ³¨æ„OBJç´¢å¼•æ˜¯1åŸºçš„ï¼Œæˆ‘ä»¬è½¬æ¢ä¸º0åŸº)
          if (v_idx >= static_cast<int>(max_v) || v_idx < -1) { /*std::cerr << "Invalid v index" <<std::endl;*/ return false; }
          if (vt_idx >= static_cast<int>(max_vt) || vt_idx < -1) { /*std::cerr << "Invalid vt index" <<std::endl;*/ return false; }
          if (vn_idx >= static_cast<int>(max_vn) || vn_idx < -1) { /*std::cerr << "Invalid vn index" <<std::endl;*/ return false; }
@@ -58,11 +58,11 @@ void OurObjLoader::parseFaceVertex(const std::string& faceVertexStr, int& v_idx,
     }
     catch (const std::exception& e) {
         std::cerr << "OUR OBJ LOADER WARNING: Error parsing face vertex component '" << faceVertexStr << "': " << e.what() << std::endl;
-        v_idx = vt_idx = vn_idx = -1; // ÖØÖÃÒÔ·À²¿·Ö½âÎö
+        v_idx = vt_idx = vn_idx = -1; // é‡ç½®ä»¥é˜²éƒ¨åˆ†è§£æ
     }
 }
 
-// ĞŞ¸Ä£ºmtlFileBasePath ²ÎÊı²»ÔÙĞèÒª£¬ÒòÎªÎÆÀíÂ·¾¶½«»ùÓÚÖ÷ mtlFileBasePath ¹¹½¨
+// ä¿®æ”¹ï¼šmtlFileBasePath å‚æ•°ä¸å†éœ€è¦ï¼Œå› ä¸ºçº¹ç†è·¯å¾„å°†åŸºäºä¸» mtlFileBasePath æ„å»º
 bool OurObjLoader::parseMtlFile(const std::string& mtlFilePath,
     std::map<std::string, MaterialInfo>& materials) {
     std::ifstream mtlFile(mtlFilePath);
@@ -125,7 +125,7 @@ bool OurObjLoader::parseMtlFile(const std::string& mtlFilePath,
             while (!texFilename.empty() && isspace(texFilename.front())) texFilename.erase(0, 1);
             currentMaterial.diffuseTextureMap = texFilename;
         }
-        // ¿ÉÒÔÌí¼Ó¶ÔÆäËû map_ (Èç map_Ks, map_Bump) µÄ½âÎö
+        // å¯ä»¥æ·»åŠ å¯¹å…¶ä»– map_ (å¦‚ map_Ks, map_Bump) çš„è§£æ
     }
     if (materialActive && !currentMaterialNameKey.empty()) {
         materials[currentMaterialNameKey] = currentMaterial;
@@ -134,13 +134,13 @@ bool OurObjLoader::parseMtlFile(const std::string& mtlFilePath,
     return true;
 }
 
-// ÎÆÀíÎÄ¼şµÄÊµÏÖ
+// çº¹ç†æ–‡ä»¶çš„å®ç°
 GLuint OurObjLoader::loadTextureFromFile(const char* path) {
     GLuint textureID = 0;
     glGenTextures(1, &textureID);
 
     int width, height, nrComponents;
-    // stbi_set_flip_vertically_on_load(true); // Èç¹ûÎÆÀíÊÇÉÏÏÂµßµ¹µÄ£¬ÔÚÕâÀï»òÈ«¾ÖÉèÖÃ
+    // stbi_set_flip_vertically_on_load(true); // å¦‚æœçº¹ç†æ˜¯ä¸Šä¸‹é¢ å€’çš„ï¼Œåœ¨è¿™é‡Œæˆ–å…¨å±€è®¾ç½®
     unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
     if (data) {
         GLenum format;
@@ -167,15 +167,15 @@ GLuint OurObjLoader::loadTextureFromFile(const char* path) {
     }
     else {
         std::cerr << "OUR OBJ LOADER ERROR: Texture failed to load at path: " << path << " (stb_image error: " << stbi_failure_reason() << ")" << std::endl;
-        glDeleteTextures(1, &textureID); // É¾³ıÊ§°ÜµÄÎÆÀí¶ÔÏó
-        textureID = 0; // ·µ»Ø0±íÊ¾Ê§°Ü
+        glDeleteTextures(1, &textureID); // åˆ é™¤å¤±è´¥çš„çº¹ç†å¯¹è±¡
+        textureID = 0; // è¿”å›0è¡¨ç¤ºå¤±è´¥
     }
-    stbi_image_free(data); // ×ÜÊÇÊÍ·Åstb_image¼ÓÔØµÄÄÚ´æ
+    stbi_image_free(data); // æ€»æ˜¯é‡Šæ”¾stb_imageåŠ è½½çš„å†…å­˜
     return textureID;
 }
 
 
-// ĞŞ¸Ä loadObj ·½·¨ÒÔÊ¹ÓÃ m_loadedMaterials ºÍ m_textureCache
+// ä¿®æ”¹ loadObj æ–¹æ³•ä»¥ä½¿ç”¨ m_loadedMaterials å’Œ m_textureCache
 bool OurObjLoader::loadObj(const std::string& objFilePath,
     const std::string& mtlFileBasePath,
     std::vector<OurObjMesh>& outMeshes) {
@@ -183,8 +183,8 @@ bool OurObjLoader::loadObj(const std::string& objFilePath,
     temp_texCoords.clear();
     temp_normals.clear();
     outMeshes.clear();
-    m_loadedMaterials.clear(); // Çå¿ÕÖ®Ç°¼ÓÔØµÄ²ÄÖÊ
-    m_textureCache.clear();    // Çå¿ÕÎÆÀí»º´æ
+    m_loadedMaterials.clear(); // æ¸…ç©ºä¹‹å‰åŠ è½½çš„æè´¨
+    m_textureCache.clear();    // æ¸…ç©ºçº¹ç†ç¼“å­˜
 
     std::ifstream file(objFilePath);
     if (!file.is_open()) {
@@ -226,9 +226,9 @@ bool OurObjLoader::loadObj(const std::string& objFilePath,
                     fullMtlPath += '/';
                 }
                 fullMtlPath += mtlFilename;
-                std::cout << "DEBUG: mtllib - fullMtlPath constructed: [" << fullMtlPath << "]" << std::endl; // ´òÓ¡×éºÏºóµÄÂ·¾¶
+                std::cout << "DEBUG: mtllib - fullMtlPath constructed: [" << fullMtlPath << "]" << std::endl; // æ‰“å°ç»„åˆåçš„è·¯å¾„
 
-                parseMtlFile(fullMtlPath, m_loadedMaterials); // Ê¹ÓÃ³ÉÔ±±äÁ¿ m_loadedMaterials
+                parseMtlFile(fullMtlPath, m_loadedMaterials); // ä½¿ç”¨æˆå‘˜å˜é‡ m_loadedMaterials
             }
             else { /* error handling */ }
         }
@@ -245,14 +245,14 @@ bool OurObjLoader::loadObj(const std::string& objFilePath,
             currentMesh.materialName = newMaterialName;
             currentMaterialName = newMaterialName;
 
-            // ÎªĞÂµÄ²ÄÖÊ¼ÓÔØÎÆÀí (Èç¹ûÉĞÎ´¼ÓÔØ)
+            // ä¸ºæ–°çš„æè´¨åŠ è½½çº¹ç† (å¦‚æœå°šæœªåŠ è½½)
             auto matIt = m_loadedMaterials.find(currentMaterialName);
             if (matIt != m_loadedMaterials.end()) {
                 const MaterialInfo& material = matIt->second;
                 if (!material.diffuseTextureMap.empty()) {
                     std::string textureRelativePath = material.diffuseTextureMap;
-                    // ÎÆÀíÂ·¾¶Í¨³£Ïà¶ÔÓÚ .mtl ÎÄ¼ş£¬¶ø .mtl ÎÄ¼şÂ·¾¶ÊÇ»ùÓÚ mtlFileBasePath µÄ¡£
-                    // ¼ÙÉè mtlFileBasePath ÊÇËùÓĞ×ÊÔ´µÄ¸ùÄ¿Â¼¡£
+                    // çº¹ç†è·¯å¾„é€šå¸¸ç›¸å¯¹äº .mtl æ–‡ä»¶ï¼Œè€Œ .mtl æ–‡ä»¶è·¯å¾„æ˜¯åŸºäº mtlFileBasePath çš„ã€‚
+                    // å‡è®¾ mtlFileBasePath æ˜¯æ‰€æœ‰èµ„æºçš„æ ¹ç›®å½•ã€‚
                     std::string fullTexturePath = mtlFileBasePath;
                     if (!fullTexturePath.empty() && fullTexturePath.back() != '/' && fullTexturePath.back() != '\\' &&
                         !textureRelativePath.empty() && textureRelativePath.front() != '/' && textureRelativePath.front() != '\\') {
@@ -260,7 +260,7 @@ bool OurObjLoader::loadObj(const std::string& objFilePath,
                     }
                     fullTexturePath += textureRelativePath;
 
-                    // ¼ì²éÎÆÀí»º´æ
+                    // æ£€æŸ¥çº¹ç†ç¼“å­˜
                     auto texCacheIt = m_textureCache.find(fullTexturePath);
                     if (texCacheIt != m_textureCache.end()) {
                         currentMesh.diffuseTextureId = texCacheIt->second;
@@ -270,7 +270,7 @@ bool OurObjLoader::loadObj(const std::string& objFilePath,
                         GLuint texID = loadTextureFromFile(fullTexturePath.c_str());
                         if (texID != 0) {
                             currentMesh.diffuseTextureId = texID;
-                            m_textureCache[fullTexturePath] = texID; // ¼ÓÈë»º´æ
+                            m_textureCache[fullTexturePath] = texID; // åŠ å…¥ç¼“å­˜
                         }
                     }
                 }
@@ -303,7 +303,7 @@ bool OurObjLoader::loadObj(const std::string& objFilePath,
             if (!(ss >> norm.x >> norm.y >> norm.z)) continue;
             temp_normals.push_back(norm);
         }
-        else if (keyword == "f") { /* Ê¹ÓÃÓĞĞ§µÄ temp_* ÈİÆ÷´óĞ¡½øĞĞË÷Òı¼ì²é ... */
+        else if (keyword == "f") { /* ä½¿ç”¨æœ‰æ•ˆçš„ temp_* å®¹å™¨å¤§å°è¿›è¡Œç´¢å¼•æ£€æŸ¥ ... */
             std::vector<std::string> faceVertexStrings;
             std::string faceVertexToken;
             while (ss >> faceVertexToken) faceVertexStrings.push_back(faceVertexToken);
@@ -311,7 +311,7 @@ bool OurObjLoader::loadObj(const std::string& objFilePath,
             if (faceVertexStrings.size() < 3) continue;
 
             int v_idx0, vt_idx0, vn_idx0;
-            // ´«µİ temp ÈİÆ÷µÄ´óĞ¡ÓÃÓÚË÷Òı¼ì²é
+            // ä¼ é€’ temp å®¹å™¨çš„å¤§å°ç”¨äºç´¢å¼•æ£€æŸ¥
             if (!objParseFaceVertexIndices(faceVertexStrings[0], v_idx0, vt_idx0, vn_idx0,
                 temp_positions.size(), temp_texCoords.size(), temp_normals.size())) {
                 continue;
@@ -339,13 +339,13 @@ bool OurObjLoader::loadObj(const std::string& objFilePath,
                         int p_idx = std::get<0>(current_key);
                         new_vert.position = temp_positions[p_idx];
                         int t_idx = std::get<1>(current_key);
-                        if (t_idx != -1 && static_cast<size_t>(t_idx) < temp_texCoords.size()) { // ÔÙ´Î¼ì²éË÷Òı
+                        if (t_idx != -1 && static_cast<size_t>(t_idx) < temp_texCoords.size()) { // å†æ¬¡æ£€æŸ¥ç´¢å¼•
                             new_vert.texCoords = temp_texCoords[t_idx];
                             new_vert.texCoords.y = 1.0f - new_vert.texCoords.y;
                         }
                         else { new_vert.texCoords = glm::vec2(0.0f, 0.0f); }
                         int n_idx = std::get<2>(current_key);
-                        if (n_idx != -1 && static_cast<size_t>(n_idx) < temp_normals.size()) { // ÔÙ´Î¼ì²éË÷Òı
+                        if (n_idx != -1 && static_cast<size_t>(n_idx) < temp_normals.size()) { // å†æ¬¡æ£€æŸ¥ç´¢å¼•
                             new_vert.normal = temp_normals[n_idx];
                         }
                         else { new_vert.normal = glm::vec3(0.0f, 0.0f, 0.0f); }

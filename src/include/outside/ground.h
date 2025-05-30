@@ -17,7 +17,7 @@ public:
 private:
 	Square square_;
     glm::vec3 ka_ = glm::vec3(0.1f, 0.2f, 0.05f);
-    glm::vec3 kd_ = glm::vec3(0.2f, 0.6f, 0.1f);
+    glm::vec3 kd_ = glm::vec3(1.0f, 1.0f, 1.0f);
     glm::vec3 ks_ = glm::vec3(0.05f, 0.05f, 0.05f); // 可以尝试更低或0
     float ns_ = 5.0f;
 };

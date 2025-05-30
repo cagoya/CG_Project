@@ -11,7 +11,7 @@ class Inside {
 public:
 	Inside() = default;
     void setup();
-    void draw(Shader& shader, const glm::mat4& modelMatrix, std::string sentence);
+    void draw(Shader& shader, const glm::mat4& modelMatrix, std::string& sentence);
 private:
     Floor floor_;
     Table table_;

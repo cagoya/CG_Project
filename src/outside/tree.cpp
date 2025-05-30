@@ -1,15 +1,15 @@
-#include "outside/grain_heap.h"
+#include "outside/tree.h"
 
-Grain::Grain():tapering_(Tapering(0.15f,0.25f,20,glm::vec3(0.0f,0.0f,0.0f),"../../media/textures/tree.jpg")),
+Tree::Tree():tapering_(Tapering(0.15f,0.25f,20,glm::vec3(0.0f,0.0f,0.0f),"../../media/textures/tree.jpg")),
 column_(Column(0.05f,0.5f,20,glm::vec3(0.0f,0.0f,0.0f),"../../media/textures/trunk.jpg")){}
 
-void Grain::setup()
+void Tree::setup()
 {
 	tapering_.setup();
 	column_.setup();
 }
 
-void Grain::draw(Shader& shader, const glm::mat4& modelMatrix) const
+void Tree::draw(Shader& shader, const glm::mat4& modelMatrix) const
 {
 	column_.draw(shader, modelMatrix);
 	float angle_degrees = 270.0f;

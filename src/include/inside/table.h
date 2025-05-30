@@ -12,10 +12,10 @@ public:
 private:
 	Square square_;
 	Column column_;
-	glm::vec3 ka_ = glm::vec3(0.08f, 0.08f, 0.07f); // 环境光反射 (略带暖色调)
-	glm::vec3 kd_ = glm::vec3(0.7f, 0.6f, 0.4f);   // 漫反射 (米黄色)
-	glm::vec3 ks_ = glm::vec3(0.15f, 0.15f, 0.15f); // 镜面反射 (中等光泽)
-	float ns_ = 30.0f;                             // 高光指数 (适中，模拟木地板或瓷砖)
+	glm::vec3 ka_ = glm::vec3(0.08f, 0.08f, 0.07f);
+	glm::vec3 kd_ = glm::vec3(0.7f, 0.6f, 0.4f);
+	glm::vec3 ks_ = glm::vec3(0.05f, 0.05f, 0.05f);
+	float ns_ = 10.0f;
 };
 
 #endif

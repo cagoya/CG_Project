@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+#include "inside.h"
 #include "outside/wall.h"
 #include "outside/ground.h"
 #include "base/camera.h"
@@ -13,11 +14,6 @@
 #include "outside/path.h"
 #include "outside/stone.h"
 #include "outside/grain_heap.h"
-#include "inside/floor.h"
-#include "inside/table.h"
-#include "inside/chair.h"
-#include "inside/clock.h"
-#include "inside/calligraphy.h"
 #include "base/shader.h"
 #include "base/skybox.h"
 #include "base/light.h"
@@ -112,8 +108,8 @@ int main()
     }
 
     // 4. 构建和编译着色器程序
-    Shader objModelShader = Shader("../../media/shader/objModel/objModel_vs.txt","../../media/shader/objModel/objModel_fs.txt");
-    Shader skyboxShader("../../media/shader/skybox/skybox_vs.txt", "../../media/shader/skybox/skybox_fs.txt");
+    Shader objModelShader = Shader("../../media/shader/objModel/objModel.vert.glsl","../../media/shader/objModel/objModel.frag.glsl");
+    Shader skyboxShader("../../media/shader/skybox/skybox.vert.glsl", "../../media/shader/skybox/skybox.frag.glsl");
     Shader mainShader = Shader("../../media/shader/main/main.vert.glsl", "../../media/shader/main/main.frag.glsl");
     //Shader waterShader = Shader("", "../../media/shader/water/water_fs.glsl");
     skyboxShader.use();
@@ -149,9 +145,12 @@ int main()
     std::vector<std::string> faces = { "right.jpg", "left.jpg", "top.jpg", "down.jpg", "front.jpg", "back.jpg" };
     for (auto& it:faces)
     {
-        it = "../../media/skybox/bak1/" + it;
+        it = "../../media/skybox/" + it;
     }
     Skybox sky(faces);
+
+    Inside inside;
+    inside.setup();
     
     Ground ground;
     ground.setup();
@@ -168,17 +167,7 @@ int main()
     Window houseWindow;
     houseWindow.setup();
 
-    Floor houseFloor;
-    houseFloor.setup();
-
-    Table table;
-    table.setup();
-
-    Chair chair;
-    chair.setup();
-
-    Clock clock;
-    clock.setup();
+    
 
     Fence fence;
     fence.setup();
@@ -192,7 +181,7 @@ int main()
     Grain grain;
     grain.setup();
 
-    Calligraphy calligraphy;
+    
 
     // 6. 启用深度测试
     glEnable(GL_DEPTH_TEST);
@@ -260,16 +249,12 @@ int main()
         path.draw(mainShader, houseModel);
         houseWall.draw(mainShader, glm::scale(houseModel, glm::vec3(0.99f, 0.99f, 0.99f)));
 
-        table.draw(mainShader, model);
-        chair.draw(mainShader, model);
-        clock.draw(mainShader, model);
+       
         ground.draw(mainShader, model);
         
-        houseFloor.draw(mainShader, houseModel);
+        
         fence.draw(mainShader, model);
-        calligraphy.generateTexture(sentence);
-        calligraphy.setup();
-        calligraphy.draw(mainShader, model);
+        
         stone.draw(mainShader, glm::translate(model, glm::vec3(-0.7f,0.0f,4.0f)));
         stone.draw(mainShader, glm::translate(model, glm::vec3(0.7f, 0.0f, 4.0f)));
         grain.draw(mainShader, glm::translate(model, glm::vec3(1.5f,0.0f,1.5f)));

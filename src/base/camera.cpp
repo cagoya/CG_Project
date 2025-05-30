@@ -20,13 +20,11 @@ Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float u
     updateCameraVectors();
 }
 
-// »ñÈ¡ÊÓÍ¼¾ØÕó
 glm::mat4 Camera::GetViewMatrix() const
 {
     return glm::lookAt(Position, Position + Front, Up);
 }
 
-// ¸ù¾İ¼üÅÌÊäÈë´¦ÀíÒÆ¶¯ÊµÏÖ
 void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
 {
     float velocity = MovementSpeed * deltaTime * 0.5f;
@@ -42,7 +40,7 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
         Position += WorldUp * velocity;
     if (direction == DOWN)
         Position -= WorldUp * velocity;
-	// ÉãÏñ»ú²»Ó¦¸Ã´©¹ıµØÃæ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½Ã´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     Position.y = glm::max(Position.y, 0.5f);
 }
 
@@ -54,7 +52,7 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPi
     Yaw += xoffset;
     Pitch += yoffset;
 
-    // ÏŞÖÆ¸©Ñö½Ç£¬±ÜÃâÍòÏòËøĞ§Ó¦ (Looking straight up or down)
+    // ï¿½ï¿½ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½Ç£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ§Ó¦ (Looking straight up or down)
     if (constrainPitch)
     {
         if (Pitch > 89.0f)
@@ -65,22 +63,18 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPi
     updateCameraVectors();
 }
 
-// ¸ù¾İÊó±ê¹öÂÖ´¦ÀíÊÓÒ°±ä»¯ÊµÏÖ
 void Camera::ProcessMouseScroll(float yoffset)
 {
     Zoom -= (float)yoffset;
-    if (Zoom < 1.0f) // ÏŞÖÆ×îĞ¡ÊÓÒ°
+    if (Zoom < 1.0f)
         Zoom = 1.0f;
-    if (Zoom > 45.0f) // ÏŞÖÆ×î´óÊÓÒ°
-        Zoom = 45.0f; // ±ÜÃâ¹ıÓÚ»û±ä»ò¿´²»Çå
+    if (Zoom > 45.0f)
+        Zoom = 45.0f;
 }
 
-// ¸ù¾İÅ·À­½Ç¸üĞÂÉãÏñ»úµÄ Front, Right ºÍ Up ÏòÁ¿ÊµÏÖ
 void Camera::updateCameraVectors()
 {
-    // ¼ÆËãĞÂµÄ Front ÏòÁ¿
     glm::vec3 front;
-    // ½«½Ç¶È´Ó¶È×ª»»Îª»¡¶È
     float yawRadians = glm::radians(Yaw);
     float pitchRadians = glm::radians(Pitch);
 
@@ -90,8 +84,6 @@ void Camera::updateCameraVectors()
 
     Front = glm::normalize(front);
 
-    // ÖØĞÂ¼ÆËã Right ºÍ Up ÏòÁ¿
-    // Ê¹ÓÃÊÀ½ç×ø±êÏµµÄ Up ÏòÁ¿½øĞĞ²æ³Ë
     Right = glm::normalize(glm::cross(Front, WorldUp));
     Up = glm::normalize(glm::cross(Right, Front));
 }

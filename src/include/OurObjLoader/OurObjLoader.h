@@ -1,4 +1,4 @@
-﻿#ifndef OUROBJLOADER_H
+#ifndef OUROBJLOADER_H
 #define OUROBJLOADER_H
 
 #include <string>

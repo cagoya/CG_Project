@@ -1,4 +1,4 @@
-﻿#include "outside/roof.h"
+#include "outside/roof.h"
 #include <iostream>
 #include <vector>
 #include<iostream>

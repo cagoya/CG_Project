@@ -1,4 +1,4 @@
-﻿#ifndef OBJECTMODEL_H
+#ifndef OBJECTMODEL_H
 #define OBJECTMODEL_H
 
 #include <string>

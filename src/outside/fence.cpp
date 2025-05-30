@@ -1,4 +1,4 @@
-﻿#include "outside/fence.h"
+#include "outside/fence.h"
 
 Fence::Fence()
 {

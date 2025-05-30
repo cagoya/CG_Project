@@ -1,4 +1,4 @@
-﻿/* ImGuiController 管理ImGui的整个周期
+/* ImGuiController 管理ImGui的整个周期
 Init 设置风格 初始化ImGui与后端绑定
 NewFrame():每一帧调用下层 NewFrame
 Render() 绘制总体UI

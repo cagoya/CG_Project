@@ -1,4 +1,4 @@
-﻿#include "inside/table.h"
+#include "inside/table.h"
 
 Table::Table() : column_(Column(0.015f, 0.379f, 10, glm::vec3(0.0f,0.0f,0.0f),"../../media/textures/muwen.jpg"))
 {

@@ -1,4 +1,4 @@
-﻿#ifndef LIGHTINGPANEL_H
+#ifndef LIGHTINGPANEL_H
 #define LIGHTINGPANEL_H
 
 #include "IImGuiPanel.h"

@@ -1,4 +1,4 @@
-﻿#ifndef IIMGUIPANEL_H
+#ifndef IIMGUIPANEL_H
 #define IIMGUIPANEL_H
 
 #include "imgui.h"

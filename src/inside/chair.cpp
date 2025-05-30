@@ -1,4 +1,4 @@
-﻿#include "inside/chair.h"
+#include "inside/chair.h"
 
 Chair::Chair() : column_(Column(0.01f, 0.239f, 10, glm::vec3(0.0f, 0.0f, 0.0f), "../../media/textures/muwen.jpg"))
 {

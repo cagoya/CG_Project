@@ -1,4 +1,4 @@
-﻿#ifndef WALL_H
+#ifndef WALL_H
 #define WALL_H
 
 

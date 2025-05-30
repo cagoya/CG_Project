@@ -1,4 +1,4 @@
-﻿#ifndef CHARACTERPANEL_H
+#ifndef CHARACTERPANEL_H
 #define CHARACTERPANEL_H
 #include "IImGuiPanel.h"
 #include <string>

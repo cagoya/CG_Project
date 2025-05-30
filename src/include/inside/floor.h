@@ -1,4 +1,4 @@
-﻿#ifndef FLOOR_H
+#ifndef FLOOR_H
 #define FLOOR_H
 
 #include <glm/glm.hpp>

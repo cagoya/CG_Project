@@ -8,15 +8,12 @@
 Column::Column(float radius, float height, int segments, const glm::vec3& color, std::string texture_path)
     :radius_(radius), height_(height), segments_(segments), color_(color) {
     square_.getTexturePath() = texture_path;
-    // Éú³ÉÔ²ÖùÌå²àÃæÊý¾Ý
     generateColumnSideData();
 }
 
-// Éú³ÉÔ²ÖùÌå²àÃæ¶¥µãÊý¾Ý
 void Column::generateColumnSideData() {
     auto& vertices = square_.getVertices();
     auto& indices = square_.getIndices();
-    // ²àÃæ¶¥µãµÄÉú³ÉÂß¼­
     for (int i = 0; i <= segments_; ++i) {
         float angle = 2.0f * M_PI * static_cast<float>(i) / static_cast<float>(segments_);
         float x_norm = cos(angle);
@@ -24,7 +21,6 @@ void Column::generateColumnSideData() {
 
         float u_coord = static_cast<float>(i) / static_cast<float>(segments_);
 
-        // ¶¥²¿»·µÄ¶¥µã
         vertices.push_back(radius_ * x_norm);
         vertices.push_back(height_);
         vertices.push_back(radius_ * z_norm);
@@ -37,7 +33,6 @@ void Column::generateColumnSideData() {
         vertices.push_back(u_coord);
         vertices.push_back(1.0f);
 
-        // µ×²¿»·µÄ¶¥µã
         vertices.push_back(radius_ * x_norm);
         vertices.push_back(0.0f);
         vertices.push_back(radius_ * z_norm);
@@ -51,7 +46,6 @@ void Column::generateColumnSideData() {
         vertices.push_back(0.0f);
     }
 
-    // Éú³ÉË÷ÒýÊý¾ÝÓëÖ®Ç°ÏàÍ¬
     for (int i = 0; i < segments_; ++i) {
         indices.push_back(i * 2);
         indices.push_back(i * 2 + 1);
@@ -62,33 +56,33 @@ void Column::generateColumnSideData() {
         indices.push_back((i + 1) * 2);
     }
 
-    // ¶¥²¿Ô²ÐÄ
-	    unsigned int top_center_idx = vertices.size() / 11; // Ã¿¸ö¶¥µãÓÐ11¸ö·ÖÁ¿
+    // ï¿½ï¿½ï¿½ï¿½Ô²ï¿½ï¿½
+	    unsigned int top_center_idx = vertices.size() / 11; // Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½11ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	    vertices.push_back(0.0f);                 // posX
 	    vertices.push_back(height_);        // posY
 	    vertices.push_back(0.0f);                 // posZ
-	    vertices.push_back(0.0f);                 // normX (¶¥²¿·¨Ïß³¯ÉÏ)
+	    vertices.push_back(0.0f);                 // normX (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß³ï¿½ï¿½ï¿½)
 	    vertices.push_back(1.0f);                 // normY
 	    vertices.push_back(0.0f);                 // normZ
 	    vertices.push_back(color_.r);
 	    vertices.push_back(color_.g);
 	    vertices.push_back(color_.b);
-	    vertices.push_back(0.5f);                 // texU (ÖÐÐÄ)
-	    vertices.push_back(0.5f);                 // texV (ÖÐÐÄ)
+	    vertices.push_back(0.5f);                 // texU (ï¿½ï¿½ï¿½ï¿½)
+	    vertices.push_back(0.5f);                 // texV (ï¿½ï¿½ï¿½ï¿½)
 
 	    for (int i = 0; i <= segments_; ++i) {
 	        float angle = 2.0f * M_PI * static_cast<float>(i) / static_cast<float>(segments_);
 	        float x = radius_ * cos(angle);
 	        float z = radius_ * sin(angle);
 
-	        // ¹éÒ»»¯ x ºÍ z µ½ [0, 1] ·¶Î§£¬ÓÃÓÚÎÆÀí×ø±ê
+	        // ï¿½ï¿½Ò»ï¿½ï¿½ x ï¿½ï¿½ z ï¿½ï¿½ [0, 1] ï¿½ï¿½Î§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	        float u_tex = (x / radius_ + 1.0f) / 2.0f;
 	        float v_tex = (z / radius_ + 1.0f) / 2.0f;
 
 	        vertices.push_back(x);                     // posX
 	        vertices.push_back(height_);        // posY
 	        vertices.push_back(z);                     // posZ
-	        vertices.push_back(0.0f);                  // normX (¶¥²¿·¨Ïß³¯ÉÏ)
+	        vertices.push_back(0.0f);                  // normX (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß³ï¿½ï¿½ï¿½)
 	        vertices.push_back(1.0f);                  // normY
 	        vertices.push_back(0.0f);                  // normZ
 	        vertices.push_back(color_.r);
@@ -98,27 +92,27 @@ void Column::generateColumnSideData() {
 	        vertices.push_back(v_tex);                 // texV
 	    }
 
-	    // ¶¥²¿Ô²ÃæË÷ÒýÊý¾Ý
+	    // ï¿½ï¿½ï¿½ï¿½Ô²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	    for (int i = 0; i < segments_; ++i) {
 	        indices.push_back(top_center_idx);
 	        indices.push_back(top_center_idx + 1 + i);
-	        indices.push_back(top_center_idx + 1 + ((i + 1) % (segments_ + 1))); // È·±£×îºóÒ»¸öÈý½ÇÐÎ±ÕºÏ
+	        indices.push_back(top_center_idx + 1 + ((i + 1) % (segments_ + 1))); // È·ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î±Õºï¿½
 	    }
 
-    // ----------------------- µ×²¿Ô²Ãæ¶¥µãµÄÉú³ÉÂß¼­ -----------------------
-	    // µ×²¿Ô²ÐÄ
+    // ----------------------- ï¿½×²ï¿½Ô²ï¿½æ¶¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½ -----------------------
+	    // ï¿½×²ï¿½Ô²ï¿½ï¿½
 	    unsigned int bottom_center_idx = vertices.size() / 11;
 	    vertices.push_back(0.0f);                 // posX
 	    vertices.push_back(0.0f);       // posY
 	    vertices.push_back(0.0f);                 // posZ
-	    vertices.push_back(0.0f);                 // normX (µ×²¿·¨Ïß³¯ÏÂ)
+	    vertices.push_back(0.0f);                 // normX (ï¿½×²ï¿½ï¿½ï¿½ï¿½ß³ï¿½ï¿½ï¿½)
 	    vertices.push_back(-1.0f);                // normY
 	    vertices.push_back(0.0f);                 // normZ
 	    vertices.push_back(color_.r);
 	    vertices.push_back(color_.g);
 	    vertices.push_back(color_.b);
-	    vertices.push_back(0.5f);                 // texU (ÖÐÐÄ)
-	    vertices.push_back(0.5f);                 // texV (ÖÐÐÄ)
+	    vertices.push_back(0.5f);                 // texU (ï¿½ï¿½ï¿½ï¿½)
+	    vertices.push_back(0.5f);                 // texV (ï¿½ï¿½ï¿½ï¿½)
 
 	    for (int i = 0; i <= segments_; ++i) {
 	        float angle = 2.0f * M_PI * static_cast<float>(i) / static_cast<float>(segments_);
@@ -131,7 +125,7 @@ void Column::generateColumnSideData() {
 	        vertices.push_back(x);                     // posX
 	        vertices.push_back(0.0f);       // posY
 	        vertices.push_back(z);                     // posZ
-	        vertices.push_back(0.0f);                  // normX (µ×²¿·¨Ïß³¯ÏÂ)
+	        vertices.push_back(0.0f);                  // normX (ï¿½×²ï¿½ï¿½ï¿½ï¿½ß³ï¿½ï¿½ï¿½)
 	        vertices.push_back(-1.0f);                 // normY
 	        vertices.push_back(0.0f);                  // normZ
 	        vertices.push_back(color_.r);
@@ -141,11 +135,11 @@ void Column::generateColumnSideData() {
 	        vertices.push_back(v_tex);                 // texV
 	    }
 
-	    // µ×²¿Ô²ÃæË÷ÒýÊý¾Ý
-	    // ×¢Òâµ×²¿Ô²ÃæÐèÒªÄæÊ±Õë»æÖÆ²ÅÄÜ±£Ö¤·¨Ïß³¯Íâ
+	    // ï¿½×²ï¿½Ô²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	    // ×¢ï¿½ï¿½×²ï¿½Ô²ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½Æ²ï¿½ï¿½Ü±ï¿½Ö¤ï¿½ï¿½ï¿½ß³ï¿½ï¿½ï¿½
 	    for (int i = 0; i < segments_; ++i) {
 	        indices.push_back(bottom_center_idx);
-	        indices.push_back(bottom_center_idx + 1 + ((i + 1) % (segments_ + 1))); // ÄæÊ±Õë
+	        indices.push_back(bottom_center_idx + 1 + ((i + 1) % (segments_ + 1))); // ï¿½ï¿½Ê±ï¿½ï¿½
 	        indices.push_back(bottom_center_idx + 1 + i);
 	    }
 }

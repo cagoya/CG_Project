@@ -1,4 +1,4 @@
-﻿#ifndef GRAIN_H
+#ifndef GRAIN_H
 #define GRAIN_H
 
 #include <glm/glm.hpp>

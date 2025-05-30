@@ -1,4 +1,4 @@
-﻿#ifndef DOOR_H
+#ifndef DOOR_H
 #define DOOR_H
 
 #include <glm/glm.hpp>

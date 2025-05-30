@@ -1,4 +1,4 @@
-﻿#ifndef CALLIGRAPHY_H
+#ifndef CALLIGRAPHY_H
 #define CALLIGRAPHY_H
 #include "base/square.h"
 

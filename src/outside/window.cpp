@@ -1,4 +1,4 @@
-﻿#include "outside/Window.h"
+#include "outside/Window.h"
 #include <glad/gl.h>
 #include <glm/gtc/type_ptr.hpp>
 #include<iostream>

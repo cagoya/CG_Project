@@ -1,4 +1,4 @@
-﻿#ifndef COLUMN_H
+#ifndef COLUMN_H
 #define COLUMN_H
 
 #include <glm/glm.hpp>

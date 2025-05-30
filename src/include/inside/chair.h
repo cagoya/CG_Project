@@ -1,4 +1,4 @@
-﻿#ifndef CHAIR_H
+#ifndef CHAIR_H
 #define CHAIR_H
 #include <vector>
 #include "base/column.h"

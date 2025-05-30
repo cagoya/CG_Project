@@ -1,4 +1,4 @@
-﻿#include "inside/calligraphy.h"
+#include "inside/calligraphy.h"
 #include<iostream>
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"

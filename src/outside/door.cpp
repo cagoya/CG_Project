@@ -1,4 +1,4 @@
-﻿#include "outside/door.h"
+#include "outside/door.h"
 #include <glad/gl.h>
 #include<stb_image.h>
 #include<iostream>

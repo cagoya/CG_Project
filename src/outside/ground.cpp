@@ -1,4 +1,4 @@
-﻿#include "outside/ground.h"
+#include "outside/ground.h"
 #include <iostream>
 
 Ground::Ground() : DrawObject(), square_()

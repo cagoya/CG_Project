@@ -1,4 +1,4 @@
-﻿#ifndef MODELTRANSFORMPANEL_H
+#ifndef MODELTRANSFORMPANEL_H
 #define MODELTRANSFORMPANEL_H
 
 #include "IImGuiPanel.h" 

@@ -1,4 +1,4 @@
-﻿#ifndef DRAW_OBJECT_H
+#ifndef DRAW_OBJECT_H
 #define DRAW_OBJECT_H
 
 #include"base/shader.h"

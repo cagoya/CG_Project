@@ -1,43 +1,43 @@
-ï»¿// water_fs.glsl å‡†å¤‡ä¹‹åå®ç°æ°´çš„æµåŠ¨æ¸²æŸ“
+// water_fs.glsl ×¼±¸Ö®ºóÊµÏÖË®µÄÁ÷¶¯äÖÈ¾
 #version 330 core
 out vec4 FragColor;
 
 in vec3 FragPos_worldspace;
-in vec3 Normal_worldspace; // åŸå§‹å‡ ä½•ä½“æ³•çº¿
-in vec2 TexCoords_FS;      // åŸå§‹UV
+in vec3 Normal_worldspace; // Ô­Ê¼¼¸ºÎÌå·¨Ïß
+in vec2 TexCoords_FS;      // Ô­Ê¼UV
 
-uniform sampler2D normalMap1;       // æ³•çº¿è´´å›¾1
-uniform sampler2D normalMap2;       // æ³•çº¿è´´å›¾2 (å¯é€‰)
-uniform float time;               // æ—¶é—´ï¼Œä»C++ä¼ å…¥
+uniform sampler2D normalMap1;       // ·¨ÏßÌùÍ¼1
+uniform sampler2D normalMap2;       // ·¨ÏßÌùÍ¼2 (¿ÉÑ¡)
+uniform float time;               // Ê±¼ä£¬´ÓC++´«Èë
 uniform vec4 waterColor = vec4(0.2, 0.5, 0.8, 0.7);
-uniform vec3 lightDir_worldspace = normalize(vec3(0.5, 1.0, 0.7)); // å…‰æºæ–¹å‘
-uniform vec3 viewPos_worldspace;  // ç›¸æœºä½ç½®
+uniform vec3 lightDir_worldspace = normalize(vec3(0.5, 1.0, 0.7)); // ¹âÔ´·½Ïò
+uniform vec3 viewPos_worldspace;  // Ïà»úÎ»ÖÃ
 
 void main() {
-    // UVæ»šåŠ¨
+    // UV¹ö¶¯
     vec2 scrolledUV1 = TexCoords_FS + vec2(time * 0.02, time * 0.01);
     vec2 scrolledUV2 = TexCoords_FS + vec2(time * -0.015, time * 0.025);
 
-    // ä»æ³•çº¿è´´å›¾é‡‡æ ·å¹¶è½¬æ¢åˆ°ä¸–ç•Œç©ºé—´ (è¿™é‡Œç®€åŒ–äº†TBNçŸ©é˜µçš„è®¡ç®—ï¼Œå®é™…åº”ç”¨å¯èƒ½éœ€è¦)
-    // å‡è®¾æ³•çº¿è´´å›¾ä¸­çš„æ³•çº¿æ˜¯åˆ‡çº¿ç©ºé—´çš„
+    // ´Ó·¨ÏßÌùÍ¼²ÉÑù²¢×ª»»µ½ÊÀ½ç¿Õ¼ä (ÕâÀï¼ò»¯ÁËTBN¾ØÕóµÄ¼ÆËã£¬Êµ¼ÊÓ¦ÓÃ¿ÉÄÜĞèÒª)
+    // ¼ÙÉè·¨ÏßÌùÍ¼ÖĞµÄ·¨ÏßÊÇÇĞÏß¿Õ¼äµÄ
     vec3 normalFromMap1 = texture(normalMap1, scrolledUV1).rgb * 2.0 - 1.0;
     vec3 normalFromMap2 = texture(normalMap2, scrolledUV2).rgb * 2.0 - 1.0;
-    vec3 perturbedNormal = normalize(Normal_worldspace + normalFromMap1 * 0.3 + normalFromMap2 * 0.3); // æ··åˆå¹¶è°ƒæ•´å¼ºåº¦
+    vec3 perturbedNormal = normalize(Normal_worldspace + normalFromMap1 * 0.3 + normalFromMap2 * 0.3); // »ìºÏ²¢µ÷ÕûÇ¿¶È
 
-    // ç®€å•çš„å…‰ç…§ (åŸºäºæ‰°åŠ¨åçš„æ³•çº¿)
+    // ¼òµ¥µÄ¹âÕÕ (»ùÓÚÈÅ¶¯ºóµÄ·¨Ïß)
     float ambientStrength = 0.3;
     vec3 ambient = ambientStrength * waterColor.rgb;
 
     float diff = max(dot(perturbedNormal, lightDir_worldspace), 0.0);
-    vec3 diffuse = diff * vec3(1.0); // ç™½è‰²å…‰æº
+    vec3 diffuse = diff * vec3(1.0); // °×É«¹âÔ´
 
-    // ç®€å•çš„é•œé¢é«˜å…‰
+    // ¼òµ¥µÄ¾µÃæ¸ß¹â
     float specularStrength = 0.5;
     vec3 viewDir = normalize(viewPos_worldspace - FragPos_worldspace);
     vec3 reflectDir = reflect(-lightDir_worldspace, perturbedNormal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
-    vec3 specular = specularStrength * spec * vec3(1.0); // ç™½è‰²é«˜å…‰
+    vec3 specular = specularStrength * spec * vec3(1.0); // °×É«¸ß¹â
 
     vec3 lighting = ambient + diffuse + specular;
-    FragColor = vec4(lighting * waterColor.rgb, waterColor.a); // å°†å…‰ç…§ä½œç”¨äºæ°´ä½“é¢œè‰²
+    FragColor = vec4(lighting * waterColor.rgb, waterColor.a); // ½«¹âÕÕ×÷ÓÃÓÚË®ÌåÑÕÉ«
 }

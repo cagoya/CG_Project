@@ -1,4 +1,4 @@
-﻿#ifndef GROUND_H
+#ifndef GROUND_H
 #define GROUND_H
 
 #include <glad/gl.h>

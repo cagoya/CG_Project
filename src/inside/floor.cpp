@@ -1,4 +1,4 @@
-﻿#include "inside/floor.h"
+#include "inside/floor.h"
 #include<iostream>
 
 Floor::Floor() : DrawObject()
@@ -32,5 +32,5 @@ void Floor::draw(Shader& shader, const glm::mat4& modelMatrix) const {
     shader.setVec3("material.kd", kd_);
     shader.setVec3("material.ks", ks_);
     shader.setFloat("material.ns", ns_);
-    square_.draw(shader, modelMatrix);
+    square_.draw(shader, glm::scale(modelMatrix, glm::vec3(2.0f, 2.0f, 2.0f)));
 }

@@ -1,11 +1,10 @@
-//具体实现 可以自行添加更多逻辑
 #include "base/ModelTransformPanel.h"
 
 void ModelTransformPanel::Draw() {
     if (!IsVisible) { 
         return;
     }
-    if (ImGui::Begin(PanelName, &IsVisible)) { // 开始一个 ImGui 窗口,允许通过窗口的关闭按钮来改变 IsVisible 的值
+    if (ImGui::Begin(PanelName, &IsVisible)) { // 锟斤拷始一锟斤拷 ImGui 锟斤拷锟斤拷,锟斤拷锟斤拷通锟斤拷锟斤拷锟节的关闭帮拷钮锟斤拷锟侥憋拷 IsVisible 锟斤拷值
         ImGui::Text("Model transform control:");
         ImGui::SliderFloat("Scale", &modelScaleRef, 0.001f, 1.0f);
         ImGui::InputFloat3("Position", glm::value_ptr(modelPositionRef));

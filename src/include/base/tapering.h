@@ -1,4 +1,4 @@
-﻿#ifndef TAPERING_H
+#ifndef TAPERING_H
 #define TAPERING_H
 
 #include <glad/gl.h>

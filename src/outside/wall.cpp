@@ -1,4 +1,4 @@
-﻿#include "outside/wall.h" 
+#include "outside/wall.h" 
 #include <glad/gl.h>
 #include <iostream>
 

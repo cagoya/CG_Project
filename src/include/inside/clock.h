@@ -1,4 +1,4 @@
-﻿#ifndef CLOCK_H
+#ifndef CLOCK_H
 #define CLOCK_H
 #include <vector>
 #include "base/column.h"

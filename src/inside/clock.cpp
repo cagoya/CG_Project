@@ -1,4 +1,4 @@
-﻿#include "inside/clock.h"
+#include "inside/clock.h"
 
 Clock::Clock() : column_(Column(0.1f, 0.01f, 20, glm::vec3(0.0f, 0.0f, 0.0f), "../../media/textures/clock.jpg")){}
 

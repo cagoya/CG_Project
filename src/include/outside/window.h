@@ -1,4 +1,4 @@
-﻿#ifndef WINODW_H
+#ifndef WINODW_H
 #define WINDOW_H
 
 #include <glm/glm.hpp>

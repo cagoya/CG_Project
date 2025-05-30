@@ -1,4 +1,4 @@
-﻿#ifndef GABLE_ROOF_H
+#ifndef GABLE_ROOF_H
 #define GABLE_ROOF_H
 
 #include <glad/gl.h>

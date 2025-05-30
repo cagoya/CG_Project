@@ -1,4 +1,4 @@
-﻿#include"outside/path.h"
+#include"outside/path.h"
 
 Path::Path()
 {

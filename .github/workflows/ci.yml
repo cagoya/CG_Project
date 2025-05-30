@@ -26,10 +26,6 @@ jobs:
           # 创建一个构建目录
           mkdir build
           cd build
-          # 使用 CMake 配置项目
-          # Generator: Visual Studio 17 2022 是 GitHub Actions Windows 运行器上默认的最新 VS 版本
-          # CMAKE_BUILD_TYPE 已经在你的 CMakeLists.txt 中默认设置为 Release，所以这里可以省略，
-          # 但明确指定也无妨。
           cmake .. `
             -DCMAKE_BUILD_TYPE=Release `
             -G "Visual Studio 17 2022"

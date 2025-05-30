@@ -1,4 +1,4 @@
-#ifndef SKYBOX_H
+ï»¿#ifndef SKYBOX_H
 #define SKYBOX_H
 
 #include <vector>
@@ -10,15 +10,15 @@
 class Skybox
 {
 public:
-    // Ìì¿ÕºĞÍ¼Æ¬µÄÂ·¾¶
+    // å¤©ç©ºç›’å›¾ç‰‡çš„è·¯å¾„
     Skybox(const std::vector<std::string>& faces);
-    // »æÖÆÌì¿ÕºĞ
+    // ç»˜åˆ¶å¤©ç©ºç›’
     void draw(const Shader& shader, const glm::mat4& view, const glm::mat4& projection);
 
 private:
     unsigned int vao_, vbo_;
     unsigned int textureID_;
-    // ¶ÁÈ¡Ìì¿ÕºĞµÄÁù¸öÃæ
+    // è¯»å–å¤©ç©ºç›’çš„å…­ä¸ªé¢
     unsigned int loadCubemap(const std::vector<std::string>& faces);
     void setupSkybox();
 };

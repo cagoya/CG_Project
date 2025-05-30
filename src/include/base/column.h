@@ -1,11 +1,11 @@
-#ifndef COLUMN_H
+ï»¿#ifndef COLUMN_H
 #define COLUMN_H
 
 #include <glm/glm.hpp>
 #include<string>
 #include "base/square.h"
 
-// Ô²ÖùÌå
+// åœ†æŸ±ä½“
 class Column{
 public:
 	Column() = default;
@@ -19,7 +19,7 @@ public:
 	inline glm::vec3& getColor(){ return color_; }
 private:
 	Square square_;
-	void generateColumnSideData(); // Éú³ÉÔ²ÖùÌå²àÃæµÄ¶¥µãÊı¾İ£¬Ìî³ä vertices_ ºÍ indices_
+	void generateColumnSideData(); // ç”Ÿæˆåœ†æŸ±ä½“ä¾§é¢çš„é¡¶ç‚¹æ•°æ®ï¼Œå¡«å…… vertices_ å’Œ indices_
 	float radius_;
 	float height_;
 	int segments_;

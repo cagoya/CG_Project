@@ -1,4 +1,4 @@
-#include "outside/ground.h"
+ï»¿#include "outside/ground.h"
 #include <iostream>
 
 Ground::Ground() : DrawObject(), square_()
@@ -22,12 +22,12 @@ Ground::Ground() : DrawObject(), square_()
     square_.getTexturePath() = "../../media/textures/grass.jpg";
 }
 
-// °ó¶¨ vao_ vbo_ ebo_ 
+// ç»‘å®š vao_ vbo_ ebo_ 
 void Ground::setup() {
     square_.setup();
 }
 
-// »æÖÆµØÃæ
+// ç»˜åˆ¶åœ°é¢
 void Ground::draw(Shader& shader, const glm::mat4& modelMatrix) const {
     shader.setVec3("material.ka", ka_);
     shader.setVec3("material.kd", kd_);

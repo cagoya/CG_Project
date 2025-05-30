@@ -1,4 +1,4 @@
-#ifndef TABLE_H
+ï»¿#ifndef TABLE_H
 #define TABLE_H
 #include <vector>
 #include "base/column.h"
@@ -12,10 +12,10 @@ public:
 private:
 	Square square_;
 	Column column_;
-	glm::vec3 ka_ = glm::vec3(0.08f, 0.08f, 0.07f); // »·¾³¹â·´Éä (ÂÔ´øÅ¯É«µ÷)
-	glm::vec3 kd_ = glm::vec3(0.7f, 0.6f, 0.4f);   // Âş·´Éä (Ã×»ÆÉ«)
-	glm::vec3 ks_ = glm::vec3(0.15f, 0.15f, 0.15f); // ¾µÃæ·´Éä (ÖĞµÈ¹âÔó)
-	float ns_ = 30.0f;                             // ¸ß¹âÖ¸Êı (ÊÊÖĞ£¬Ä£ÄâÄ¾µØ°å»ò´É×©)
+	glm::vec3 ka_ = glm::vec3(0.08f, 0.08f, 0.07f); // ç¯å¢ƒå…‰åå°„ (ç•¥å¸¦æš–è‰²è°ƒ)
+	glm::vec3 kd_ = glm::vec3(0.7f, 0.6f, 0.4f);   // æ¼«åå°„ (ç±³é»„è‰²)
+	glm::vec3 ks_ = glm::vec3(0.15f, 0.15f, 0.15f); // é•œé¢åå°„ (ä¸­ç­‰å…‰æ³½)
+	float ns_ = 30.0f;                             // é«˜å…‰æŒ‡æ•° (é€‚ä¸­ï¼Œæ¨¡æ‹Ÿæœ¨åœ°æ¿æˆ–ç“·ç –)
 };
 
 #endif

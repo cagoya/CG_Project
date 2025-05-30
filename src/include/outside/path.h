@@ -1,4 +1,4 @@
-#ifndef PATH_H
+﻿#ifndef PATH_H
 #define PATH_H
 #include "base/square.h"
 

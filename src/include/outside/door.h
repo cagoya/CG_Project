@@ -1,4 +1,4 @@
-#ifndef DOOR_H
+ï»¿#ifndef DOOR_H
 #define DOOR_H
 
 #include <glm/glm.hpp>
@@ -14,9 +14,9 @@ public:
     void draw(Shader& shader, const glm::mat4& modelMatrix) const;
 private:
     Square square_;
-    glm::vec3 ka_ = glm::vec3(0.05f, 0.05f, 0.05f); // »·¾³¹â·´Éä
-    glm::vec3 kd_ = glm::vec3(0.8f, 0.8f, 0.8f);   // Âş·´Éä (½Ó½ü°×É«)
-    glm::vec3 ks_ = glm::vec3(0.1f, 0.1f, 0.1f);   // ¾µÃæ·´Éä (Î¢ÈõµÄ¹âÔó)
-    float ns_ = 10.0f;                             // ¸ß¹âÖ¸Êı (ÇáÎ¢µÄ´Ö²Ú¸Ğ)
+    glm::vec3 ka_ = glm::vec3(0.05f, 0.05f, 0.05f); // ç¯å¢ƒå…‰åå°„
+    glm::vec3 kd_ = glm::vec3(0.8f, 0.8f, 0.8f);   // æ¼«åå°„ (æ¥è¿‘ç™½è‰²)
+    glm::vec3 ks_ = glm::vec3(0.1f, 0.1f, 0.1f);   // é•œé¢åå°„ (å¾®å¼±çš„å…‰æ³½)
+    float ns_ = 10.0f;                             // é«˜å…‰æŒ‡æ•° (è½»å¾®çš„ç²—ç³™æ„Ÿ)
 };
 #endif // !DOOR_H

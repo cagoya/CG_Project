@@ -1,4 +1,4 @@
-#ifndef DRAW_OBJECT_H
+ï»¿#ifndef DRAW_OBJECT_H
 #define DRAW_OBJECT_H
 
 #include"base/shader.h"
@@ -21,17 +21,17 @@ public:
 		}
 	}
 
-	// ³õÊ¼»¯¶¥µãÊı¾İºÍOpenGL»º³åÇø¶ÔÏó
+	// åˆå§‹åŒ–é¡¶ç‚¹æ•°æ®å’ŒOpenGLç¼“å†²åŒºå¯¹è±¡
 	virtual void setup(){};
 
-	// »æÖÆ¸Ã¶ÔÏó
-	// shaderProgramID: µ±Ç°Ê¹ÓÃµÄ×ÅÉ«Æ÷³ÌĞòID
+	// ç»˜åˆ¶è¯¥å¯¹è±¡
+	// shaderProgramID: å½“å‰ä½¿ç”¨çš„ç€è‰²å™¨ç¨‹åºID
 	virtual void draw(Shader& shader, const glm::mat4& modelMatrix) const{};
 
 protected:
-	// ´æ´¢µØÃæµÄ VAO, VBO, EBO µÄ ID
+	// å­˜å‚¨åœ°é¢çš„ VAO, VBO, EBO çš„ ID
 	unsigned int vao_, vbo_, ebo_;
-	//²ÄÖÊĞÅÏ¢
+	//æè´¨ä¿¡æ¯
 	Material material_;
 };
 #endif // !DRAW_OBJECT_H

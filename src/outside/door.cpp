@@ -1,4 +1,4 @@
-#include "outside/door.h"
+Ôªø#include "outside/door.h"
 #include <glad/gl.h>
 #include<stb_image.h>
 #include<iostream>
@@ -7,13 +7,13 @@
 Door::Door() : DrawObject(),square_()
 {
     square_.getVertices() = {
-        // ◊Ûœ¬ (Bottom-left)
+        // Â∑¶‰∏ã (Bottom-left)
 		-0.1f, 0.0f, 0.501f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-		// ”“œ¬ (Bottom-right)
+		// Âè≥‰∏ã (Bottom-right)
 		 0.1f, 0.0f, 0.501f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-    	// ”“…œ (Top-right)
+    	// Âè≥‰∏ä (Top-right)
     	0.1f, 0.3f, 0.501f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-    	// ◊Û…œ (Top-left)
+    	// Â∑¶‰∏ä (Top-left)
     	-0.1f, 0.3f, 0.501f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f
     };
 

@@ -1,21 +1,21 @@
-#ifndef MODELTRANSFORMPANEL_H
+ï»¿#ifndef MODELTRANSFORMPANEL_H
 #define MODELTRANSFORMPANEL_H
 
 #include "IImGuiPanel.h" 
 #include <glm/glm.hpp>     
 #include <glm/gtc/type_ptr.hpp> 
-// Ç°ÏòÉùÃ÷ ImGuiIO£¬±ÜÃâÔÚÍ·ÎÄ¼şÖĞ°üº¬ "imgui_internal.h" »ò¹ı¶à ImGui Ï¸½Ú 
+// å‰å‘å£°æ˜ ImGuiIOï¼Œé¿å…åœ¨å¤´æ–‡ä»¶ä¸­åŒ…å« "imgui_internal.h" æˆ–è¿‡å¤š ImGui ç»†èŠ‚ 
 
 class ModelTransformPanel : public IImGuiPanel {
 public:
-    // ÒıÓÃ²Ù×÷ main.cpp ÀïÃæµÄ±äÁ¿
+    // å¼•ç”¨æ“ä½œ main.cpp é‡Œé¢çš„å˜é‡
     glm::vec3& modelPositionRef;
     float& modelScaleRef;
 
     ModelTransformPanel(const char* name, glm::vec3& positionRef, float& scaleRef, ImGuiIO& io)
         : modelPositionRef(positionRef), modelScaleRef(scaleRef) {
         PanelName = name; 
-        IsVisible = true;   // Ä¬ÈÏ¿É¼û
+        IsVisible = true;   // é»˜è®¤å¯è§
     }
 
     void Draw() override; 

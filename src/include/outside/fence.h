@@ -1,4 +1,4 @@
-#ifndef FENCE_H
+﻿#ifndef FENCE_H
 #define FENCE_H
 #include "base/square.h"
 

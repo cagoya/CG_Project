@@ -1,4 +1,4 @@
-#ifndef LIGHT_H
+ï»¿#ifndef LIGHT_H
 #define LIGHT_H
 #include <vector>
 
@@ -7,8 +7,8 @@
 
 class Light {
 public:
-	glm::vec3 color = { 1.0f,1.0f,1.0f };    // ¹âÔ´ÑÕÉ«
-	float intensity = 1.0f;    // ¹âÔ´Ç¿¶È
+	glm::vec3 color = { 1.0f,1.0f,1.0f };    // å…‰æºé¢œè‰²
+	float intensity = 1.0f;    // å…‰æºå¼ºåº¦
 };
 
 class AmbientLight : public Light {
@@ -21,15 +21,15 @@ public:
 class SpotLight : public Light {
 public:
 	glm::vec3 position = { 0.0f,2.0f,0.0f };
-	glm::vec3 direction = { 0.0f,0.0f,-1.0f }; // ¹âÔ´·½Ïò
-	float angle = glm::radians(60.0f);         // ¹âÔ´½Ç¶È
+	glm::vec3 direction = { 0.0f,0.0f,-1.0f }; // å…‰æºæ–¹å‘
+	float angle = glm::radians(60.0f);         // å…‰æºè§’åº¦
 	float kc = 1.0f;
 	float kl = 0.0f;
 	float kq = 1.0f;
 };
 class PointLight : public Light {
 public:
-	glm::vec3 position = { 2.0f,0.0f,0.0f }; // ¹âÔ´Î»ÖÃ
+	glm::vec3 position = { 2.0f,0.0f,0.0f }; // å…‰æºä½ç½®
 	float kc = 1.0f;
 	float kl = 0.0f;
 	float kq = 1.0f;

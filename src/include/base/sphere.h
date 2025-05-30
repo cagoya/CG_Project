@@ -1,11 +1,11 @@
-#ifndef SPHERE_H
+ï»¿#ifndef SPHERE_H
 #define SPHERE_H
 
 #include <glm/glm.hpp>
 #include<string>
 #include "base/square.h"
 
-// Çò
+// çƒ
 class Sphere {
 public:
 	Sphere() = default;
@@ -15,7 +15,7 @@ public:
 	void draw(Shader& shader, const glm::mat4& modelMatrix) const;
 private:
 	Square square_;
-	void generateSphere(); // Éú³ÉÔ²ÖùÌå²àÃæµÄ¶¥µãÊı¾İ£¬Ìî³ä vertices_ ºÍ indices_
+	void generateSphere(); // ç”Ÿæˆåœ†æŸ±ä½“ä¾§é¢çš„é¡¶ç‚¹æ•°æ®ï¼Œå¡«å…… vertices_ å’Œ indices_
 	float radius_;
 	int segments_;
 	const glm::vec3 color_;

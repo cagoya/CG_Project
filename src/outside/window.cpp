@@ -1,4 +1,4 @@
-#include "outside/Window.h"
+ï»¿#include "outside/Window.h"
 #include <glad/gl.h>
 #include <glm/gtc/type_ptr.hpp>
 #include<iostream>
@@ -7,14 +7,9 @@
 Window::Window() : DrawObject()
 {
     square_.getVertices() = {
-        // Î»ÖÃ (Position)             // ·¨ÏòÁ¿ (Normal)     // ÑÕÉ« (Color)         // ÎÆÀí×ø±ê (Texture)
-        // ×óÏÂ (Bottom-left)
         0.501f, 0.175f, -0.15f,        1.0f, 0.0f, 0.0f,      1.0f, 1.0f, 1.0f,      0.0f, 0.0f,
-        // ÓÒÏÂ (Bottom-right)
         0.501f, 0.175f,  0.15f,        1.0f, 0.0f, 0.0f,      1.0f, 1.0f, 1.0f,      1.0f, 0.0f,
-        // ÓÒÉÏ (Top-right)
         0.501f, 0.325f,  0.15f,        1.0f, 0.0f, 0.0f,      1.0f, 1.0f, 1.0f,      1.0f, 1.0f,
-        // ×óÉÏ (Top-left)
         0.501f, 0.325f, -0.15f,        1.0f, 0.0f, 0.0f,      1.0f, 1.0f, 1.0f,      0.0f, 1.0f
     };
 

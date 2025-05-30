@@ -1,11 +1,11 @@
-#ifndef CAMERA_H
+ï»¿#ifndef CAMERA_H
 #define CAMERA_H
 
 #include <glad/gl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-// ¶¨Òå¿ÉÄÜµÄÉãÏñ»úÒÆ¶¯·½Ïò
+// å®šä¹‰å¯èƒ½çš„æ‘„åƒæœºç§»åŠ¨æ–¹å‘
 enum Camera_Movement {
     FORWARD,
     BACKWARD,
@@ -15,7 +15,7 @@ enum Camera_Movement {
     DOWN
 };
 
-// ÉãÏñ»úÄ¬ÈÏÖµ£¬ÕâÊÇÒ»¸ö»ùÓÚÅ·À­½ÇµÄÏà»ú
+// æ‘„åƒæœºé»˜è®¤å€¼ï¼Œè¿™æ˜¯ä¸€ä¸ªåŸºäºæ¬§æ‹‰è§’çš„ç›¸æœº
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
 const float SPEED = 2.5f;
@@ -25,40 +25,40 @@ const float ZOOM = 45.0f;
 class Camera
 {
 public:
-    // ÉãÏñ»úÊôĞÔ
+    // æ‘„åƒæœºå±æ€§
     glm::vec3 Position;
     glm::vec3 Front;
     glm::vec3 Up;
     glm::vec3 Right;
     glm::vec3 WorldUp;
 
-    // Å·À­½Ç
+    // æ¬§æ‹‰è§’
     float Yaw;
     float Pitch;
 
-    // ÉãÏñ»úÑ¡Ïî
+    // æ‘„åƒæœºé€‰é¡¹
     float MovementSpeed;
     float MouseSensitivity;
     float Zoom;
 
-    // ¹¹Ôìº¯Êı (¿ÉÒÔÖ¸¶¨³õÊ¼Î»ÖÃ£¬»òÕßÊ¹ÓÃÄ¬ÈÏÎ»ÖÃ)
+    // æ„é€ å‡½æ•° (å¯ä»¥æŒ‡å®šåˆå§‹ä½ç½®ï¼Œæˆ–è€…ä½¿ç”¨é»˜è®¤ä½ç½®)
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH);
     Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch);
 
-    // »ñÈ¡ÊÓÍ¼¾ØÕó
+    // è·å–è§†å›¾çŸ©é˜µ
     glm::mat4 GetViewMatrix() const;
 
-    // ¸ù¾İ¼üÅÌÊäÈë´¦ÀíÒÆ¶¯
+    // æ ¹æ®é”®ç›˜è¾“å…¥å¤„ç†ç§»åŠ¨
     void ProcessKeyboard(Camera_Movement direction, float deltaTime);
 
-    // ¸ù¾İÊó±êÒÆ¶¯´¦ÀíÊÓ½Ç±ä»¯
+    // æ ¹æ®é¼ æ ‡ç§»åŠ¨å¤„ç†è§†è§’å˜åŒ–
     void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
 
-    // ¸ù¾İÊó±ê¹öÂÖ´¦ÀíÊÓÒ°±ä»¯ (Ëõ·Å) - Ó°ÏìÍ¶Ó°¾ØÕó
+    // æ ¹æ®é¼ æ ‡æ»šè½®å¤„ç†è§†é‡å˜åŒ– (ç¼©æ”¾) - å½±å“æŠ•å½±çŸ©é˜µ
     void ProcessMouseScroll(float yoffset);
 
 private:
-    // ¸ù¾İÅ·À­½Ç¸üĞÂÉãÏñ»úµÄ Front, Right ºÍ Up ÏòÁ¿
+    // æ ¹æ®æ¬§æ‹‰è§’æ›´æ–°æ‘„åƒæœºçš„ Front, Right å’Œ Up å‘é‡
     void updateCameraVectors();
 };
 

@@ -1,16 +1,16 @@
-#include "outside/fence.h"
+ï»¿#include "outside/fence.h"
 
 Fence::Fence()
 {
     square_.getVertices() = {
-        // Î»ÖÃ (Position)             // ·¨ÏòÁ¿ (Normal)     // ÑÕÉ« (Color)         // ÎÆÀí×ø±ê (Texture)
-        // ×óÏÂ (Bottom-left)
+        // ä½ç½® (Position)             // æ³•å‘é‡ (Normal)     // é¢œè‰² (Color)         // çº¹ç†åæ ‡ (Texture)
+        // å·¦ä¸‹ (Bottom-left)
         -0.5f, 0.03f, -3.5f,           0.0f, 0.0f, 1.0f,      0.0f, 0.0f, 0.0f,      0.0f, 0.0f,
-        // ÓÒÏÂ (Bottom-right)
+        // å³ä¸‹ (Bottom-right)
         0.5f, 0.03f, -3.5f,           0.0f, 0.0f, 1.0f,      0.0f, 0.0f, 0.0f,      1.0f, 0.0f,
-        // ÓÒÉÏ (Top-right)
+        // å³ä¸Š (Top-right)
         0.5f, 0.5f,  -3.5f,           0.0f, 0.0f, 1.0f,      0.0f, 0.0f, 0.0f,      1.0f, 1.0f,
-        // ×óÉÏ (Top-left)
+        // å·¦ä¸Š (Top-left)
         -0.5f, 0.5f,  -3.5f,           0.0f, 0.0f, 1.0f,      0.0f, 0.0f, 0.0f,      0.0f, 1.0f,
     };
 
@@ -34,12 +34,12 @@ void Fence::draw(Shader& shader, const glm::mat4& modelMatrix) const
     shader.setVec3("material.kd", kd_);
     shader.setVec3("material.ks", ks_);
     shader.setFloat("material.ns", ns_);
-    // ºó·½
+    // åæ–¹
     for (int i = -2; i<= 2;i++)
     {
         square_.draw(shader, glm::translate(modelMatrix, glm::vec3(static_cast<float>(i), 0.0f, 0.0f)));
     }
-	// Ç°·½
+	// å‰æ–¹
     for (int i = -2; i <= 2; i++)
     {
         if (i!= 0)

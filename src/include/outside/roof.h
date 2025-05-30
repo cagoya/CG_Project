@@ -1,4 +1,4 @@
-#ifndef GABLE_ROOF_H
+ï»¿#ifndef GABLE_ROOF_H
 #define GABLE_ROOF_H
 
 #include <glad/gl.h>
@@ -6,7 +6,7 @@
 #include "base/square.h"
 #include "base/draw_object.h"
 
-// Ò»¸ö¼òµ¥µÄË«ÆÂÎİ¶¥
+// ä¸€ä¸ªç®€å•çš„åŒå¡å±‹é¡¶
 class GableRoof : DrawObject{
 public:
     GableRoof();

@@ -1,4 +1,4 @@
-#ifndef SHADER_H
+ï»¿#ifndef SHADER_H
 #define SHADER_H
 
 #include <string>
@@ -7,15 +7,15 @@
 
 class Shader {
 public:
-    // ×ÅÉ«Æ÷ ID
+    // ç€è‰²å™¨ ID
     unsigned int id_;
 
-    // ¼ÓÔØ²¢±àÒë×ÅÉ«Æ÷
+    // åŠ è½½å¹¶ç¼–è¯‘ç€è‰²å™¨
     Shader(const char* vertexPath, const char* fragmentPath);
-    // ¸ü»»×ÅÉ«Æ÷
+    // æ›´æ¢ç€è‰²å™¨
     void use() const;
 
-    // ÉèÖÃ uniform ±äÁ¿
+    // è®¾ç½® uniform å˜é‡
     void setBool(const std::string& name, bool value) const;
     void setInt(const std::string& name, int value) const;
     void setFloat(const std::string& name, float value) const;

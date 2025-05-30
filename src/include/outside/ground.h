@@ -1,4 +1,4 @@
-#ifndef GROUND_H
+ï»¿#ifndef GROUND_H
 #define GROUND_H
 
 #include <glad/gl.h>
@@ -6,7 +6,7 @@
 #include"base/square.h"
 #include "base/draw_object.h"
 
-// µØÃæ
+// åœ°é¢
 class Ground : DrawObject {
 public:
     Ground();
@@ -18,7 +18,7 @@ private:
 	Square square_;
     glm::vec3 ka_ = glm::vec3(0.1f, 0.2f, 0.05f);
     glm::vec3 kd_ = glm::vec3(0.2f, 0.6f, 0.1f);
-    glm::vec3 ks_ = glm::vec3(0.05f, 0.05f, 0.05f); // ¿ÉÒÔ³¢ÊÔ¸üµÍ»ò0
+    glm::vec3 ks_ = glm::vec3(0.05f, 0.05f, 0.05f); // å¯ä»¥å°è¯•æ›´ä½æˆ–0
     float ns_ = 5.0f;
 };
 

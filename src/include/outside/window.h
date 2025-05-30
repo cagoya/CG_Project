@@ -1,11 +1,11 @@
-#ifndef WINODW_H
+ï»¿#ifndef WINODW_H
 #define WINDOW_H
 
 #include <glm/glm.hpp>
 #include "base/draw_object.h"
 #include "base/square.h"
 
-// ´°»§
+// çª—æˆ·
 class Window:DrawObject {
 public:
     Window();
@@ -15,9 +15,9 @@ public:
     void draw(Shader& shader, const glm::mat4& modelMatrix) const;
 private:
     Square square_;
-    glm::vec3 ka_ = glm::vec3(0.08f, 0.08f, 0.08f); // »·¾³¹â·´Éä (Ìá¹©»ù´¡ÁÁ¶È)
-    glm::vec3 kd_ = glm::vec3(0.85f, 0.85f, 0.85f); // Âş·´Éä (Ã÷ÁÁµÄ°×É«)
-    glm::vec3 ks_ = glm::vec3(0.2f, 0.2f, 0.2f);   // ¾µÃæ·´Éä (ÇáÎ¢µÄ¹âÔó£¬Ä£ÄâËÜÁÏ»òÆáÃæ)
-    float ns_ = 40.0f;                             // ¸ß¹âÖ¸Êı (ÊÊÖĞ£¬¸ß¹â²»ÖÁÓÚÌ«É¢)
+    glm::vec3 ka_ = glm::vec3(0.08f, 0.08f, 0.08f); // ç¯å¢ƒå…‰åå°„ (æä¾›åŸºç¡€äº®åº¦)
+    glm::vec3 kd_ = glm::vec3(0.85f, 0.85f, 0.85f); // æ¼«åå°„ (æ˜äº®çš„ç™½è‰²)
+    glm::vec3 ks_ = glm::vec3(0.2f, 0.2f, 0.2f);   // é•œé¢åå°„ (è½»å¾®çš„å…‰æ³½ï¼Œæ¨¡æ‹Ÿå¡‘æ–™æˆ–æ¼†é¢)
+    float ns_ = 40.0f;                             // é«˜å…‰æŒ‡æ•° (é€‚ä¸­ï¼Œé«˜å…‰ä¸è‡³äºå¤ªæ•£)
 };
 #endif

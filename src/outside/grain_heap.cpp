@@ -1,4 +1,4 @@
-#include "outside/grain_heap.h"
+﻿#include "outside/grain_heap.h"
 
 Grain::Grain():tapering_(Tapering(0.15f,0.25f,20,glm::vec3(0.0f,0.0f,0.0f),"../../media/textures/tree.jpg")),
 column_(Column(0.05f,0.5f,20,glm::vec3(0.0f,0.0f,0.0f),"../../media/textures/trunk.jpg")){}

@@ -1,17 +1,17 @@
-#include "inside/floor.h"
+ï»¿#include "inside/floor.h"
 #include<iostream>
 
 Floor::Floor() : DrawObject()
 {
     square_.getVertices() = {
-        // Î»ÖÃ (Position)             // ·¨ÏòÁ¿ (Normal)     // ÑÕÉ« (Color)         // ÎÆÀí×ø±ê (Texture)
-        // ×óÏÂ (Bottom-left)
+        // ä½ç½® (Position)             // æ³•å‘é‡ (Normal)     // é¢œè‰² (Color)         // çº¹ç†åæ ‡ (Texture)
+        // å·¦ä¸‹ (Bottom-left)
         -0.5f, 0.02f, -0.5f,           0.0f, 1.0f, 0.0f,      1.0f, 1.0f, 1.0f,      0.0f, 0.5f,
-        // ÓÒÏÂ (Bottom-right)
+        // å³ä¸‹ (Bottom-right)
     	0.5f, 0.02f, -0.5f,           0.0f, 1.0f, 0.0f,      1.0f, 1.0f, 1.0f,      0.5f, 1.0f,
-    	// ÓÒÉÏ (Top-right)
+    	// å³ä¸Š (Top-right)
     	0.5f, 0.02f,  0.5f,           0.0f, 1.0f, 0.0f,      1.0f, 1.0f, 1.0f,      0.5f, 0.0f,
-    	// ×óÉÏ (Top-left)
+    	// å·¦ä¸Š (Top-left)
     	-0.5f, 0.02f,  0.5f,           0.0f, 1.0f, 0.0f,      1.0f, 1.0f, 1.0f,      0.0f, 0.0f
     };
 

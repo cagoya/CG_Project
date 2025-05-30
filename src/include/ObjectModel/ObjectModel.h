@@ -1,4 +1,4 @@
-#ifndef OBJECTMODEL_H
+ï»¿#ifndef OBJECTMODEL_H
 #define OBJECTMODEL_H
 
 #include <string>
@@ -6,7 +6,7 @@
 #include <glad/gl.h> 
 #include <glm/glm.hpp>
 
-// ¶¨Òå¶¥µã½á¹¹£¬°üº¬Î»ÖÃ¡¢·¨ÏßºÍÎÆÀí×ø±ê
+// å®šä¹‰é¡¶ç‚¹ç»“æ„ï¼ŒåŒ…å«ä½ç½®ã€æ³•çº¿å’Œçº¹ç†åæ ‡
 struct Vertex {
     glm::vec3 Position;
     glm::vec3 Normal;
@@ -18,27 +18,27 @@ public:
     ObjectModel();
     ~ObjectModel();
 
-    // ¼ÓÔØ OBJ Ä£ĞÍ£¬mtlBasePath ÊÇ .mtl ÎÄ¼şºÍÎÆÀíÍ¼Æ¬ËùÔÚµÄÄ¿Â¼
+    // åŠ è½½ OBJ æ¨¡å‹ï¼ŒmtlBasePath æ˜¯ .mtl æ–‡ä»¶å’Œçº¹ç†å›¾ç‰‡æ‰€åœ¨çš„ç›®å½•
     bool load(const std::string& path, const std::string& mtlBasePath);
     void draw(unsigned int shaderProgram, const glm::mat4& modelMatrix);
 
 private:
-    // ÄÚ²¿½á¹¹£¬ÓÃÓÚ±íÊ¾Ä£ĞÍµÄÃ¿¸ö¿É¶ÀÁ¢äÖÈ¾µÄ×Ó²¿·Ö
+    // å†…éƒ¨ç»“æ„ï¼Œç”¨äºè¡¨ç¤ºæ¨¡å‹çš„æ¯ä¸ªå¯ç‹¬ç«‹æ¸²æŸ“çš„å­éƒ¨åˆ†
     struct SubMesh {
         GLuint VAO = 0;
         GLuint VBO = 0;
         GLuint EBO = 0;
         GLsizei indexCount = 0;
-        GLuint diffuseTextureId = 0; // ´Ó OurObjMesh »ñÈ¡
-        // ¿ÉÑ¡: Èç¹ûĞèÒª¸ü¸´ÔÓµÄ²ÄÖÊÊôĞÔ£¬¿ÉÒÔÔÚÕâÀï´æ´¢ MaterialInfo
+        GLuint diffuseTextureId = 0; // ä» OurObjMesh è·å–
+        // å¯é€‰: å¦‚æœéœ€è¦æ›´å¤æ‚çš„æè´¨å±æ€§ï¼Œå¯ä»¥åœ¨è¿™é‡Œå­˜å‚¨ MaterialInfo
     };
 
     std::vector<SubMesh> subMeshes;
-    std::vector<GLuint> uniqueTextureIDsForCleanup; // ´æ´¢ËùÓĞ×ÓÍø¸ñÊ¹ÓÃµÄÎ¨Ò»ÎÆÀíID£¬ÓÃÓÚÎö¹¹Ê±ÇåÀí
+    std::vector<GLuint> uniqueTextureIDsForCleanup; // å­˜å‚¨æ‰€æœ‰å­ç½‘æ ¼ä½¿ç”¨çš„å”¯ä¸€çº¹ç†IDï¼Œç”¨äºææ„æ—¶æ¸…ç†
 
-    // ¸¨Öúº¯Êı£¬Îª¸ø¶¨µÄ¶¥µãºÍË÷ÒıÊı¾İÉèÖÃOpenGL»º³å
-    // vertices ºÍ indices ²ÎÊıÊÇ OurObjLoader ¼ÓÔØµÄÊı¾İ
-    //  Vertex ½á¹¹ÌåÓë OurObjLoader ÖĞµÄ OurObjVertex ¼æÈİ
+    // è¾…åŠ©å‡½æ•°ï¼Œä¸ºç»™å®šçš„é¡¶ç‚¹å’Œç´¢å¼•æ•°æ®è®¾ç½®OpenGLç¼“å†²
+    // vertices å’Œ indices å‚æ•°æ˜¯ OurObjLoader åŠ è½½çš„æ•°æ®
+    //  Vertex ç»“æ„ä½“ä¸ OurObjLoader ä¸­çš„ OurObjVertex å…¼å®¹
     void setupGpuResourcesForSubMesh(SubMesh& meshToSetup,
         const std::vector<Vertex>& vertices,
         const std::vector<unsigned int>& indices);

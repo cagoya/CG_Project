@@ -1,15 +1,15 @@
-#ifndef LIGHTINGPANEL_H
+ï»¿#ifndef LIGHTINGPANEL_H
 #define LIGHTINGPANEL_H
 
 #include "IImGuiPanel.h"
 #include "base/light.h"
 #include <glm/glm.hpp>     
 #include <glm/gtc/type_ptr.hpp> 
-// Ç°ÏòÉùÃ÷ ImGuiIO£¬±ÜÃâÔÚÍ·ÎÄ¼şÖĞ°üº¬ "imgui_internal.h" »ò¹ı¶à ImGui Ï¸½Ú 
+// å‰å‘å£°æ˜ ImGuiIOï¼Œé¿å…åœ¨å¤´æ–‡ä»¶ä¸­åŒ…å« "imgui_internal.h" æˆ–è¿‡å¤š ImGui ç»†èŠ‚ 
 
 class LightingPanel : public IImGuiPanel {
 public:
-    // ÒıÓÃ²Ù×÷ main.cpp ÀïÃæµÄ±äÁ¿
+    // å¼•ç”¨æ“ä½œ main.cpp é‡Œé¢çš„å˜é‡
 	AmbientLight& ambientLightRef;
     SpotLight& spotLightRef;
     DirectionalLight& directionalLightRef;

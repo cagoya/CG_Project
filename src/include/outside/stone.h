@@ -1,4 +1,4 @@
-#ifndef STONE_H
+ï»¿#ifndef STONE_H
 #define STONE_H
 
 
@@ -19,10 +19,10 @@ public:
 private:
     Column column_;
     Sphere sphere_;
-    glm::vec3 ka_ = glm::vec3(0.08f, 0.08f, 0.08f); // »·¾³¹â·´Éä (ÂÔ´øÁÁ¶È)
-    glm::vec3 kd_ = glm::vec3(0.5f, 0.5f, 0.5f);   // Âş·´Éä (ÖĞ»ÒÉ«)
-    glm::vec3 ks_ = glm::vec3(0.02f, 0.02f, 0.02f); // ¾µÃæ·´Éä (·Ç³£Î¢Èõ£¬¼¸ºõÃ»ÓĞ¹âÔó)
-    float ns_ = 5.0f;                             // ¸ß¹âÖ¸Êı (·Ç³£·ÖÉ¢£¬Ä£Äâ´Ö²ÚÇ½Ãæ)
+    glm::vec3 ka_ = glm::vec3(0.08f, 0.08f, 0.08f); // ç¯å¢ƒå…‰åå°„ (ç•¥å¸¦äº®åº¦)
+    glm::vec3 kd_ = glm::vec3(0.5f, 0.5f, 0.5f);   // æ¼«åå°„ (ä¸­ç°è‰²)
+    glm::vec3 ks_ = glm::vec3(0.02f, 0.02f, 0.02f); // é•œé¢åå°„ (éå¸¸å¾®å¼±ï¼Œå‡ ä¹æ²¡æœ‰å…‰æ³½)
+    float ns_ = 5.0f;                             // é«˜å…‰æŒ‡æ•° (éå¸¸åˆ†æ•£ï¼Œæ¨¡æ‹Ÿç²—ç³™å¢™é¢)
 };
 
 #endif

@@ -1,4 +1,4 @@
-#include "outside/stone.h"
+﻿#include "outside/stone.h"
 
 Stone::Stone():column_(Column(0.15f,0.02f,20,glm::vec3(0.0f,0.0f,0.0f),"../../media/textures/stone.jpg")),
 sphere_(Sphere(0.15f, 20,glm::vec3(0.0f,0.0f,0.0f),"../../media/textures/stone.jpg")){}

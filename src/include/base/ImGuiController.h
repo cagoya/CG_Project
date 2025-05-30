@@ -1,9 +1,9 @@
-/* ImGuiController ¹ÜÀíImGuiµÄÕû¸öÖÜÆÚ
-Init ÉèÖÃ·ç¸ñ ³õÊ¼»¯ImGuiÓëºó¶Ë°ó¶¨
-NewFrame():Ã¿Ò»Ö¡µ÷ÓÃÏÂ²ã NewFrame
-Render() »æÖÆ×ÜÌåUI
-Shutdown() ¹Ø±ÕImGui ÊÍ·Å×ÊÔ´
-²»¹Ü´´½¨¾ßÌåµÄ¿Ø¼ş ¾ÍÊÇ¹ÜÀíÒ»¸öpanelÃæ°åµÄÁĞ±í add¿ÉÒÔ¼ÓÃæ°å drawUI¿ÉÒÔÍ³Ò»»æÖÆ
+ï»¿/* ImGuiController ç®¡ç†ImGuiçš„æ•´ä¸ªå‘¨æœŸ
+Init è®¾ç½®é£æ ¼ åˆå§‹åŒ–ImGuiä¸åç«¯ç»‘å®š
+NewFrame():æ¯ä¸€å¸§è°ƒç”¨ä¸‹å±‚ NewFrame
+Render() ç»˜åˆ¶æ€»ä½“UI
+Shutdown() å…³é—­ImGui é‡Šæ”¾èµ„æº
+ä¸ç®¡åˆ›å»ºå…·ä½“çš„æ§ä»¶ å°±æ˜¯ç®¡ç†ä¸€ä¸ªpanelé¢æ¿çš„åˆ—è¡¨ addå¯ä»¥åŠ é¢æ¿ drawUIå¯ä»¥ç»Ÿä¸€ç»˜åˆ¶
  */
 #ifndef IMGUICONTROLLER_H
 #define IMGUICONTROLLER_H
@@ -16,11 +16,11 @@ Shutdown() ¹Ø±ÕImGui ÊÍ·Å×ÊÔ´
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-#include "IImGuiPanel.h" // º¬Ãæ°å½Ó¿Ú
+#include "IImGuiPanel.h" // å«é¢æ¿æ¥å£
 
 class ImGuiController {
 private:
-    std::vector<std::shared_ptr<IImGuiPanel>> panels; // ´æ´¢ËùÓĞ UI Ãæ°åµÄÁĞ±í
+    std::vector<std::shared_ptr<IImGuiPanel>> panels; // å­˜å‚¨æ‰€æœ‰ UI é¢æ¿çš„åˆ—è¡¨
     bool initialized = false;
 
 public:
@@ -29,14 +29,14 @@ public:
 
     void Init(GLFWwindow* window, const char* glsl_version = "#version 330 core");
     void NewFrame();
-    void DrawUI(); // µ÷ÓÃËùÓĞ×¢²áÃæ°åµÄ Draw() ·½·¨
+    void DrawUI(); // è°ƒç”¨æ‰€æœ‰æ³¨å†Œé¢æ¿çš„ Draw() æ–¹æ³•
     void Render();
     void Shutdown();
 
-    // Ìí¼ÓÃæ°åµ½¿ØÖÆÆ÷
+    // æ·»åŠ é¢æ¿åˆ°æ§åˆ¶å™¨
     void AddPanel(const std::shared_ptr<IImGuiPanel>& panel);
 
-    // »ñÈ¡ ImGuiIO µÄÒıÓÃ£¬·½±ãÃæ°å»òÆäËûµØ·½Ê¹ÓÃ
+    // è·å– ImGuiIO çš„å¼•ç”¨ï¼Œæ–¹ä¾¿é¢æ¿æˆ–å…¶ä»–åœ°æ–¹ä½¿ç”¨
     ImGuiIO& GetIO() { return ImGui::GetIO(); }
 };
 

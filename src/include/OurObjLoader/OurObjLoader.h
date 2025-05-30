@@ -1,4 +1,4 @@
-#ifndef OUROBJLOADER_H
+ï»¿#ifndef OUROBJLOADER_H
 #define OUROBJLOADER_H
 
 #include <string>
@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <glad/gl.h>
 
-// ½á¹¹Ìå£º´æ´¢´Ó MTL ÎÄ¼ş½âÎöµÄ²ÄÖÊÊôĞÔ
+// ç»“æ„ä½“ï¼šå­˜å‚¨ä» MTL æ–‡ä»¶è§£æçš„æè´¨å±æ€§
 struct MaterialInfo {
     std::string name;
     glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
@@ -16,29 +16,29 @@ struct MaterialInfo {
     float shininess = 32.0f;
     float dissolve = 1.0f;
     std::string diffuseTextureMap; // map_Kd
-    // Äã¿ÉÒÔÌí¼ÓÆäËûÌùÍ¼ÊôĞÔ
+    // ä½ å¯ä»¥æ·»åŠ å…¶ä»–è´´å›¾å±æ€§
     // std::string specularTextureMap;
     // std::string bumpTextureMap;
 
     MaterialInfo() = default;
 };
 
-// ½á¹¹Ìå£ºµ¥¸ö¶¥µãµÄÊı¾İ
+// ç»“æ„ä½“ï¼šå•ä¸ªé¡¶ç‚¹çš„æ•°æ®
 struct OurObjVertex {
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 texCoords;
 };
 
-// ½á¹¹Ìå£º±íÊ¾Ä£ĞÍÖĞµÄÒ»¸öÍø¸ñ
+// ç»“æ„ä½“ï¼šè¡¨ç¤ºæ¨¡å‹ä¸­çš„ä¸€ä¸ªç½‘æ ¼
 struct OurObjMesh {
     std::string name;
     std::string materialName;
     std::vector<OurObjVertex> vertices;
     std::vector<unsigned int> indices;
-    GLuint diffuseTextureId = 0; // ĞÂÔö£º´æ´¢´ËÍø¸ñÊ¹ÓÃµÄÂş·´ÉäÎÆÀíµÄOpenGL ID
+    GLuint diffuseTextureId = 0; // æ–°å¢ï¼šå­˜å‚¨æ­¤ç½‘æ ¼ä½¿ç”¨çš„æ¼«åå°„çº¹ç†çš„OpenGL ID
 
-    // Äã¿ÉÄÜ»¹ÏëÔÚÕâÀï´æ´¢ VAO, VBO, EBO
+    // ä½ å¯èƒ½è¿˜æƒ³åœ¨è¿™é‡Œå­˜å‚¨ VAO, VBO, EBO
     // GLuint VAO = 0, VBO = 0, EBO = 0;
 };
 
@@ -48,11 +48,11 @@ public:
     ~OurObjLoader();
 
     /**
-     * ¼ÓÔØ .obj Ä£ĞÍÎÄ¼ş£¬²¢½âÎöÆäÒıÓÃµÄ .mtl ²ÄÖÊÎÄ¼ş£¬Í¬Ê±¼ÓÔØÂş·´ÉäÎÆÀí¡£
-     * @param objFilePath .obj ÎÄ¼şµÄÂ·¾¶¡£
-     * @param mtlFileBasePath ÓÃÓÚ²éÕÒ .mtl ÎÄ¼şÒÔ¼° .mtl ÎÄ¼şÄÚ²¿ÒıÓÃµÄÎÆÀíÎÄ¼şµÄ»ù´¡Ä¿Â¼Â·¾¶¡£
-     * @param outMeshes Ò»¸ö std::vector<OurObjMesh> µÄÒıÓÃ£¬ÓÃÓÚ´æ´¢¼ÓÔØºÍ½âÎö³öµÄËùÓĞÍø¸ñÊı¾İ¡£
-     * @return Èç¹û³É¹¦¼ÓÔØºÍ½âÎö OBJ ¼°¹ØÁªµÄ MTL ÎÄ¼şºÍÖ÷ÒªÎÆÀí£¬Ôò·µ»Ø true£¬·ñÔò·µ»Ø false¡£
+     * åŠ è½½ .obj æ¨¡å‹æ–‡ä»¶ï¼Œå¹¶è§£æå…¶å¼•ç”¨çš„ .mtl æè´¨æ–‡ä»¶ï¼ŒåŒæ—¶åŠ è½½æ¼«åå°„çº¹ç†ã€‚
+     * @param objFilePath .obj æ–‡ä»¶çš„è·¯å¾„ã€‚
+     * @param mtlFileBasePath ç”¨äºæŸ¥æ‰¾ .mtl æ–‡ä»¶ä»¥åŠ .mtl æ–‡ä»¶å†…éƒ¨å¼•ç”¨çš„çº¹ç†æ–‡ä»¶çš„åŸºç¡€ç›®å½•è·¯å¾„ã€‚
+     * @param outMeshes ä¸€ä¸ª std::vector<OurObjMesh> çš„å¼•ç”¨ï¼Œç”¨äºå­˜å‚¨åŠ è½½å’Œè§£æå‡ºçš„æ‰€æœ‰ç½‘æ ¼æ•°æ®ã€‚
+     * @return å¦‚æœæˆåŠŸåŠ è½½å’Œè§£æ OBJ åŠå…³è”çš„ MTL æ–‡ä»¶å’Œä¸»è¦çº¹ç†ï¼Œåˆ™è¿”å› trueï¼Œå¦åˆ™è¿”å› falseã€‚
      */
     bool loadObj(const std::string& objFilePath,
         const std::string& mtlFileBasePath,
@@ -63,17 +63,17 @@ private:
     bool parseMtlFile(const std::string& mtlFilePath,
         std::map<std::string, MaterialInfo>& materials);
     std::string joinPaths(const std::string& basePath, const std::string& relativePath);
-    // ÄÚ²¿Ê¹ÓÃ£¬Ìî³ä m_loadedMaterials
+    // å†…éƒ¨ä½¿ç”¨ï¼Œå¡«å…… m_loadedMaterials
     bool objParseFaceVertexIndices(const std::string& faceVertexStr,
         int& v_idx, int& vt_idx, int& vn_idx,
         size_t max_v, size_t max_vt, size_t max_vn);
     GLuint loadTextureFromFile(const char* path);
 
-    // ³ÉÔ±±äÁ¿´æ´¢½âÎö½á¹ûºÍ»º´æ
+    // æˆå‘˜å˜é‡å­˜å‚¨è§£æç»“æœå’Œç¼“å­˜
     std::map<std::string, MaterialInfo> m_loadedMaterials;
-    std::map<std::string, GLuint> m_textureCache; // »º´æÒÑ¼ÓÔØµÄÎÆÀí£¬±ÜÃâÖØ¸´¼ÓÔØ
+    std::map<std::string, GLuint> m_textureCache; // ç¼“å­˜å·²åŠ è½½çš„çº¹ç†ï¼Œé¿å…é‡å¤åŠ è½½
 
-    // ÁÙÊ±´æ´¢´Ó .obj ÎÄ¼şÖĞÖ±½Ó¶ÁÈ¡µÄÔ­Ê¼¼¸ºÎÊı¾İ
+    // ä¸´æ—¶å­˜å‚¨ä» .obj æ–‡ä»¶ä¸­ç›´æ¥è¯»å–çš„åŸå§‹å‡ ä½•æ•°æ®
     std::vector<glm::vec3> temp_positions;
     std::vector<glm::vec2> temp_texCoords;
     std::vector<glm::vec3> temp_normals;

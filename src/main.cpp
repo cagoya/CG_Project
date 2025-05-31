@@ -62,6 +62,12 @@ glm::vec3 dragInitialModelPosition;
 
 // 汉字
 std::string sentence;
+int font_choice = 0;
+float font_size = 64.0f;
+int R = 0;
+int G = 0;
+int B = 0;
+const char* fonts[] = { "STSONG.TTF", "simfang.ttf", "simhei.ttf", "STKAITI.TTF", "STLITI.TTF" };
 
 // 修改游泳池的初始参数
 static float poolScale = 1.0f;  // 增大初始缩放
@@ -109,13 +115,13 @@ int main()
     Shader objModelShader = Shader("../../media/shader/objModel/objModel.vert.glsl","../../media/shader/objModel/objModel.frag.glsl");
     Shader skyboxShader("../../media/shader/skybox/skybox.vert.glsl", "../../media/shader/skybox/skybox.frag.glsl");
     Shader mainShader = Shader("../../media/shader/main/main.vert.glsl", "../../media/shader/main/main.frag.glsl");
-    
+
     // 添加调试信息
     std::cout << "Checking shader uniforms for objModelShader:" << std::endl;
     GLint numUniforms;
     glGetProgramiv(objModelShader.id_, GL_ACTIVE_UNIFORMS, &numUniforms);
     std::cout << "Number of active uniforms: " << numUniforms << std::endl;
-    
+
     for (GLint i = 0; i < numUniforms; i++) {
         char uniformName[256];
         GLint size;
@@ -123,7 +129,7 @@ int main()
         glGetActiveUniform(objModelShader.id_, i, sizeof(uniformName), NULL, &size, &type, uniformName);
         std::cout << "Uniform " << i << ": " << uniformName << " (Type: " << type << ", Size: " << size << ")" << std::endl;
     }
-    
+
     //Shader waterShader = Shader("", "../../media/shader/water/water_fs.glsl");
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
@@ -133,7 +139,7 @@ int main()
     imguiController.AddPanel(modelPanel);
     auto lightPanel = std::make_shared<LightingPanel>("LightController", imguiController.GetIO(), spotLight, ambientLight, directionalLight, material);
     imguiController.AddPanel(lightPanel);
-    auto characterPanel = std::make_shared<CharacterPanel>("CharacterController", imguiController.GetIO(), sentence);
+    auto characterPanel = std::make_shared<CharacterPanel>("CharacterController", imguiController.GetIO(), sentence, font_choice, font_size,R,G,B );
     imguiController.AddPanel(characterPanel);
 
     // 5. 创建并设置场景中的物体对象
@@ -180,10 +186,6 @@ int main()
         //ImGui 开始新帧
         imguiController.NewFrame(); 
         imguiController.DrawUI();
-        ImGui::Begin("Global Debug Values");
-        ImGui::Text("Global modelScaleFactor: %.3f", modelScaleFactor);
-        ImGui::Text("Global modelPosition: (%.2f, %.2f, %.2f)", modelPosition.x, modelPosition.y, modelPosition.z);
-        ImGui::End();
         processInput(window, camera, deltaTime);
 
         // 修改游泳池控制面板的范围
@@ -234,7 +236,7 @@ int main()
         mainShader.setFloat("spotLight.kl", spotLight.kl);
         mainShader.setFloat("spotLight.kq", spotLight.kq);
 
-        inside.draw(mainShader, model, sentence);
+        inside.draw(mainShader, model, sentence, fonts[font_choice], font_size, R, G, B);
         outside.draw(mainShader, glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f)));
 
 
@@ -259,12 +261,12 @@ int main()
         // 设置光照参数
         objModelShader.setVec3("ambientColor", ambientLight.color);
         objModelShader.setFloat("ambientIntensity", ambientLight.intensity);
-        
+
         // 方向光
         objModelShader.setVec3("directionalLight.direction", directionalLight.direction);
         objModelShader.setVec3("directionalLight.color", directionalLight.color);
         objModelShader.setFloat("directionalLight.intensity", directionalLight.intensity);
-        
+
         // 聚光灯
         objModelShader.setVec3("spotLight.position", spotLight.position);
         objModelShader.setVec3("spotLight.direction", spotLight.direction);

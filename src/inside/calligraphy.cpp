@@ -60,10 +60,10 @@ void Calligraphy::draw(Shader& shader, const glm::mat4& modelMatrix) const {
     char_square_.draw(shader,modelMatrix);
 }
 
-void Calligraphy::generateTexture(std::string sentence)
+void Calligraphy::generateTexture(std::string sentence, std::string font_string, float font_size, int R, int G, int B)
 {
     // 1. 加载字体文件，可以使用系统自带的字体，这里只写了windows
-    const std::string font_path = "C:/Windows/Fonts/simfang.ttf";
+    const std::string font_path = "../../media/font/" + font_string;
     FILE* fontFile = fopen(font_path.c_str(), "rb");
     if (!fontFile) {
         std::cerr << "无法打开字体文件: " << font_path << std::endl;
@@ -87,7 +87,6 @@ void Calligraphy::generateTexture(std::string sentence)
 
     // 3. 设置要渲染的字符串和字体大小
     const std::string text_to_render = sentence;
-    float font_size = 64.0f; // 字体大小(像素)
     float scale = stbtt_ScaleForPixelHeight(&font, font_size);
 
     // 获取字体全局度量信息 (用于计算基线)
@@ -183,9 +182,9 @@ void Calligraphy::generateTexture(std::string sentence)
                     int rgba_idx = (draw_y * bitmap_width + draw_x) * 4;
 
                     // 设置颜色(这里用黑色文字)
-                    rgba_bitmap[rgba_idx + 0] = 0;    // R
-                    rgba_bitmap[rgba_idx + 1] = 0;    // G
-                    rgba_bitmap[rgba_idx + 2] = 0;    // B
+                    rgba_bitmap[rgba_idx + 0] = R;    // R
+                    rgba_bitmap[rgba_idx + 1] = G;    // G
+                    rgba_bitmap[rgba_idx + 2] = B;    // B
                     // 使用字形位图值作为 Alpha (透明度) 通道
                     rgba_bitmap[rgba_idx + 3] = mono_bitmap[mono_idx];
                 }
@@ -206,6 +205,6 @@ void Calligraphy::generateTexture(std::string sentence)
         std::cerr << "保存图片失败" << std::endl;
     }
     else {
-        std::cout << "成功保存图片到: " << output_file << std::endl;
+        //std::cout << "成功保存图片到: " << output_file << std::endl;
     }
 }

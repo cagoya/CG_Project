@@ -8,7 +8,7 @@ public:
 	void setup();
 	void draw(Shader& shader, const glm::mat4& modelMatrix) const;
 	// generate the texture for character
-	void generateTexture(std::string sentence);
+	void generateTexture(std::string sentence, std::string font, float font_size, int R, int G, int B);
 private:
 	Square square_;
 	Square char_square_;

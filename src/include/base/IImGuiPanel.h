@@ -8,7 +8,6 @@ public:
     virtual ~IImGuiPanel() = default;
 
     virtual void Draw() = 0;
-
     bool IsVisible = true;
     const char* PanelName = "Panel";
 };

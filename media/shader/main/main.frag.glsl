@@ -81,7 +81,7 @@ vec3 calcSpotSpecular(vec3 normal, vec3 viewDir) {
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.ns);
     vec3 specular = material.ks * spec * spotLight.color;
     return spotLight.intensity * attenuation * specular;
-};
+}
 
 
 void main() {

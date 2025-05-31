@@ -2,6 +2,8 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "inside/inside.h"
 #include "outside/outside.h"
@@ -11,6 +13,7 @@
 #include "base/light.h"
 #include "base/LightingPanel.h"
 #include "ObjectModel/ObjectModel.h"
+#include "base/SwimmingPool.h"  // 添加游泳池头文件
 
 // 控制窗口
 #include "base/ImGuiController.h"
@@ -60,6 +63,9 @@ glm::vec3 dragInitialModelPosition;
 // 汉字
 std::string sentence;
 
+// 修改游泳池的初始参数
+static float poolScale = 1.0f;  // 增大初始缩放
+static glm::vec3 poolPosition = glm::vec3(5.5f, 0.4f, 2.0f);  // 将游泳池放在场景中心
 
 ImGuiController imguiController;
 int main()
@@ -103,6 +109,21 @@ int main()
     Shader objModelShader = Shader("../../media/shader/objModel/objModel.vert.glsl","../../media/shader/objModel/objModel.frag.glsl");
     Shader skyboxShader("../../media/shader/skybox/skybox.vert.glsl", "../../media/shader/skybox/skybox.frag.glsl");
     Shader mainShader = Shader("../../media/shader/main/main.vert.glsl", "../../media/shader/main/main.frag.glsl");
+    
+    // 添加调试信息
+    std::cout << "Checking shader uniforms for objModelShader:" << std::endl;
+    GLint numUniforms;
+    glGetProgramiv(objModelShader.id_, GL_ACTIVE_UNIFORMS, &numUniforms);
+    std::cout << "Number of active uniforms: " << numUniforms << std::endl;
+    
+    for (GLint i = 0; i < numUniforms; i++) {
+        char uniformName[256];
+        GLint size;
+        GLenum type;
+        glGetActiveUniform(objModelShader.id_, i, sizeof(uniformName), NULL, &size, &type, uniformName);
+        std::cout << "Uniform " << i << ": " << uniformName << " (Type: " << type << ", Size: " << size << ")" << std::endl;
+    }
+    
     //Shader waterShader = Shader("", "../../media/shader/water/water_fs.glsl");
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
@@ -116,21 +137,17 @@ int main()
     imguiController.AddPanel(characterPanel);
 
     // 5. 创建并设置场景中的物体对象
-    
-    ObjectModel myModel;
-    std::string objRelativePath = "../../media/model/new_pool/source/swimmingPool.obj";//只需输入.obj位置即可
-    std::string mtlBaseRelativePath = "../../media/model/new_pool/source/"; // 斜杠害人不浅 如果有mtl 和.obj放在一起即可（如果在一个folder里面，空字符串也可以） 填对应文件夹位置就行 是给texture提供相关支持的
-
-
-    // 尝试加载模型
-    if (!myModel.load(objRelativePath, mtlBaseRelativePath)) {
-        std::cerr << "Failed to load OBJ model using relative paths!" << std::endl;
-        std::cerr << "Attempted OBJ path: " << objRelativePath << std::endl;
-        std::cerr << "Attempted MTL base path: " << mtlBaseRelativePath << std::endl;
+    SwimmingPool swimmingPool;
+    if (!swimmingPool.initialize()) {
+        std::cerr << "Failed to initialize swimming pool!" << std::endl;
     }
-    else {
-        std::cout << "Successfully loaded OBJ model using relative paths!" << std::endl;
-    }
+    swimmingPool.setPosition(poolPosition);
+    swimmingPool.setScale(poolScale);
+
+    // 添加调试信息
+    std::cout << "Swimming pool initialized with:" << std::endl;
+    std::cout << "Position: (" << poolPosition.x << ", " << poolPosition.y << ", " << poolPosition.z << ")" << std::endl;
+    std::cout << "Scale: " << poolScale << std::endl;
 
     // 导入天空盒
     
@@ -168,6 +185,16 @@ int main()
         ImGui::Text("Global modelPosition: (%.2f, %.2f, %.2f)", modelPosition.x, modelPosition.y, modelPosition.z);
         ImGui::End();
         processInput(window, camera, deltaTime);
+
+        // 修改游泳池控制面板的范围
+        ImGui::Begin("Swimming Pool Control");
+        if (ImGui::SliderFloat3("Position", &poolPosition.x, -20.0f, 20.0f)) {
+            swimmingPool.setPosition(poolPosition);
+        }
+        if (ImGui::SliderFloat("Scale", &poolScale, 0.001f, 0.005f)) {
+            swimmingPool.setScale(poolScale);
+        }
+        ImGui::End();
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -212,26 +239,63 @@ int main()
 
 
         // --- 在这里添加其他对象的绘制 ---
-        objModelShader.use(); // 换到新的着色器程序
+        objModelShader.use(); // 确保在使用着色器之前先激活它
         
         // 为新的 objModelShaderProgram 设置 view 和 projection 矩阵
-        // (通常和上面的 view, projection 矩阵是一样的，但需要为当前激活的着色器重新设置)
-        glUniformMatrix4fv(glGetUniformLocation(objModelShader.id_, "view"), 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(glGetUniformLocation(objModelShader.id_, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        objModelShader.setMat4("view", view);
+        objModelShader.setMat4("projection", projection);
 
-        GLint diffuseTexSamplerLoc = glGetUniformLocation(objModelShader.id_, "texture_diffuse1"); // "texture_diffuse1" 必须与片段着色器中的 sampler 名称一致
+        // 添加相机位置
+        objModelShader.setVec3("viewPos", camera.Position);
+
+        // 添加时间uniform
+        float currentTime = static_cast<float>(glfwGetTime());
+        objModelShader.setFloat("time", currentTime);
+
+        // 设置材质
+        objModelShader.setInt("material.diffuse", 0);
+        objModelShader.setInt("material.normal", 1);
+
+        // 设置光照参数
+        objModelShader.setVec3("ambientColor", ambientLight.color);
+        objModelShader.setFloat("ambientIntensity", ambientLight.intensity);
+        
+        // 方向光
+        objModelShader.setVec3("directionalLight.direction", directionalLight.direction);
+        objModelShader.setVec3("directionalLight.color", directionalLight.color);
+        objModelShader.setFloat("directionalLight.intensity", directionalLight.intensity);
+        
+        // 聚光灯
+        objModelShader.setVec3("spotLight.position", spotLight.position);
+        objModelShader.setVec3("spotLight.direction", spotLight.direction);
+        objModelShader.setVec3("spotLight.color", spotLight.color);
+        objModelShader.setFloat("spotLight.intensity", spotLight.intensity);
+        objModelShader.setFloat("spotLight.angle", spotLight.angle);
+        objModelShader.setFloat("spotLight.kc", spotLight.kc);
+        objModelShader.setFloat("spotLight.kl", spotLight.kl);
+        objModelShader.setFloat("spotLight.kq", spotLight.kq);
+
+        // 添加调试输出
+        static float lastDebugTime = 0.0f;
+        if (currentTime - lastDebugTime > 1.0f) {  // 每秒输出一次
+            std::cout << "Light values:" << std::endl;
+            std::cout << "Ambient: " << ambientLight.intensity << std::endl;
+            std::cout << "Directional: " << directionalLight.intensity << std::endl;
+            std::cout << "Spot: " << spotLight.intensity << std::endl;
+            lastDebugTime = currentTime;
+        }
+
+        GLint diffuseTexSamplerLoc = glGetUniformLocation(objModelShader.id_, "texture_diffuse1");
         if (diffuseTexSamplerLoc != -1) {
-            glUniform1i(diffuseTexSamplerLoc, 0); // ObjectModel::draw 会将纹理绑定到 GL_TEXTURE0
+            glUniform1i(diffuseTexSamplerLoc, 0);
         }
         else {
             std::cout << "WARNING: Sampler uniform 'texture_diffuse1' not found in objModelShader!" << std::endl;
         }
-        // myModel 的模型矩阵
-        glm::mat4 modelForMyObj = glm::mat4(1.0f); // 单位矩阵
-        modelForMyObj = glm::translate(modelForMyObj, modelPosition); // 调整模型在场景中的位置
-        modelForMyObj = glm::scale(modelForMyObj, glm::vec3(modelScaleFactor));   // 调整模型的大小
-        // 实现的ObjectModel::draw 方法内部会设置自己的 model 矩阵 uniform 和绑定 VAO
-        myModel.draw(objModelShader.id_, modelForMyObj);
+
+        // 绘制游泳池
+        swimmingPool.update(deltaTime);
+        swimmingPool.draw(objModelShader.id_, glm::translate(glm::mat4(1.0f), poolPosition) * glm::scale(glm::mat4(1.0f), glm::vec3(poolScale)));
 
         // --------------------------------
         // ImGui 渲染绘制的面板数据

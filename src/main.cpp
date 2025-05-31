@@ -59,7 +59,12 @@ glm::vec3 dragInitialModelPosition;
 
 // 汉字
 std::string sentence;
-
+int font_choice = 0;
+float font_size = 64.0f;
+int R = 0;
+int G = 0;
+int B = 0;
+const char* fonts[] = { "STSONG.TTF", "simfang.ttf", "simhei.ttf", "STKAITI.TTF", "STLITI.TTF" };
 
 ImGuiController imguiController;
 int main()
@@ -112,7 +117,7 @@ int main()
     imguiController.AddPanel(modelPanel);
     auto lightPanel = std::make_shared<LightingPanel>("LightController", imguiController.GetIO(), spotLight, ambientLight, directionalLight, material);
     imguiController.AddPanel(lightPanel);
-    auto characterPanel = std::make_shared<CharacterPanel>("CharacterController", imguiController.GetIO(), sentence);
+    auto characterPanel = std::make_shared<CharacterPanel>("CharacterController", imguiController.GetIO(), sentence, font_choice, font_size,R,G,B );
     imguiController.AddPanel(characterPanel);
 
     // 5. 创建并设置场景中的物体对象
@@ -163,10 +168,6 @@ int main()
         //ImGui 开始新帧
         imguiController.NewFrame(); 
         imguiController.DrawUI();
-        ImGui::Begin("Global Debug Values");
-        ImGui::Text("Global modelScaleFactor: %.3f", modelScaleFactor);
-        ImGui::Text("Global modelPosition: (%.2f, %.2f, %.2f)", modelPosition.x, modelPosition.y, modelPosition.z);
-        ImGui::End();
         processInput(window, camera, deltaTime);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -185,7 +186,6 @@ int main()
 
         // --- 绘制场景中的物体 ---
         glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 houseModel = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
 
         mainShader.use();
         // 这些是共用的，材质是每个物品的属性
@@ -207,7 +207,7 @@ int main()
         mainShader.setFloat("spotLight.kl", spotLight.kl);
         mainShader.setFloat("spotLight.kq", spotLight.kq);
 
-        inside.draw(mainShader, model, sentence);
+        inside.draw(mainShader, model, sentence, fonts[font_choice], font_size, R, G, B);
         outside.draw(mainShader, glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f)));
 
 

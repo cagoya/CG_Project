@@ -65,14 +65,7 @@ set_target_properties(utf8 PROPERTIES FOLDER "lib")
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 
 # 添加可执行文件
-add_executable(main ${SRC_FILES} "src/include/ObjectModel/ObjectModel.h" 
-    "src/base/ourloader.cpp"
-    "src/base/ObjectModel.cpp" 
-    "src/include/base/IImGuiPanel.h" 
-    "src/include/base/ModelTransformPanel.h" 
-    
-    "src/include/base/ImGuiController.h" 
-     "src/include/OurObjLoader/OurObjLoader.h")
+add_executable(main ${SRC_FILES})
 
 # 添加头文件目录
 target_include_directories(main PRIVATE

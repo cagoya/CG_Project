@@ -1,3 +1,4 @@
+
 #include "base/characterPanel.h"
 #include <string>
 

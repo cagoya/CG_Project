@@ -16,6 +16,7 @@ public:
     Outside() = default;
     void setup();
     void draw(Shader& shader, const glm::mat4& modelMatrix);
+    void drawShadow(Shader& shader, const glm::mat4& modelMatrix);
 private:
     Wall wall_;
     Ground ground_;

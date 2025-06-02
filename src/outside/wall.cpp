@@ -165,7 +165,7 @@ Wall::Wall() : DrawObject()
 	    34, 6, 7
 	};
 
-	inner_.getVertices() = {
+	inner_.getIndices() = {
 		// 背面
 		0, 1, 2,  0, 2, 3,
 		// 左面
@@ -192,6 +192,7 @@ Wall::Wall() : DrawObject()
 	};
 
     outer_.getTexturePath() = "../../media/textures/wall.jpg";
+	inner_.getTexturePath() = "../../media/textures/wall.jpg";
 } 
 
 void Wall::setup() {

@@ -27,3 +27,14 @@ void Outside::draw(Shader& shader, const glm::mat4& modelMatrix)
     tree_.draw(shader, glm::translate(glm::mat4(1.0f), glm::vec3(-1.5f, 0.0f, 1.5f)));
     window_.draw(shader, modelMatrix);
 }
+void Outside::drawShadow(Shader& shader, const glm::mat4& modelMatrix)
+{
+    wall_.draw(shader, modelMatrix);
+    fence_.draw(shader, glm::mat4(1.0f));
+    roof_.draw(shader, modelMatrix);
+    door_.draw(shader, modelMatrix);
+    stone_.draw(shader, glm::translate(glm::mat4(1.0f), glm::vec3(-0.7f, 0.01f, 4.0f)));
+    stone_.draw(shader, glm::translate(glm::mat4(1.0f), glm::vec3(0.7f, 0.01f, 4.0f)));
+    tree_.draw(shader, glm::translate(glm::mat4(1.0f), glm::vec3(1.5f, 0.0f, 1.5f)));
+    tree_.draw(shader, glm::translate(glm::mat4(1.0f), glm::vec3(-1.5f, 0.0f, 1.5f)));
+}

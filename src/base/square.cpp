@@ -78,6 +78,8 @@ void Square::setup() {
         }
 
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        GLenum err = glGetError();
+        if (err != GL_NO_ERROR) std::cerr << "OpenGL Error before mipmap: " << err << std::endl;
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else {

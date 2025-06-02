@@ -15,7 +15,7 @@ void CharacterPanel::Draw() {
             inputBuffer[sizeof(inputBuffer) - 1] = '\0'; // 确保字符串以 null 结尾
         }
 
-        ImGui::Text("请输入汉字");
+        ImGui::Text("please input character");
         if (ImGui::InputText("##CharacterInput", inputBuffer, sizeof(inputBuffer))) {
             // 当输入内容改变时，更新 characterRef
             characterRef = inputBuffer;

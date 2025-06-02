@@ -189,6 +189,16 @@ int main()
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
 
+        // 如果窗口最小化或隐藏，使用上次的有效尺寸
+        static int lastWidth = 800, lastHeight = 600;
+        if (width <= 0 || height <= 0) {
+            width = lastWidth;
+            height = lastHeight;
+        } else {
+            lastWidth = width;
+            lastHeight = height;
+        }
+
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -207,6 +217,7 @@ int main()
         std::cout << height << " " << width << std::endl;
         // --- 绘制阴影贴图 ---
         // 用光源视角渲染深度贴图
+
         float near_plane = 1.0f, far_plane = 20.0f;
         glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
         glm::mat4 lightView = glm::lookAt(

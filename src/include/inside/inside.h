@@ -11,8 +11,8 @@ class Inside {
 public:
 	Inside() = default;
     void setup();
-    void draw(Shader& shader, const glm::mat4& modelMatrix, std::string& sentence, std::string font, float font_size, int R, int G, int B);
-    void drawShadow(Shader& shader, const glm::mat4& modelMatrix, std::string& sentence, std::string font, float font_size, int R, int G, int B);
+    void draw(Shader& shader, const glm::mat4& modelMatrix, std::string& sentence, std::string font, float font_size, int R, int G, int B, bool useTexture);
+    void drawShadow(Shader& shader, const glm::mat4& modelMatrix, std::string& sentence, std::string font, float font_size, int R, int G, int B, bool useTexture);
 private:
     Floor floor_;
     Table table_;

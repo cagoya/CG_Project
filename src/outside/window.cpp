@@ -25,7 +25,7 @@ void Window::setup() {
     square_.setup();
 }
 
-void Window::draw(Shader& shader, const glm::mat4& modelMatrix) const {
+void Window::draw(Shader& shader, const glm::mat4& modelMatrix, bool useTexture) const {
     shader.setVec3("material.ka", ka_);
     shader.setVec3("material.kd", kd_);
     shader.setVec3("material.ks", ks_);
@@ -33,6 +33,6 @@ void Window::draw(Shader& shader, const glm::mat4& modelMatrix) const {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    square_.draw(shader, modelMatrix);
+    square_.draw(shader, modelMatrix,useTexture);
     glDisable(GL_BLEND);
 }

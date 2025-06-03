@@ -149,7 +149,7 @@ void Column::setup()
     square_.setup();
 }
 
-void Column::draw(Shader& shader, const glm::mat4& modelMatrix) const
+void Column::draw(Shader& shader, const glm::mat4& modelMatrix,bool useTexture) const
 {
-    square_.draw(shader, modelMatrix);
+    square_.draw(shader, modelMatrix, useTexture);
 }

@@ -28,10 +28,10 @@ void Ground::setup() {
 }
 
 // 绘制地面
-void Ground::draw(Shader& shader, const glm::mat4& modelMatrix) const {
+void Ground::draw(Shader& shader, const glm::mat4& modelMatrix,bool useTexture) const {
     shader.setVec3("material.ka", ka_);
     shader.setVec3("material.kd", kd_);
     shader.setVec3("material.ks", ks_);
     shader.setFloat("material.ns", ns_);
-    square_.draw(shader, modelMatrix);
+    square_.draw(shader, modelMatrix, useTexture);
 }

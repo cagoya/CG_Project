@@ -12,7 +12,7 @@ public:
 	Sphere(float radius, int segments, const glm::vec3& color, std::string texture_path);
 	~Sphere() = default;
 	void setup();
-	void draw(Shader& shader, const glm::mat4& modelMatrix) const;
+	void draw(Shader& shader, const glm::mat4& modelMatrix,bool useTexture) const;
 private:
 	Square square_;
 	void generateSphere(); // 生成圆柱体侧面的顶点数据，填充 vertices_ 和 indices_

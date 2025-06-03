@@ -26,7 +26,7 @@ public:
 
 	// 绘制该对象
 	// shaderProgramID: 当前使用的着色器程序ID
-	virtual void draw(Shader& shader, const glm::mat4& modelMatrix) const{};
+	virtual void draw(Shader& shader, const glm::mat4& modelMatrix,bool useTexture) const{};
 
 protected:
 	// 存储地面的 VAO, VBO, EBO 的 ID

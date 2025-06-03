@@ -31,7 +31,7 @@ const unsigned int SCR_HEIGHT = 600;
 Camera camera(glm::vec3(0.0f, 1.0f, 5.0f));
 
 // 阴影贴图参数
-const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 unsigned int depthMapFBO;
 unsigned int depthMap;
 
@@ -214,7 +214,7 @@ int main()
         // 设置视图和投影矩阵
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)width / (float)height, 0.1f, 100.0f);
-        std::cout << height << " " << width << std::endl;
+        //std::cout << height << " " << width << std::endl;
         // --- 绘制阴影贴图 ---
         // 用光源视角渲染深度贴图
 
@@ -235,8 +235,8 @@ int main()
         glClear(GL_DEPTH_BUFFER_BIT);
         
 
-        inside.draw(depthShader, model, sentence, fonts[font_choice], font_size, R, G, B);
-        outside.drawShadow(depthShader, glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f)));
+        inside.drawShadow(depthShader, model, sentence, fonts[font_choice], font_size, R, G, B,false);
+        outside.drawShadow(depthShader, glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f)),false);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, width, height); // 恢复视口
@@ -280,8 +280,8 @@ int main()
         mainShader.setFloat("spotLight.kl", spotLight.kl);
         mainShader.setFloat("spotLight.kq", spotLight.kq);
 
-        inside.draw(mainShader, model, sentence, fonts[font_choice], font_size, R, G, B);
-        outside.draw(mainShader, glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f)));
+        inside.draw(mainShader, model, sentence, fonts[font_choice], font_size, R, G, B,true);
+        outside.draw(mainShader, glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f)),true);
 
 
         // --- 在这里添加其他对象的绘制 ---

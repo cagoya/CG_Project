@@ -50,13 +50,13 @@ void CharacterPanel::Draw() {
         ImGui::Text("目前的字体是： %s", items[font_choiceRef]);
 
         // 选择字体大小
-        ImGui::SliderFloat("调整字体大小", &(font_sizeRef), 10.0f, 100.0f, "当前值: %.1f");
+        ImGui::SliderFloat("调整字体大小", &(font_sizeRef), 10.0f, 100.0f, "当前值 %.1f");
 
         // 调整字体颜色
         ImGui::Text("调整字体颜色:");
-        ImGui::SliderInt("R", &R_Ref, 0, 255, "当前值: %d");
-        ImGui::SliderInt("G", &G_Ref, 0, 255, "当前值: %d");
-        ImGui::SliderInt("B", &B_Ref, 0, 255, "当前值: %d");
+        ImGui::SliderInt("R", &R_Ref, 0, 255, "当前值 %d");
+        ImGui::SliderInt("G", &G_Ref, 0, 255, "当前值 %d");
+        ImGui::SliderInt("B", &B_Ref, 0, 255, "当前值 %d");
 
         ImGui::End();
     }

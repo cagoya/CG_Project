@@ -50,14 +50,14 @@ void Calligraphy::setup() {
     char_square_.setup();
 }
 
-void Calligraphy::draw(Shader& shader, const glm::mat4& modelMatrix) const {
+void Calligraphy::draw(Shader& shader, const glm::mat4& modelMatrix,bool useTexture) const {
     shader.setVec3("material.ka", ka_);
     shader.setVec3("material.kd", kd_);
     shader.setVec3("material.ks", ks_);
     shader.setFloat("material.ns", ns_);
-    square_.draw(shader, modelMatrix);
+    square_.draw(shader, modelMatrix, useTexture);
     // 因为要允许修改文字，所以必须到绘制时再生成并绑定纹理
-    char_square_.draw(shader,modelMatrix);
+    char_square_.draw(shader,modelMatrix, useTexture);
 }
 
 void Calligraphy::generateTexture(std::string sentence, std::string font_string, float font_size, int R, int G, int B)

@@ -11,9 +11,16 @@ Square::~Square()
 	if (textureID_ != 0) {
 		glDeleteTextures(1, &textureID_);
 	}
+    if (vao_ != 0) glDeleteVertexArrays(1, &vao_);
+    if (vbo_ != 0) glDeleteBuffers(1, &vbo_);
+    if (ebo_ != 0) glDeleteBuffers(1, &ebo_);
 }
 
 void Square::setup() {
+    if (textureID_ != 0) glDeleteTextures(1, &textureID_);
+    if (vao_ != 0) glDeleteVertexArrays(1, &vao_);
+    if (vbo_ != 0) glDeleteBuffers(1, &vbo_);
+    if (ebo_ != 0) glDeleteBuffers(1, &ebo_);
     glGenVertexArrays(1, &vao_);
     glGenBuffers(1, &vbo_);
     glGenBuffers(1, &ebo_);
@@ -46,7 +53,14 @@ void Square::setup() {
     glEnableVertexAttribArray(3);
 
     glBindVertexArray(0);
-
+    // Load image data
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* data = stbi_load(texture_path_.data(), &width, &height, &nrChannels, 0);
+	if (!data) {
+		std::cerr << "Failed to load texture: " << texture_path_ << std::endl;
+		return;
+	}
     // Texture loading (unchanged)
     glGenTextures(1, &textureID_);
     glBindTexture(GL_TEXTURE_2D, textureID_);
@@ -59,11 +73,8 @@ void Square::setup() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // Load image data
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load(texture_path_.data(), &width, &height, &nrChannels, 0);
-    if (data) {
+    
+   
         GLenum format;
         if (nrChannels == 1)
             format = GL_RED;
@@ -81,22 +92,20 @@ void Square::setup() {
         GLenum err = glGetError();
         if (err != GL_NO_ERROR) std::cerr << "OpenGL Error before mipmap: " << err << std::endl;
         glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else {
-        std::cerr << "Failed to load texture: " << texture_path_ << std::endl;
-    }
     stbi_image_free(data);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Square::draw(Shader& shader, const glm::mat4& modelMatrix) const {
+void Square::draw(Shader& shader, const glm::mat4& modelMatrix, bool useTexture) const {
     shader.setMat4("model", modelMatrix);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID_);
-    shader.setInt("texture_sampler", 0);
+    if (useTexture&&textureID_!=0) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureID_);
+        shader.setInt("texture_sampler", 0);
+    }
     glBindVertexArray(vao_);
     glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    if(useTexture)glBindTexture(GL_TEXTURE_2D, 0);
 }

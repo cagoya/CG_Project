@@ -9,8 +9,8 @@ void Stone::setup()
 	sphere_.setup();
 }
 
-void Stone::draw(Shader& shader, const glm::mat4& modelMatrix) const
+void Stone::draw(Shader& shader, const glm::mat4& modelMatrix, bool useTexture) const
 {
-	column_.draw(shader, modelMatrix);
-	sphere_.draw(shader, glm::translate(modelMatrix, glm::vec3(0.0f,0.13f,0.0f)));
+	column_.draw(shader, modelMatrix,useTexture);
+	sphere_.draw(shader, glm::translate(modelMatrix, glm::vec3(0.0f,0.13f,0.0f)), useTexture);
 }

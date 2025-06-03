@@ -68,7 +68,7 @@ void ImGuiController::DrawUI() {
     if (!initialized) return;
     for (const auto& panel : panels) {
         if (panel) {
-            panel->Draw(); // ����ÿ����ע������ Draw ����
+            panel->Draw();
         }
     }
 }

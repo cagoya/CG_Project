@@ -50,14 +50,14 @@ void Calligraphy::setup() {
     char_square_.setup();
 }
 
-void Calligraphy::draw(Shader& shader, const glm::mat4& modelMatrix) const {
+void Calligraphy::draw(Shader& shader, const glm::mat4& modelMatrix,bool useTexture) const {
     shader.setVec3("material.ka", ka_);
     shader.setVec3("material.kd", kd_);
     shader.setVec3("material.ks", ks_);
     shader.setFloat("material.ns", ns_);
-    square_.draw(shader, modelMatrix);
+    square_.draw(shader, modelMatrix, useTexture);
     // 因为要允许修改文字，所以必须到绘制时再生成并绑定纹理
-    char_square_.draw(shader,modelMatrix);
+    char_square_.draw(shader,modelMatrix, useTexture);
 }
 
 void Calligraphy::generateTexture(std::string sentence, std::string font_string, float font_size, int R, int G, int B)
@@ -81,7 +81,7 @@ void Calligraphy::generateTexture(std::string sentence, std::string font_string,
     // 2. 初始化字体
     stbtt_fontinfo font;
     if (!stbtt_InitFont(&font, fontBuffer.data(), stbtt_GetFontOffsetForIndex(fontBuffer.data(), 0))) {
-        std::cerr << "初始化字体失败" << std::endl;
+        std::cerr << "fail to load font" << std::endl;
         return;
     }
 
@@ -131,7 +131,7 @@ void Calligraphy::generateTexture(std::string sentence, std::string font_string,
     int bitmap_height = max_height + 2 * padding;
 
     if (bitmap_width <= 0 || bitmap_height <= 0) {
-        std::cerr << "计算的位图尺寸无效 (width: " << bitmap_width << ", height: " << bitmap_height << ")。请检查字体文件和文本内容。" << std::endl;
+        std::cerr << "please check font file" << std::endl;
         return ;
     }
 

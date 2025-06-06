@@ -75,14 +75,14 @@ void Table::setup() {
     column_.setup();
 }
 
-void Table::draw(Shader& shader, const glm::mat4& modelMatrix) const {
+void Table::draw(Shader& shader, const glm::mat4& modelMatrix,bool useTexture) const {
     shader.setVec3("material.ka", ka_);
     shader.setVec3("material.kd", kd_);
     shader.setVec3("material.ks", ks_);
     shader.setFloat("material.ns", ns_);
-    square_.draw(shader, modelMatrix);
-    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(0.2f, 0.0f, 0.2f)));
-    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(0.2f, 0.0f, -0.2f)));
-    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(-0.2f, 0.0f, 0.2f)));
-    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(-0.2f, 0.0f, -0.2f)));
+    square_.draw(shader, modelMatrix, useTexture);
+    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(0.2f, 0.0f, 0.2f)), useTexture);
+    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(0.2f, 0.0f, -0.2f)), useTexture);
+    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(-0.2f, 0.0f, 0.2f)), useTexture);
+    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(-0.2f, 0.0f, -0.2f)), useTexture);
 }

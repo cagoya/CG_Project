@@ -33,6 +33,11 @@ const unsigned int SCR_HEIGHT = 600;
 
 Camera camera(glm::vec3(0.0f, 1.0f, 5.0f));
 
+// 阴影贴图参数
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+unsigned int depthMapFBO;
+unsigned int depthMap;
+
 // 鼠标状态
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
@@ -111,6 +116,24 @@ int main()
         return -1;
     }
 
+    //创建深度帧缓冲和深度纹理
+    glGenFramebuffers(1, &depthMapFBO);
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     // 4. 构建和编译着色器程序
     Shader objModelShader = Shader("../../media/shader/objModel/objModel.vert.glsl","../../media/shader/objModel/objModel.frag.glsl");
     Shader skyboxShader("../../media/shader/skybox/skybox.vert.glsl", "../../media/shader/skybox/skybox.frag.glsl");
@@ -131,6 +154,8 @@ int main()
     }
 
     //Shader waterShader = Shader("", "../../media/shader/water/water_fs.glsl");
+    Shader depthShader("../../media/shader/shadow/shadow.vert.glsl", "../../media/shader/shadow/shadow.frag.glsl");
+
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
@@ -178,6 +203,19 @@ int main()
     {
        // GLenum err = glGetError();
         //if (err != GL_NO_ERROR) std::cerr << "OpenGL Error: " << err << std::endl;
+        glDisable(GL_CULL_FACE);
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+
+        // 如果窗口最小化或隐藏，使用上次的有效尺寸
+        static int lastWidth = 800, lastHeight = 600;
+        if (width <= 0 || height <= 0) {
+            width = lastWidth;
+            height = lastHeight;
+        } else {
+            lastWidth = width;
+            lastHeight = height;
+        }
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -203,7 +241,34 @@ int main()
 
         // 设置视图和投影矩阵
         glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)width / (float)height, 0.1f, 100.0f);
+        //std::cout << height << " " << width << std::endl;
+        // --- 绘制阴影贴图 ---
+        // 用光源视角渲染深度贴图
+
+        float near_plane = 1.0f, far_plane = 20.0f;
+        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+        glm::mat4 lightView = glm::lookAt(
+            directionalLight.direction * -10.0f, // 光源位置
+            glm::vec3(0.0f),                     // 看向原点
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
+        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+        glm::mat4 model = glm::mat4(1.0f);
+        depthShader.use();
+        depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        //glDisable(GL_CULL_FACE);
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+
+        inside.drawShadow(depthShader, model, sentence, fonts[font_choice], font_size, R, G, B,false);
+        outside.drawShadow(depthShader, glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f)),false);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, width, height); // 恢复视口
+
         // 绘制天空盒
         skyboxShader.use();
         glDepthFunc(GL_LEQUAL);
@@ -212,11 +277,20 @@ int main()
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
 
+
+
         // --- 绘制场景中的物体 ---
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 houseModel = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
 
+
         mainShader.use();
+        mainShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+        mainShader.setInt("shadowMap", 1);
+        spotLight.direction = camera.Front;
+        spotLight.position = camera.Position;
         // 这些是共用的，材质是每个物品的属性
         mainShader.setMat4("view", view);
         mainShader.setMat4("projection", projection);
@@ -236,8 +310,8 @@ int main()
         mainShader.setFloat("spotLight.kl", spotLight.kl);
         mainShader.setFloat("spotLight.kq", spotLight.kq);
 
-        inside.draw(mainShader, model, sentence, fonts[font_choice], font_size, R, G, B);
-        outside.draw(mainShader, glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f)));
+        inside.draw(mainShader, model, sentence, fonts[font_choice], font_size, R, G, B,true);
+        outside.draw(mainShader, glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f)),true);
 
 
         // --- 在这里添加其他对象的绘制 ---
@@ -316,6 +390,9 @@ int main()
 
     //Gui 清理
     imguiController.Shutdown();
+
+    glDeleteFramebuffers(1, &depthMapFBO);
+    glDeleteTextures(1, &depthMap);
 
     glfwTerminate();
     return 0;

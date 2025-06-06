@@ -12,7 +12,7 @@ public:
 	Column(float radius, float height, int segments, const glm::vec3& color, std::string texture_path);
 	~Column() = default;
 	void setup();
-	void draw(Shader& shader, const glm::mat4& modelMatrix) const;
+	void draw(Shader& shader, const glm::mat4& modelMatrix,bool useTexture) const;
 	inline float& getRadius() { return radius_; }
 	inline float& getHeight() { return height_; }
 	inline int& getSegments() { return segments_; }

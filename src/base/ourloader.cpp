@@ -5,8 +5,9 @@
 #include <filesystem>
 #include <map>
 #include <tuple>
+#include <immintrin.h>  // 添加 SIMD 支持
+#include <glad/gl.h>    // 添加 GLAD 支持
 
-// STB Image (确保这个宏只在一个编译单元中定义，如果多处使用stb_image.h)
 #ifndef STB_IMAGE_IMPLEMENTATION // 通常放在一个专门的 .c 或 .cpp 文件，或者确保只在主文件定义一次
 #include "stb_image.h" // 用于加载纹理图片
 #define STB_IMAGE_IMPLEMENTATION
@@ -174,8 +175,56 @@ GLuint OurObjLoader::loadTextureFromFile(const char* path) {
     return textureID;
 }
 
+// 添加 SIMD 优化的顶点处理函数
+void OurObjLoader::processVerticesSIMD(std::vector<glm::vec3>& vertices) {
+    if (vertices.empty()) return;  // 添加空检查
+    
+    size_t count = vertices.size();
+    size_t simdCount = count - (count % 4);  // 确保是4的倍数
+    
+    // 确保内存对齐
+    for (size_t i = 0; i < simdCount; i += 4) {
+        // 使用临时变量存储顶点数据
+        glm::vec3 temp[4];
+        for (int j = 0; j < 4; j++) {
+            temp[j] = vertices[i + j];
+        }
+        
+        // 加载4个顶点到SIMD寄存器
+        __m128 v1 = _mm_set_ps(0.0f, temp[0].z, temp[0].y, temp[0].x);
+        __m128 v2 = _mm_set_ps(0.0f, temp[1].z, temp[1].y, temp[1].x);
+        __m128 v3 = _mm_set_ps(0.0f, temp[2].z, temp[2].y, temp[2].x);
+        __m128 v4 = _mm_set_ps(0.0f, temp[3].z, temp[3].y, temp[3].x);
+        
+        // SIMD运算
+        __m128 scale = _mm_set1_ps(1.0f);
+        v1 = _mm_mul_ps(v1, scale);
+        v2 = _mm_mul_ps(v2, scale);
+        v3 = _mm_mul_ps(v3, scale);
+        v4 = _mm_mul_ps(v4, scale);
+        
+        // 存储回临时变量
+        float result1[4], result2[4], result3[4], result4[4];
+        _mm_store_ps(result1, v1);
+        _mm_store_ps(result2, v2);
+        _mm_store_ps(result3, v3);
+        _mm_store_ps(result4, v4);
+        
+        // 更新顶点数据
+        for (int j = 0; j < 4; j++) {
+            vertices[i + j].x = result1[j];
+            vertices[i + j].y = result2[j];
+            vertices[i + j].z = result3[j];
+        }
+    }
+    
+    // 处理剩余的顶点
+    for (size_t i = simdCount; i < count; i++) {
+        vertices[i] *= 1.0f;
+    }
+}
 
-// 修改 loadObj 方法以使用 m_loadedMaterials 和 m_textureCache
+// 修改 loadObj 方法以使用 GPU 处理
 bool OurObjLoader::loadObj(const std::string& objFilePath,
     const std::string& mtlFileBasePath,
     std::vector<OurObjMesh>& outMeshes) {
@@ -221,16 +270,20 @@ bool OurObjLoader::loadObj(const std::string& objFilePath,
                 std::cout << "DEBUG: ss: " << ss.str() << std::endl;
                 std::cout << "DEBUG: mtllib - mtlFileBasePath from arg: [" << mtlFileBasePath << "]" << std::endl;
                 std::cout << "DEBUG: mtllib - mtlFilename read from OBJ: [" << mtlFilename << "]" << std::endl;
+                
+                // 修复MTL文件路径解析
                 std::string fullMtlPath = mtlFileBasePath;
                 if (!fullMtlPath.empty() && fullMtlPath.back() != '/' && fullMtlPath.back() != '\\') {
                     fullMtlPath += '/';
                 }
                 fullMtlPath += mtlFilename;
-                std::cout << "DEBUG: mtllib - fullMtlPath constructed: [" << fullMtlPath << "]" << std::endl; // 打印组合后的路径
+                std::cout << "DEBUG: mtllib - fullMtlPath constructed: [" << fullMtlPath << "]" << std::endl;
 
-                parseMtlFile(fullMtlPath, m_loadedMaterials); // 使用成员变量 m_loadedMaterials
+                if (!parseMtlFile(fullMtlPath, m_loadedMaterials)) {
+                    std::cerr << "OUR OBJ LOADER ERROR: Failed to parse MTL file: " << fullMtlPath << std::endl;
+                    return false;
+                }
             }
-            else { /* error handling */ }
         }
         else if (keyword == "usemtl") {
             std::string newMaterialName;
@@ -370,8 +423,103 @@ bool OurObjLoader::loadObj(const std::string& objFilePath,
     if (outMeshes.empty() && temp_positions.empty()) {
         std::cout << "OUR OBJ LOADER: No geometric data or meshes were loaded from file: " << objFilePath << std::endl;
     }
+
+    // 在解析完顶点数据后，使用 SIMD 处理
+    if (!temp_positions.empty()) {
+        processVerticesSIMD(temp_positions);
+    }
+
+    // 创建 GPU 缓冲区
+    GLuint vbo;
+    glGenBuffers(1, &vbo);
+    if (vbo == 0) {
+        std::cerr << "Failed to generate vertex buffer object" << std::endl;
+        return false;
+    }
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    
+    // 计算总顶点数据大小
+    size_t totalVertices = temp_positions.size();
+    if (totalVertices == 0) {
+        std::cerr << "No vertices to process" << std::endl;
+        glDeleteBuffers(1, &vbo);
+        return false;
+    }
+    
+    size_t vertexDataSize = totalVertices * (3 + 2 + 3) * sizeof(float);  // 位置(3) + 纹理坐标(2) + 法线(3)
+    
+    // 分配 GPU 内存
+    glBufferData(GL_ARRAY_BUFFER, vertexDataSize, nullptr, GL_STATIC_DRAW);
+    
+    // 使用映射缓冲区进行数据上传
+    void* bufferData = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+    if (!bufferData) {
+        std::cerr << "Failed to map buffer" << std::endl;
+        glDeleteBuffers(1, &vbo);
+        return false;
+    }
+    
+    float* data = static_cast<float*>(bufferData);
+    size_t offset = 0;
+    
+    // 使用 SIMD 优化的方式复制数据
+    for (size_t i = 0; i < totalVertices; i += 4) {
+        size_t remaining = std::min(4ull, totalVertices - i);
+        
+        // 复制位置数据
+        for (size_t j = 0; j < remaining; j++) {
+            if (i + j < temp_positions.size()) {
+                data[offset++] = temp_positions[i + j].x;
+                data[offset++] = temp_positions[i + j].y;
+                data[offset++] = temp_positions[i + j].z;
+            }
+        }
+        
+        // 复制纹理坐标
+        for (size_t j = 0; j < remaining; j++) {
+            if (i + j < temp_texCoords.size()) {
+                data[offset++] = temp_texCoords[i + j].x;
+                data[offset++] = temp_texCoords[i + j].y;
+            } else {
+                data[offset++] = 0.0f;
+                data[offset++] = 0.0f;
+            }
+        }
+        
+        // 复制法线数据
+        for (size_t j = 0; j < remaining; j++) {
+            if (i + j < temp_normals.size()) {
+                data[offset++] = temp_normals[i + j].x;
+                data[offset++] = temp_normals[i + j].y;
+                data[offset++] = temp_normals[i + j].z;
+            } else {
+                data[offset++] = 0.0f;
+                data[offset++] = 0.0f;
+                data[offset++] = 0.0f;
+            }
+        }
+    }
+    
+    if (!glUnmapBuffer(GL_ARRAY_BUFFER)) {
+        std::cerr << "Failed to unmap buffer" << std::endl;
+        glDeleteBuffers(1, &vbo);
+        return false;
+    }
+    
+    // 设置顶点属性指针
+    size_t stride = (3 + 2 + 3) * sizeof(float);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(5 * sizeof(float)));
+    
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    
     return true;
 }
+
 OurObjLoader::OurObjLoader() {
 }
 

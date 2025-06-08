@@ -14,7 +14,7 @@
 #include "base/LightingPanel.h"
 #include "ObjectModel/ObjectModel.h"
 #include "base/SwimmingPool.h"  // 添加游泳池头文件
-
+#include "base/SceneManager.h"
 // 控制窗口
 #include "base/ImGuiController.h"
 #include  "base/ModelTransformPanel.h"
@@ -198,6 +198,29 @@ int main()
     // 6. 启用深度测试
     glEnable(GL_DEPTH_TEST);
 
+    // 初始化场景管理器
+    SceneManager::getInstance().initialize();
+
+    // 设置光照参数
+    ambientLight.color = glm::vec3(1.0f);
+    ambientLight.intensity = 0.2f;
+
+    directionalLight.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
+    directionalLight.color = glm::vec3(1.0f);
+    directionalLight.intensity = 0.5f;
+
+    spotLight.position = camera.Position;
+    spotLight.direction = camera.Front;
+    spotLight.color = glm::vec3(1.0f);
+    spotLight.intensity = 1.0f;
+    spotLight.angle = glm::cos(glm::radians(12.5f));
+    spotLight.kc = 1.0f;
+    spotLight.kl = 0.09f;
+    spotLight.kq = 0.032f;
+
+    // 设置材质参数
+    material.ns = 32.0f;
+
     // 7. 渲染循环
     while (!glfwWindowShouldClose(window))
     {
@@ -280,7 +303,6 @@ int main()
 
 
         // --- 绘制场景中的物体 ---
-        glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 houseModel = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
 
 
@@ -372,6 +394,35 @@ int main()
         // 绘制游泳池
         swimmingPool.update(deltaTime);
         swimmingPool.draw(objModelShader.id_, glm::translate(glm::mat4(1.0f), poolPosition) * glm::scale(glm::mat4(1.0f), glm::vec3(poolScale)));
+
+        // 使用objModel着色器渲染树
+        objModelShader.use();
+        objModelShader.setMat4("view", view);
+        objModelShader.setMat4("projection", projection);
+        objModelShader.setVec3("cameraPosition", camera.Position);
+
+        // 设置材质参数
+        objModelShader.setFloat("material.ns", material.ns);
+        
+        // 设置光照参数
+        objModelShader.setVec3("ambientLight.color", ambientLight.color);
+        objModelShader.setFloat("ambientLight.intensity", ambientLight.intensity);
+        
+        objModelShader.setVec3("directionalLight.direction", directionalLight.direction);
+        objModelShader.setVec3("directionalLight.color", directionalLight.color);
+        objModelShader.setFloat("directionalLight.intensity", directionalLight.intensity);
+        
+        objModelShader.setVec3("spotLight.position", spotLight.position);
+        objModelShader.setVec3("spotLight.direction", spotLight.direction);
+        objModelShader.setVec3("spotLight.color", spotLight.color);
+        objModelShader.setFloat("spotLight.intensity", spotLight.intensity);
+        objModelShader.setFloat("spotLight.angle", spotLight.angle);
+        objModelShader.setFloat("spotLight.kc", spotLight.kc);
+        objModelShader.setFloat("spotLight.kl", spotLight.kl);
+        objModelShader.setFloat("spotLight.kq", spotLight.kq);
+
+        // 渲染场景中的所有对象(包括树)
+        SceneManager::getInstance().draw(objModelShader, view, projection);
 
         // --------------------------------
         // ImGui 渲染绘制的面板数据

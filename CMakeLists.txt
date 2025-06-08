@@ -74,7 +74,6 @@ add_executable(main ${SRC_FILES} "src/include/ObjectModel/ObjectModel.h"
     "src/include/base/ImGuiController.h" 
      "src/include/OurObjLoader/OurObjLoader.h"
 )
-add_executable(main ${SRC_FILES})
 
 # 添加头文件目录
 target_include_directories(main PRIVATE

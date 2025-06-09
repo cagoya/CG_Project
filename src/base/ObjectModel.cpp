@@ -1,80 +1,82 @@
 #include "ObjectModel.h"
-#include "OurObjLoader.h"
+#include "base/OurObjLoader.h"
 #include <iostream>
-#include <set> // ÓÃÓÚÊÕ¼¯Î¨Ò»ÎÆÀíID
-#include <glm/gtc/type_ptr.hpp>
-#include <sstream>
+#include <set>
+#include <glad/gl.h>
 
+// æ„é€ å‡½æ•°
+ObjectModel::ObjectModel() {}
 
-// ¸¨Öúº¯Êı£º·Ö¸î×Ö·û´®
-static inline std::vector<std::string> objSplitString(const std::string& s, char delimiter) {
-    std::vector<std::string> tokens;
-    std::string token;
-    std::istringstream tokenStream(s);
-    while (std::getline(tokenStream, token, delimiter)) {
-        if (!token.empty()) {
-            tokens.push_back(token);
+// ææ„å‡½æ•°ï¼šé‡Šæ”¾æ‰€æœ‰GPUèµ„æº
+ObjectModel::~ObjectModel() {
+    for (const auto& mesh : subMeshes) {
+        glDeleteVertexArrays(1, &mesh.VAO);
+        glDeleteBuffers(1, &mesh.VBO);
+        glDeleteBuffers(1, &mesh.EBO);
+    }
+    for (GLuint textureId : uniqueTextureIDsForCleanup) {
+        if(textureId != 0) {
+            glDeleteTextures(1, &textureId);
         }
     }
-    return tokens;
 }
 
-// ¸¨Öúº¯Êı£º½âÎöÃæ¶¥µã×Ö·û´® 
-static inline bool objParseFaceVertexIndices(const std::string& faceVertexStr,
-    int& v_idx, int& vt_idx, int& vn_idx,
-    int max_v_idx, int max_vt_idx, int max_vn_idx) {
-    v_idx = vt_idx = vn_idx = -1;
-    std::vector<std::string> parts = objSplitString(faceVertexStr, '/');
-    if (parts.empty() || parts[0].empty()) return false;
-    try {
-        v_idx = std::stoi(parts[0]) - 1;
-        if (v_idx < 0 || v_idx >= max_v_idx) return false;
-        if (parts.size() > 1 && !parts[1].empty()) {
-            vt_idx = std::stoi(parts[1]) - 1;
-            if (vt_idx < 0 || vt_idx >= max_vt_idx) vt_idx = -1;
-        }
-        if (parts.size() > 2 && !parts[2].empty()) {
-            vn_idx = std::stoi(parts[2]) - 1;
-            if (vn_idx < 0 || vn_idx >= max_vn_idx) vn_idx = -1;
-        }
-    }
-    catch (const std::exception& e) {
-        std::cerr << "OBJECTMODEL (helper) WARNING: Exception parsing face component '" << faceVertexStr << "': " << e.what() << std::endl;
+// åŠ è½½æ¨¡å‹çš„å®ç°
+bool ObjectModel::load(const std::string& path, const std::string& mtlBasePath) {
+    OurObjLoader loader;
+    std::vector<OurObjMesh> loadedMeshes; // ç”¨äºæ¥æ”¶åŠ è½½å™¨è¿”å›çš„æ•°æ®
+
+    // 1. ä»æ–‡ä»¶åŠ è½½æ•°æ®åˆ°å†…å­˜
+    if (!loader.loadObj(path, mtlBasePath, loadedMeshes)) {
         return false;
     }
+
+    std::set<GLuint> uniqueTextures;
+
+    // 2. éå†åŠ è½½å¥½çš„æ¯ä¸ªæ¨¡å‹éƒ¨ä»¶
+    for (const auto& loaderMesh : loadedMeshes) {
+        if (loaderMesh.vertices.empty() || loaderMesh.indices.empty()) {
+            continue; // è·³è¿‡ç©ºéƒ¨ä»¶
+        }
+
+        // --- è¿™æ˜¯æœ€å…³é”®çš„æ•°æ®è½¬æ¢æ­¥éª¤ ---
+        // å°† OurObjLoader çš„é¡¶ç‚¹ç»“æ„ è½¬æ¢ä¸º ObjectModel çš„ Vertex ç»“æ„
+        std::vector<Vertex> verticesForGpu;
+        verticesForGpu.reserve(loaderMesh.vertices.size());
+        for(const auto& v_from_loader : loaderMesh.vertices){
+            Vertex v_to_gpu;
+            v_to_gpu.Position = v_from_loader.position;
+            v_to_gpu.Normal = v_from_loader.normal;
+            v_to_gpu.TexCoords = v_from_loader.texCoords; // <-- ç¡®ä¿è¿™ä¸€è¡Œæ­£ç¡®æ— è¯¯
+            verticesForGpu.push_back(v_to_gpu);
+        }
+        // ------------------------------------
+
+        SubMesh newSubMesh;
+
+        // 3. ä¸ºè¿™ä¸ªéƒ¨ä»¶å‡†å¤‡GPUèµ„æº (VAO/VBO/EBO)ï¼Œå¹¶å°†è½¬æ¢å¥½çš„æ•°æ®ä¸Šä¼ 
+        setupGpuResourcesForSubMesh(newSubMesh, verticesForGpu, loaderMesh.indices);
+
+        // 4. å¤åˆ¶å…¶ä»–ä¿¡æ¯
+        newSubMesh.materialName = loaderMesh.materialName;
+        newSubMesh.diffuseTextureId = loaderMesh.diffuseTextureId;
+
+        this->subMeshes.push_back(newSubMesh);
+
+        if (newSubMesh.diffuseTextureId != 0) {
+            uniqueTextures.insert(newSubMesh.diffuseTextureId);
+        }
+    }
+
+    this->uniqueTextureIDsForCleanup.assign(uniqueTextures.begin(), uniqueTextures.end());
     return true;
 }
 
-
-ObjectModel::ObjectModel() {}
-
-ObjectModel::~ObjectModel() {
-    // ÇåÀíËùÓĞ×ÓÍø¸ñµÄOpenGL×ÊÔ´
-    for (SubMesh& sm : subMeshes) {
-        if (sm.VAO != 0) glDeleteVertexArrays(1, &sm.VAO);
-        if (sm.VBO != 0) glDeleteBuffers(1, &sm.VBO);
-        if (sm.EBO != 0) glDeleteBuffers(1, &sm.EBO);
-    }
-    subMeshes.clear();
-
-    // ÇåÀíËùÓĞÊÕ¼¯µ½µÄÎ¨Ò»ÎÆÀíID
-    // OurObjLoader ¼ÓÔØÁËÕâĞ©ÎÆÀí£¬ObjectModel ÔÚÕâÀï¸ºÔğÊÍ·ÅËüÃÇ
-    for (GLuint textureID : uniqueTextureIDsForCleanup) {
-        if (textureID != 0) { // È·±£IDÓĞĞ§
-            glDeleteTextures(1, &textureID);
-        }
-    }
-    uniqueTextureIDsForCleanup.clear();
-    std::cout << "ObjectModel: Cleaned up." << std::endl;
-}
-
+// ä¸ºå•ä¸ª SubMesh é…ç½® VAO/VBO/EBO çš„å®ç°
 void ObjectModel::setupGpuResourcesForSubMesh(SubMesh& meshToSetup,
-    const std::vector<Vertex>& vertices, // Ê¹ÓÃ¹«¹²µÄ Vertex ½á¹¹
-    const std::vector<unsigned int>& indices) {
-    if (vertices.empty() || indices.empty()) {
-        std::cerr << "OBJECTMODEL ERROR: Attempted to setup GPU resources for submesh with no vertex or index data." << std::endl;
-        return;
-    }
+                                              const std::vector<Vertex>& vertices,
+                                              const std::vector<unsigned int>& indices) {
+    meshToSetup.indexCount = static_cast<GLsizei>(indices.size());
 
     glGenVertexArrays(1, &meshToSetup.VAO);
     glGenBuffers(1, &meshToSetup.VBO);
@@ -83,126 +85,44 @@ void ObjectModel::setupGpuResourcesForSubMesh(SubMesh& meshToSetup,
     glBindVertexArray(meshToSetup.VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, meshToSetup.VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshToSetup.EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
-    // ¶¥µãÎ»ÖÃÊôĞÔ
+    // ä½ç½®å±æ€§ (location = 0)
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Position));
-    // ¶¥µã·¨ÏßÊôĞÔ
+    // æ³•çº¿å±æ€§ (location = 1)
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-    // ¶¥µãÎÆÀí×ø±êÊôĞÔ
+    // çº¹ç†åæ ‡å±æ€§ (location = 2)
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 
-    glBindVertexArray(0); // ½â°óVAO
-    meshToSetup.indexCount = static_cast<GLsizei>(indices.size());
+    glBindVertexArray(0);
 }
 
-
-bool ObjectModel::load(const std::string& objFilePath, const std::string& mtlBasePath) {
-    // 1. ÇåÀí¾ÉÊı¾İ
-    for (SubMesh& sm : subMeshes) {
-        if (sm.VAO != 0) glDeleteVertexArrays(1, &sm.VAO);
-        if (sm.VBO != 0) glDeleteBuffers(1, &sm.VBO);
-        if (sm.EBO != 0) glDeleteBuffers(1, &sm.EBO);
-        sm.VAO = sm.VBO = sm.EBO = 0; // ÖØÖÃID
-    }
-    subMeshes.clear();
-
-    for (GLuint textureID : uniqueTextureIDsForCleanup) {
-        if (textureID != 0) glDeleteTextures(1, &textureID);
-    }
-    uniqueTextureIDsForCleanup.clear();
-
-    // 2. Ê¹ÓÃ OurObjLoader ¼ÓÔØÄ£ĞÍÊı¾İ
-    OurObjLoader loaderInstance; // ´´½¨¼ÓÔØÆ÷ÊµÀı
-    std::vector<OurObjMesh> loadedMeshesFromLoader; // OurObjLoader.h ÖĞ¶¨ÒåµÄ½á¹¹
-
-    std::cout << "ObjectModel: Attempting to load model '" << objFilePath << "' with OurObjLoader." << std::endl;
-    if (!loaderInstance.loadObj(objFilePath, mtlBasePath, loadedMeshesFromLoader)) {
-        std::cerr << "OBJECTMODEL ERROR: OurObjLoader failed to load model: " << objFilePath << std::endl;
-        return false;
-    }
-
-    if (loadedMeshesFromLoader.empty()) {
-        std::cout << "ObjectModel: OurObjLoader returned no meshes for " << objFilePath << "." << std::endl;
-        // Õâ²»Ò»¶¨ÊÇ´íÎó£¬¿ÉÄÜÊÇ¿ÕÄ£ĞÍ£¬µ«Í¨³£Ä£ĞÍÖÁÉÙÓĞÒ»¸öÍø¸ñ
-        return true; // »òÕß false£¬È¡¾öÓÚÈçºÎ¶¨Òå¡°³É¹¦¼ÓÔØ¿ÕÄ£ĞÍ¡±
-    }
-
-    std::cout << "ObjectModel: OurObjLoader provided " << loadedMeshesFromLoader.size() << " mesh parts." << std::endl;
-
-    // 3. ÎªÃ¿¸ö OurObjMesh ´´½¨²¢ÉèÖÃ ObjectModel::SubMesh
-    std::set<GLuint> tempUniqueTextureIDs; // ÓÃÓÚÊÕ¼¯´Ë¼ÓÔØ²Ù×÷ÖĞµÄÎ¨Ò»ÎÆÀíID
-
-    for (const OurObjMesh& sourceMesh : loadedMeshesFromLoader) {
-        if (sourceMesh.vertices.empty() || sourceMesh.indices.empty()) {
-            std::cout << "ObjectModel: Skipping an empty mesh part named '" << sourceMesh.name << "' from OurObjLoader." << std::endl;
-            continue;
-        }
-
-        SubMesh newSubMesh;
-        newSubMesh.diffuseTextureId = sourceMesh.diffuseTextureId; // Ö±½ÓÊ¹ÓÃ¼ÓÔØÆ÷Ìá¹©µÄÎÆÀíID
-
-        if (newSubMesh.diffuseTextureId != 0) {
-            tempUniqueTextureIDs.insert(newSubMesh.diffuseTextureId);
-        }
-
-        // ½« OurObjVertex ×ª»»Îª ObjectModel::Vertex (Èç¹ûËüÃÇ²»ÍêÈ«ÏàÍ¬)
-        std::vector<Vertex> modelVertices;
-        modelVertices.reserve(sourceMesh.vertices.size());
-        for (const auto& ov : sourceMesh.vertices) {
-            modelVertices.push_back({ ov.position, ov.normal, ov.texCoords });
-        }
-
-        setupGpuResourcesForSubMesh(newSubMesh, modelVertices, sourceMesh.indices);
-        subMeshes.push_back(newSubMesh);
-        //std::cout << "ObjectModel: Processed submesh for '" << sourceMesh.name
-            //<< "' with " << newSubMesh.indexCount << " indices and TextureID: " << newSubMesh.diffuseTextureId << std::endl;
-    }
-
-    // 4. ´æ´¢Î¨Ò»µÄÎÆÀíIDÒÔ¹©½«À´ÇåÀí
-    uniqueTextureIDsForCleanup.assign(tempUniqueTextureIDs.begin(), tempUniqueTextureIDs.end());
-
-    //std::cout << "ObjectModel: Successfully loaded and processed '" << objFilePath << "'." << std::endl;
-    //std::cout << "  Total sub-meshes: " << subMeshes.size() << std::endl;
-    //std::cout << "  Total unique textures for cleanup: " << uniqueTextureIDsForCleanup.size() << std::endl;
-
-    return !subMeshes.empty(); // ³É¹¦¼ÓÔØµÄ±ê×¼ÊÇÖÁÉÙÓĞÒ»¸öÓĞĞ§µÄ×ÓÍø¸ñ
-}
-
+// é—ç•™çš„ draw æ–¹æ³•çš„ç®€å•å®ç°
 void ObjectModel::draw(unsigned int shaderProgram, const glm::mat4& modelMatrix) {
-    // ÉèÖÃÄ£ĞÍ±ä»»¾ØÕó (Í¨³£Ò»´Î¼´¿É£¬³ı·Ç×ÓÍø¸ñÓĞ²»Í¬±ä»»)
-    unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+    glUseProgram(shaderProgram);
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, &modelMatrix[0][0]);
 
-    // Í¨³££¬ÎÆÀíµ¥ÔªµÄuniformÔÚ×ÅÉ«Æ÷³õÊ¼»¯Ê±ÉèÖÃÒ»´Î£¬ÀıÈç£º
-    // glUseProgram(shaderProgram);
-    // glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse1"), 0); // Âş·´ÉäÎÆÀíÊ¹ÓÃµ¥Ôª0
+    for (const auto& mesh : subMeshes) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, mesh.diffuseTextureId);
 
-    for (const SubMesh& sm : subMeshes) {
-        if (sm.VAO == 0 || sm.indexCount == 0) continue; // Ìø¹ıÎŞĞ§»ò¿ÕµÄ×ÓÍø¸ñ
-
-        // °ó¶¨¸Ã×ÓÍø¸ñµÄÂş·´ÉäÎÆÀí (Èç¹û´æÔÚ)
-        if (sm.diffuseTextureId != 0) {
-            glActiveTexture(GL_TEXTURE0); // ¼¤»îÎÆÀíµ¥Ôª0 (»òÆäËûÖ¸¶¨µÄµ¥Ôª)
-            glBindTexture(GL_TEXTURE_2D, sm.diffuseTextureId);
-        }
-        else {
-            // Èç¹ûÃ»ÓĞÎÆÀí£¬¿ÉÒÔÑ¡Ôñ°ó¶¨Ò»¸öÄ¬ÈÏÎÆÀí»òÈ·±£×ÅÉ«Æ÷ÄÜ´¦ÀíÎŞÎÆÀíÇé¿ö
-            //glBindTexture(GL_TEXTURE_2D, 0); // ½â°óÈÎºÎÏÈÇ°°ó¶¨µÄÎÆÀí£¨Èç¹ûĞèÒª£©
-        }
-
-        // °ó¶¨²¢»æÖÆ×ÓÍø¸ñ
-        glBindVertexArray(sm.VAO);
-        glDrawElements(GL_TRIANGLES, sm.indexCount, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0); // »æÖÆÍê±Ïºó½â°óVAOÊÇ¸öºÃÏ°¹ß
+        glBindVertexArray(mesh.VAO);
+        glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
     }
-    // ¿ÉÑ¡£º»æÖÆÍêËùÓĞ×ÓÍø¸ñºó£¬½â°óÎÆÀí
-    // glActiveTexture(GL_TEXTURE0);
-    // glBindTexture(GL_TEXTURE_2D, 0);
+}
+// åœ¨ ObjectModel.cpp ä¸­
+void ObjectModel::simpleDraw() {
+    for (const auto& mesh : subMeshes) {
+        glBindVertexArray(mesh.VAO);
+        // æ³¨æ„ï¼šè¿™é‡Œä¸å†ç»‘å®šçº¹ç†ï¼Œå› ä¸ºçº¹ç†ç»‘å®šåº”è¯¥ç”±å…·ä½“çš„å¯¹è±¡ï¼ˆå¦‚AnimatedDogï¼‰æˆ–æ›´ä¸Šå±‚çš„é€»è¾‘å¤„ç†
+        glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
+    }
+    glBindVertexArray(0);
 }

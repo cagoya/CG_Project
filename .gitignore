@@ -5,7 +5,6 @@
 *.slo
 *.lo
 *.o
-*.obj
 
 # Precompiled Headers
 *.gch
@@ -41,3 +40,6 @@ out/
 # JET
 .idea/
 cmake-build-debug/
+
+.media/
+/media/

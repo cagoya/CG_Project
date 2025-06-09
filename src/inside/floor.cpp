@@ -27,10 +27,10 @@ void Floor::setup() {
     square_.setup();
 }
 
-void Floor::draw(Shader& shader, const glm::mat4& modelMatrix) const {
+void Floor::draw(Shader& shader, const glm::mat4& modelMatrix,bool useTexture) const {
     shader.setVec3("material.ka", ka_);
     shader.setVec3("material.kd", kd_);
     shader.setVec3("material.ks", ks_);
     shader.setFloat("material.ns", ns_);
-    square_.draw(shader, glm::scale(modelMatrix, glm::vec3(2.0f, 2.0f, 2.0f)));
+    square_.draw(shader, glm::scale(modelMatrix, glm::vec3(2.0f, 2.0f, 2.0f)), useTexture);
 }

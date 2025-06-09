@@ -2,6 +2,8 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "inside/inside.h"
 #include "outside/outside.h"
@@ -11,12 +13,21 @@
 #include "base/light.h"
 #include "base/LightingPanel.h"
 #include "ObjectModel/ObjectModel.h"
-
+#include "base/SwimmingPool.h"  // 添加游泳池头文件
+#include "base/SceneManager.h"
 // 控制窗口
 #include "base/ImGuiController.h"
 #include  "base/ModelTransformPanel.h"
 #include "base/characterPanel.h"
 
+// 生成唯一文件名
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+
+// #define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+#include "base/PathHelper.h"
 // 回调函数
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -29,6 +40,11 @@ const unsigned int SCR_HEIGHT = 600;
 
 
 Camera camera(glm::vec3(0.0f, 1.0f, 5.0f));
+
+// 阴影贴图参数
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+unsigned int depthMapFBO;
+unsigned int depthMap;
 
 // 鼠标状态
 float lastX = SCR_WIDTH / 2.0f;
@@ -65,6 +81,10 @@ int R = 0;
 int G = 0;
 int B = 0;
 const char* fonts[] = { "STSONG.TTF", "simfang.ttf", "simhei.ttf", "STKAITI.TTF", "STLITI.TTF" };
+
+// 修改游泳池的初始参数
+static float poolScale = 0.005f;  // 增大初始缩放
+static glm::vec3 poolPosition = glm::vec3(5.5f, 0.4f, 2.0f);  // 将游泳池放在场景中心
 
 ImGuiController imguiController;
 int main()
@@ -104,11 +124,45 @@ int main()
         return -1;
     }
 
+    //创建深度帧缓冲和深度纹理
+    glGenFramebuffers(1, &depthMapFBO);
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     // 4. 构建和编译着色器程序
-    Shader objModelShader = Shader("../../media/shader/objModel/objModel.vert.glsl","../../media/shader/objModel/objModel.frag.glsl");
-    Shader skyboxShader("../../media/shader/skybox/skybox.vert.glsl", "../../media/shader/skybox/skybox.frag.glsl");
-    Shader mainShader = Shader("../../media/shader/main/main.vert.glsl", "../../media/shader/main/main.frag.glsl");
-    //Shader waterShader = Shader("", "../../media/shader/water/water_fs.glsl");
+    Shader objModelShader(PathHelper::get("media/shader/objModel/objModel.vert.glsl").c_str(), PathHelper::get("media/shader/objModel/objModel.frag.glsl").c_str());
+    Shader skyboxShader(PathHelper::get("media/shader/skybox/skybox.vert.glsl").c_str(), PathHelper::get("media/shader/skybox/skybox.frag.glsl").c_str());
+    Shader mainShader(PathHelper::get("media/shader/main/main.vert.glsl").c_str(), PathHelper::get("media/shader/main/main.frag.glsl").c_str());
+    Shader waterShader(PathHelper::get("media/shader/water/water.vert.glsl").c_str(), PathHelper::get("media/shader/water/water.frag.glsl").c_str());
+    // 添加调试信息
+    std::cout << "Checking shader uniforms for objModelShader:" << std::endl;
+    GLint numUniforms;
+    glGetProgramiv(objModelShader.id_, GL_ACTIVE_UNIFORMS, &numUniforms);
+    std::cout << "Number of active uniforms: " << numUniforms << std::endl;
+
+    for (GLint i = 0; i < numUniforms; i++) {
+        char uniformName[256];
+        GLint size;
+        GLenum type;
+        glGetActiveUniform(objModelShader.id_, i, sizeof(uniformName), NULL, &size, &type, uniformName);
+        std::cout << "Uniform " << i << ": " << uniformName << " (Type: " << type << ", Size: " << size << ")" << std::endl;
+    }
+    Shader depthShader(PathHelper::get("media/shader/shadow/shadow.vert.glsl").c_str(), PathHelper::get("media/shader/shadow/shadow.frag.glsl").c_str());
+
+
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
@@ -121,22 +175,18 @@ int main()
     imguiController.AddPanel(characterPanel);
 
     // 5. 创建并设置场景中的物体对象
-    
-    ObjectModel myModel;
-    std::string objRelativePath = "../../media/model/new_pool/source/swimmingPool.obj";//只需输入.obj位置即可
-    std::string mtlBaseRelativePath = "../../media/model/new_pool/source/"; // 斜杠害人不浅 如果有mtl 和.obj放在一起即可（如果在一个folder里面，空字符串也可以） 填对应文件夹位置就行 是给texture提供相关支持的
-
-
-    // 尝试加载模型
-    if (!myModel.load(objRelativePath, mtlBaseRelativePath)) {
-        std::cerr << "Failed to load OBJ model using relative paths!" << std::endl;
-        std::cerr << "Attempted OBJ path: " << objRelativePath << std::endl;
-        std::cerr << "Attempted MTL base path: " << mtlBaseRelativePath << std::endl;
-    }
-    else {
-        std::cout << "Successfully loaded OBJ model using relative paths!" << std::endl;
-    }
-
+    // SwimmingPool swimmingPool;
+    // if (!swimmingPool.initialize("./../media/textures/Water004_1K_Normal.jpg")) {
+    //     std::cerr << "Failed to initialize swimming pool!" << std::endl;
+    // }
+    // swimmingPool.setPosition(poolPosition);
+    // swimmingPool.setScale(poolScale);
+    //
+    // // 添加调试信息
+    // std::cout << "Swimming pool initialized with:" << std::endl;
+    // std::cout << "Position: (" << poolPosition.x << ", " << poolPosition.y << ", " << poolPosition.z << ")" << std::endl;
+    // std::cout << "Scale: " << poolScale << std::endl;
+    //
     // 导入天空盒
     
     std::vector<std::string> faces = { "right.jpg", "left.jpg", "top.jpg", "down.jpg", "front.jpg", "back.jpg" };
@@ -155,11 +205,47 @@ int main()
     // 6. 启用深度测试
     glEnable(GL_DEPTH_TEST);
 
+    // 初始化场景管理器
+    SceneManager::getInstance().initialize();
+
+    // 设置光照参数
+    ambientLight.color = glm::vec3(1.0f);
+    ambientLight.intensity = 0.2f;
+
+    directionalLight.direction = glm::vec3(0.4f, -1.0f, 0.5f);
+    directionalLight.color = glm::vec3(1.0f);
+    directionalLight.intensity = 0.5f;
+
+    spotLight.position = camera.Position;
+    spotLight.direction = camera.Front;
+    spotLight.color = glm::vec3(1.0f);
+    spotLight.intensity = 1.0f;
+    spotLight.angle = glm::cos(glm::radians(12.5f));
+    spotLight.kc = 1.0f;
+    spotLight.kl = 0.09f;
+    spotLight.kq = 0.032f;
+
+    // 设置材质参数
+    material.ns = 32.0f;
+
     // 7. 渲染循环
     while (!glfwWindowShouldClose(window))
     {
        // GLenum err = glGetError();
         //if (err != GL_NO_ERROR) std::cerr << "OpenGL Error: " << err << std::endl;
+        glDisable(GL_CULL_FACE);
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+
+        // 如果窗口最小化或隐藏，使用上次的有效尺寸
+        static int lastWidth = 800, lastHeight = 600;
+        if (width <= 0 || height <= 0) {
+            width = lastWidth;
+            height = lastHeight;
+        } else {
+            lastWidth = width;
+            lastHeight = height;
+        }
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -169,13 +255,50 @@ int main()
         imguiController.NewFrame(); 
         imguiController.DrawUI();
         processInput(window, camera, deltaTime);
+        SceneManager::getInstance().update(deltaTime);
+        // 修改游泳池控制面板的范围
+        // ImGui::Begin("Swimming Pool Control");
+        // if (ImGui::SliderFloat3("Position", &poolPosition.x, -20.0f, 20.0f)) {
+        //     swimmingPool.setPosition(poolPosition);
+        // }
+        // if (ImGui::SliderFloat("Scale", &poolScale, 0.001f, 0.005f)) {
+        //     swimmingPool.setScale(poolScale);
+        // }
+        // ImGui::End();
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // 设置视图和投影矩阵
         glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)width / (float)height, 0.1f, 100.0f);
+        //std::cout << height << " " << width << std::endl;
+        // --- 绘制阴影贴图 ---
+        // 用光源视角渲染深度贴图
+
+        float near_plane = 1.0f, far_plane = 20.0f;
+        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+        glm::mat4 lightView = glm::lookAt(
+            directionalLight.direction * -10.0f, // 光源位置
+            glm::vec3(0.0f),                     // 看向原点
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
+        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+        glm::mat4 model = glm::mat4(1.0f);
+        depthShader.use();
+        depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        //glDisable(GL_CULL_FACE);
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+
+        inside.drawShadow(depthShader, model, sentence, fonts[font_choice], font_size, R, G, B,false);
+        outside.drawShadow(depthShader, glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f)),false);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, width, height); // 恢复视口
+
         // 绘制天空盒
         skyboxShader.use();
         glDepthFunc(GL_LEQUAL);
@@ -184,10 +307,19 @@ int main()
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
 
+
+
         // --- 绘制场景中的物体 ---
-        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 houseModel = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
+
 
         mainShader.use();
+        mainShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+        mainShader.setInt("shadowMap", 1);
+        spotLight.direction = camera.Front;
+        spotLight.position = camera.Position;
         // 这些是共用的，材质是每个物品的属性
         mainShader.setMat4("view", view);
         mainShader.setMat4("projection", projection);
@@ -207,32 +339,103 @@ int main()
         mainShader.setFloat("spotLight.kl", spotLight.kl);
         mainShader.setFloat("spotLight.kq", spotLight.kq);
 
-        inside.draw(mainShader, model, sentence, fonts[font_choice], font_size, R, G, B);
-        outside.draw(mainShader, glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f)));
+        inside.draw(mainShader, model, sentence, fonts[font_choice], font_size, R, G, B,true);
+        outside.draw(mainShader, glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f)),true);
 
 
         // --- 在这里添加其他对象的绘制 ---
-        objModelShader.use(); // 换到新的着色器程序
+        objModelShader.use(); // 确保在使用着色器之前先激活它
         
         // 为新的 objModelShaderProgram 设置 view 和 projection 矩阵
-        // (通常和上面的 view, projection 矩阵是一样的，但需要为当前激活的着色器重新设置)
-        glUniformMatrix4fv(glGetUniformLocation(objModelShader.id_, "view"), 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(glGetUniformLocation(objModelShader.id_, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        objModelShader.setMat4("view", view);
+        objModelShader.setMat4("projection", projection);
 
-        GLint diffuseTexSamplerLoc = glGetUniformLocation(objModelShader.id_, "texture_diffuse1"); // "texture_diffuse1" 必须与片段着色器中的 sampler 名称一致
+        // 添加相机位置
+        objModelShader.setVec3("viewPos", camera.Position);
+
+        // 添加时间uniform
+        float currentTime = static_cast<float>(glfwGetTime());
+        objModelShader.setFloat("time", currentTime);
+
+        // 设置材质
+        objModelShader.setInt("material.diffuse", 0);
+        objModelShader.setInt("material.normal", 1);
+
+        // 设置光照参数
+        objModelShader.setVec3("ambientColor", ambientLight.color);
+        objModelShader.setFloat("ambientIntensity", ambientLight.intensity);
+
+        // 方向光
+        objModelShader.setVec3("directionalLight.direction", directionalLight.direction);
+        objModelShader.setVec3("directionalLight.color", directionalLight.color);
+        objModelShader.setFloat("directionalLight.intensity", directionalLight.intensity);
+
+        // 聚光灯
+        objModelShader.setVec3("spotLight.position", spotLight.position);
+        objModelShader.setVec3("spotLight.direction", spotLight.direction);
+        objModelShader.setVec3("spotLight.color", spotLight.color);
+        objModelShader.setFloat("spotLight.intensity", spotLight.intensity);
+        objModelShader.setFloat("spotLight.angle", spotLight.angle);
+        objModelShader.setFloat("spotLight.kc", spotLight.kc);
+        objModelShader.setFloat("spotLight.kl", spotLight.kl);
+        objModelShader.setFloat("spotLight.kq", spotLight.kq);
+
+        // 添加调试输出
+        static float lastDebugTime = 0.0f;
+        if (currentTime - lastDebugTime > 1.0f) {  // 每秒输出一次
+            std::cout << "Light values:" << std::endl;
+            std::cout << "Ambient: " << ambientLight.intensity << std::endl;
+            std::cout << "Directional: " << directionalLight.intensity << std::endl;
+            std::cout << "Spot: " << spotLight.intensity << std::endl;
+            lastDebugTime = currentTime;
+        }
+
+        GLint diffuseTexSamplerLoc = glGetUniformLocation(objModelShader.id_, "texture_diffuse1");
         if (diffuseTexSamplerLoc != -1) {
-            glUniform1i(diffuseTexSamplerLoc, 0); // ObjectModel::draw 会将纹理绑定到 GL_TEXTURE0
+            glUniform1i(diffuseTexSamplerLoc, 0);
         }
         else {
             std::cout << "WARNING: Sampler uniform 'texture_diffuse1' not found in objModelShader!" << std::endl;
         }
-        // myModel 的模型矩阵
-        glm::mat4 modelForMyObj = glm::mat4(1.0f); // 单位矩阵
-        modelForMyObj = glm::translate(modelForMyObj, modelPosition); // 调整模型在场景中的位置
-        modelForMyObj = glm::scale(modelForMyObj, glm::vec3(modelScaleFactor));   // 调整模型的大小
-        // 实现的ObjectModel::draw 方法内部会设置自己的 model 矩阵 uniform 和绑定 VAO
-        myModel.draw(objModelShader.id_, modelForMyObj);
 
+        // 绘制游泳池
+        // swimmingPool.update(deltaTime);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        // swimmingPool.draw(objModelShader, waterShader, view, projection, camera.Position);
+
+        glDisable(GL_BLEND);
+        // 使用objModel着色器渲染树
+        objModelShader.use();
+        objModelShader.setMat4("view", view);
+        objModelShader.setMat4("projection", projection);
+        objModelShader.setVec3("cameraPosition", camera.Position);
+
+        // 设置材质参数
+        objModelShader.setFloat("material.ns", material.ns);
+        
+        // 设置光照参数
+        objModelShader.setVec3("ambientLight.color", ambientLight.color);
+        objModelShader.setFloat("ambientLight.intensity", ambientLight.intensity);
+        
+        objModelShader.setVec3("directionalLight.direction", directionalLight.direction);
+        objModelShader.setVec3("directionalLight.color", directionalLight.color);
+        objModelShader.setFloat("directionalLight.intensity", directionalLight.intensity);
+        
+        objModelShader.setVec3("spotLight.position", spotLight.position);
+        objModelShader.setVec3("spotLight.direction", spotLight.direction);
+        objModelShader.setVec3("spotLight.color", spotLight.color);
+        objModelShader.setFloat("spotLight.intensity", spotLight.intensity);
+        objModelShader.setFloat("spotLight.angle", spotLight.angle);
+        objModelShader.setFloat("spotLight.kc", spotLight.kc);
+        objModelShader.setFloat("spotLight.kl", spotLight.kl);
+        objModelShader.setFloat("spotLight.kq", spotLight.kq);
+
+        // 渲染场景中的所有对象(包括树)
+        // SceneManager::getInstance().draw(objModelShader, view, projection);
+        SceneManager::getInstance().draw(objModelShader, waterShader, view, projection, camera.Position,ambientLight, directionalLight, spotLight);
         // --------------------------------
         // ImGui 渲染绘制的面板数据
         imguiController.Render();
@@ -250,6 +453,9 @@ int main()
 
     //Gui 清理
     imguiController.Shutdown();
+
+    glDeleteFramebuffers(1, &depthMapFBO);
+    glDeleteTextures(1, &depthMap);
 
     glfwTerminate();
     return 0;
@@ -308,6 +514,33 @@ void scroll_callback(GLFWwindow* window, double xoffsetIn, double yoffsetIn)
     float yoffset = static_cast<float>(yoffsetIn);
     camera.ProcessMouseScroll(yoffset);
 }
+// --- 新增代码：截屏函数 ---
+void takeScreenshot(GLFWwindow* window, const std::string& filename) {
+    int width, height;
+    // 获取帧缓冲区的大小，而不是窗口大小，这对于高DPI显示器很重要
+    glfwGetFramebufferSize(window, &width, &height);
+
+    // 分配内存来存储像素数据 (R, G, B 三个通道)
+    GLubyte* pixels = new GLubyte[3 * width * height];
+
+    // 设置像素打包对齐方式为1字节，防止因行末填充导致图像错乱
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    // 从帧缓冲区读取像素
+    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+
+    // stb_image_write 需要图像是正的 (0,0 在左上角)
+
+    // 使用 stb_image_write 将像素数据保存为 PNG 文件
+    // 参数: 文件名, 宽, 高, 通道数(RGB是3), 像素数据, 每行的字节数
+    if (stbi_write_png(filename.c_str(), width, height, 3, pixels, width * 3)) {
+        std::cout << "Screenshot saved to " << filename << std::endl;
+    } else {
+        std::cerr << "Failed to save screenshot." << std::endl;
+    }
+
+    // 清理内存
+    delete[] pixels;
+}
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -328,5 +561,19 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             std::cout << "Cursor unlocked." << std::endl;
         }
+    }
+
+    // --- 新增代码：F2键触发截屏 ---
+    if (key == GLFW_KEY_F2 && action == GLFW_PRESS)
+    {
+        // 1. 生成基于时间戳的文件名，例如 "screenshot_2025-06-08_05-35-07.png"
+        auto now = std::chrono::system_clock::now();
+        auto in_time_t = std::chrono::system_clock::to_time_t(now);
+
+        std::stringstream ss;
+        ss << "screenshot_" << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d_%H-%M-%S") << ".png";
+
+        // 2. 调用截屏函数
+        takeScreenshot(window, ss.str());
     }
 }

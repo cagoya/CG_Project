@@ -9,16 +9,16 @@ void Tree::setup()
 	column_.setup();
 }
 
-void Tree::draw(Shader& shader, const glm::mat4& modelMatrix) const
+void Tree::draw(Shader& shader, const glm::mat4& modelMatrix, bool useTexture) const
 {
-	column_.draw(shader, modelMatrix);
+	column_.draw(shader, modelMatrix,useTexture);
 	float angle_degrees = 270.0f;
 	float angle_radians = glm::radians(angle_degrees);
 	glm::vec3 rotation_axis = glm::vec3(1.0f, 0.0f, 0.0f);
 	glm::mat4 model = glm::rotate(modelMatrix, angle_radians, rotation_axis);
-	tapering_.draw(shader, glm::translate(model, glm::vec3(0.0f, 0.0f, 0.5f)));
+	tapering_.draw(shader, glm::translate(model, glm::vec3(0.0f, 0.0f, 0.5f)),  useTexture);
 	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.6f));
-	tapering_.draw(shader, glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f)));
+	tapering_.draw(shader, glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f)), useTexture);
 	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.1f));
-	tapering_.draw(shader, glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f)));
+	tapering_.draw(shader, glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f)), useTexture);
 }

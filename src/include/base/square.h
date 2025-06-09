@@ -15,7 +15,7 @@ public:
 	~Square();
 	void setup();
 
-	void draw(Shader& shader, const glm::mat4& modelMatrix) const;
+	void draw(Shader& shader, const glm::mat4& modelMatrix,bool useTexture) const;
 	inline std::vector<float>& getVertices() { return vertices_; };
 	inline std::vector<unsigned int>& getIndices() { return indices_; };
 	inline std::string& getTexturePath() { return texture_path_; }

@@ -165,7 +165,7 @@ Wall::Wall() : DrawObject()
 	    34, 6, 7
 	};
 
-	inner_.getVertices() = {
+	inner_.getIndices() = {
 		// 背面
 		0, 1, 2,  0, 2, 3,
 		// 左面
@@ -192,6 +192,7 @@ Wall::Wall() : DrawObject()
 	};
 
     outer_.getTexturePath() = "../../media/textures/wall.jpg";
+	inner_.getTexturePath() = "../../media/textures/wall.jpg";
 } 
 
 void Wall::setup() {
@@ -200,11 +201,11 @@ void Wall::setup() {
 }
 
 
-void Wall::draw(Shader& shader, const glm::mat4& modelMatrix) const {
+void Wall::draw(Shader& shader, const glm::mat4& modelMatrix, bool useTexture) const {
     shader.setVec3("material.ka", ka_);
     shader.setVec3("material.kd", kd_);
     shader.setVec3("material.ks", ks_);
     shader.setFloat("material.ns", ns_);
-    outer_.draw(shader, modelMatrix);
-	inner_.draw(shader, glm::scale(modelMatrix, glm::vec3(0.99f, 0.99f, 0.99f)));
+    outer_.draw(shader, modelMatrix, useTexture);
+	inner_.draw(shader, glm::scale(modelMatrix, glm::vec3(0.99f, 0.99f, 0.99f)),  useTexture);
 }

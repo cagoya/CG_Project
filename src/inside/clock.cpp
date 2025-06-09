@@ -8,7 +8,7 @@ void Clock::setup()
 	column_.setup();
 }
 
-void Clock::draw(Shader& shader, const glm::mat4& modelMatrix) const
+void Clock::draw(Shader& shader, const glm::mat4& modelMatrix,bool useTexture) const
 {
     shader.setVec3("material.ka", ka_);
     shader.setVec3("material.kd", kd_);
@@ -20,5 +20,5 @@ void Clock::draw(Shader& shader, const glm::mat4& modelMatrix) const
     glm::mat4 model = glm::rotate(modelMatrix, angle_radians, rotation_axis1);
     glm::vec3 rotation_axis2 = glm::vec3(0.0f, 1.0f, 0.0f);
     model = glm::rotate(model, angle_radians, rotation_axis2);
-    column_.draw(shader, glm::translate(model, glm::vec3(0.0f,0.95f, 0.7f)));
+    column_.draw(shader, glm::translate(model, glm::vec3(0.0f,0.95f, 0.7f)), useTexture);
 }

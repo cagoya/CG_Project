@@ -12,7 +12,7 @@ public:
     ~Tree() = default;
 
     void setup();
-    void draw(Shader& shader, const glm::mat4& modelMatrix) const;
+    void draw(Shader& shader, const glm::mat4& modelMatrix, bool useTexture) const;
 private:
     Tapering tapering_;
     Column column_;

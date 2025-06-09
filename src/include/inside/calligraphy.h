@@ -6,7 +6,7 @@ class Calligraphy {
 public:
 	Calligraphy();
 	void setup();
-	void draw(Shader& shader, const glm::mat4& modelMatrix) const;
+	void draw(Shader& shader, const glm::mat4& modelMatrix, bool useTexture) const;
 	// generate the texture for character
 	void generateTexture(std::string sentence, std::string font, float font_size, int R, int G, int B);
 private:

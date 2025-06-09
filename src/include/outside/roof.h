@@ -14,7 +14,7 @@ public:
 
     void setup();
 
-    void draw(Shader shader, const glm::mat4& modelMatrix) const;
+    void draw(Shader shader, const glm::mat4& modelMatrix, bool useTexture) const;
 private:
     Square square_;
     glm::vec3 ka_ = glm::vec3(0.2f, 0.02f, 0.02f);

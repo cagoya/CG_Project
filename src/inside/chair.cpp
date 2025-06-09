@@ -75,19 +75,19 @@ void Chair::setup() {
     column_.setup();
 }
 
-void Chair::draw(Shader& shader, const glm::mat4& modelMatrix) const {
+void Chair::draw(Shader& shader, const glm::mat4& modelMatrix,bool useTexture) const {
     shader.setVec3("material.ka", ka_);
     shader.setVec3("material.kd", kd_);
     shader.setVec3("material.ks", ks_);
     shader.setFloat("material.ns", ns_);
-    square_.draw(shader, glm::translate(modelMatrix, glm::vec3(-0.25f, 0.0f, 0.0f)));
+    square_.draw(shader, glm::translate(modelMatrix, glm::vec3(-0.25f, 0.0f, 0.0f)), useTexture);
     float angle_degrees = 90.0f;
     float angle_radians = glm::radians(angle_degrees);
     glm::vec3 rotation_axis = glm::vec3(0.0f, 0.0f, 1.0f);
     glm::mat4 model = glm::rotate(modelMatrix, angle_radians, rotation_axis);
-    square_.draw(shader, glm::translate(model, glm::vec3(0.35f, 0.09f, 0.0f)));
-    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(-0.22f, 0.0f, 0.08f)));
-    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(-0.22f, 0.0f, -0.08f)));
-    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(-0.33f, 0.0f, 0.08f)));
-    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(-0.33f, 0.0f, -0.08f)));
+    square_.draw(shader, glm::translate(model, glm::vec3(0.35f, 0.09f, 0.0f)), useTexture);
+    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(-0.22f, 0.0f, 0.08f)), useTexture);
+    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(-0.22f, 0.0f, -0.08f)), useTexture);
+    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(-0.33f, 0.0f, 0.08f)), useTexture);
+    column_.draw(shader, glm::translate(modelMatrix, glm::vec3(-0.33f, 0.0f, -0.08f)), useTexture);
 }

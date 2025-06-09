@@ -97,7 +97,7 @@ void Fence::setup()
     square_.setup();
 }
 
-void Fence::draw(Shader& shader, const glm::mat4& modelMatrix) const
+void Fence::draw(Shader& shader, const glm::mat4& modelMatrix,bool useTexture) const
 {
     shader.setVec3("material.ka", ka_);
     shader.setVec3("material.kd", kd_);
@@ -106,14 +106,14 @@ void Fence::draw(Shader& shader, const glm::mat4& modelMatrix) const
     // 后方
     for (int i = -2; i<= 2;i++)
     {
-        square_.draw(shader, glm::translate(modelMatrix, glm::vec3(static_cast<float>(i), 0.0f, 0.0f)));
+        square_.draw(shader, glm::translate(modelMatrix, glm::vec3(static_cast<float>(i), 0.0f, 0.0f)), useTexture);
     }
 	// 前方
     for (int i = -2; i <= 2; i++)
     {
         if (i!= 0)
         {
-            square_.draw(shader, glm::translate(modelMatrix, glm::vec3(static_cast<float>(i), 0.0f, 7.0f)));
+            square_.draw(shader, glm::translate(modelMatrix, glm::vec3(static_cast<float>(i), 0.0f, 7.0f)), useTexture);
         }
     }
     float angle_degrees = 90.0f;
@@ -122,10 +122,10 @@ void Fence::draw(Shader& shader, const glm::mat4& modelMatrix) const
     glm::mat4 model = glm::rotate(modelMatrix, angle_radians, rotation_axis);
     for (int i = -3; i <= 3; i++)
     {
-        square_.draw(shader, glm::translate(model, glm::vec3(static_cast<float>(i), 0.0f, 1.0f)));
+        square_.draw(shader, glm::translate(model, glm::vec3(static_cast<float>(i), 0.0f, 1.0f)), useTexture);
     }
     for (int i = -3; i <= 3; i++)
     {
-        square_.draw(shader, glm::translate(model, glm::vec3(static_cast<float>(i), 0.0f, 6.0f)));
+        square_.draw(shader, glm::translate(model, glm::vec3(static_cast<float>(i), 0.0f, 6.0f)), useTexture);
     }
 }

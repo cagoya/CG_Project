@@ -1,192 +1,128 @@
 #include "ObjectModel.h"
-#include "OurObjLoader.h" // 确保包含了 OurObjMesh 的定义
+#include "base/OurObjLoader.h"
 #include <iostream>
 #include <set>
-#include <glm/gtc/type_ptr.hpp>
-#include <sstream>
+#include <glad/gl.h>
 
+// 构造函数
+ObjectModel::ObjectModel() {}
 
-// objSplitString 和 objParseFaceVertexIndices 函数保持不变 (来自您的代码)
-static inline std::vector<std::string> objSplitString(const std::string& s, char delimiter) {
-    std::vector<std::string> tokens;
-    std::string token;
-    std::istringstream tokenStream(s);
-    while (std::getline(tokenStream, token, delimiter)) {
-        if (!token.empty()) {
-            tokens.push_back(token);
+// 析构函数：释放所有GPU资源
+ObjectModel::~ObjectModel() {
+    for (const auto& mesh : subMeshes) {
+        glDeleteVertexArrays(1, &mesh.VAO);
+        glDeleteBuffers(1, &mesh.VBO);
+        glDeleteBuffers(1, &mesh.EBO);
+    }
+    for (GLuint textureId : uniqueTextureIDsForCleanup) {
+        if(textureId != 0) {
+            glDeleteTextures(1, &textureId);
         }
     }
-    return tokens;
 }
-static inline bool objParseFaceVertexIndices(const std::string& faceVertexStr,
-    int& v_idx, int& vt_idx, int& vn_idx,
-    int max_v_idx, int max_vt_idx, int max_vn_idx) {
-    v_idx = vt_idx = vn_idx = -1;
-    std::vector<std::string> parts = objSplitString(faceVertexStr, '/');
-    if (parts.empty() || parts[0].empty()) return false;
-    try {
-        v_idx = std::stoi(parts[0]) - 1;
-        if (v_idx < 0 || v_idx >= max_v_idx) return false;
-        if (parts.size() > 1 && !parts[1].empty()) {
-            vt_idx = std::stoi(parts[1]) - 1;
-            if (vt_idx < 0 || vt_idx >= max_vt_idx) vt_idx = -1;
-        }
-        if (parts.size() > 2 && !parts[2].empty()) {
-            vn_idx = std::stoi(parts[2]) - 1;
-            if (vn_idx < 0 || vn_idx >= max_vn_idx) vn_idx = -1;
-        }
-    }
-    catch (const std::exception& e) {
-        std::cerr << "OBJECTMODEL (helper) WARNING: Exception parsing face component '" << faceVertexStr << "': " << e.what() << std::endl;
+
+// 加载模型的实现
+bool ObjectModel::load(const std::string& path, const std::string& mtlBasePath) {
+    OurObjLoader loader;
+    std::vector<OurObjMesh> loadedMeshes; // 用于接收加载器返回的数据
+
+    // 1. 从文件加载数据到内存
+    if (!loader.loadObj(path, mtlBasePath, loadedMeshes)) {
         return false;
     }
+
+    std::set<GLuint> uniqueTextures;
+
+    // 2. 遍历加载好的每个模型部件
+    for (const auto& loaderMesh : loadedMeshes) {
+        if (loaderMesh.vertices.empty() || loaderMesh.indices.empty()) {
+            continue; // 跳过空部件
+        }
+
+        // --- 这是最关键的数据转换步骤 ---
+        // 将 OurObjLoader 的顶点结构 转换为 ObjectModel 的 Vertex 结构
+        std::vector<Vertex> verticesForGpu;
+        verticesForGpu.reserve(loaderMesh.vertices.size());
+        for(const auto& v_from_loader : loaderMesh.vertices){
+            Vertex v_to_gpu;
+            v_to_gpu.Position = v_from_loader.position;
+            v_to_gpu.Normal = v_from_loader.normal;
+            v_to_gpu.TexCoords = v_from_loader.texCoords; // <-- 确保这一行正确无误
+            verticesForGpu.push_back(v_to_gpu);
+        }
+        // ------------------------------------
+
+        SubMesh newSubMesh;
+
+        // 3. 为这个部件准备GPU资源 (VAO/VBO/EBO)，并将转换好的数据上传
+        setupGpuResourcesForSubMesh(newSubMesh, verticesForGpu, loaderMesh.indices);
+
+        // 4. 复制其他信息
+        newSubMesh.materialName = loaderMesh.materialName;
+        newSubMesh.diffuseTextureId = loaderMesh.diffuseTextureId;
+
+        this->subMeshes.push_back(newSubMesh);
+
+        if (newSubMesh.diffuseTextureId != 0) {
+            uniqueTextures.insert(newSubMesh.diffuseTextureId);
+        }
+    }
+
+    this->uniqueTextureIDsForCleanup.assign(uniqueTextures.begin(), uniqueTextures.end());
     return true;
 }
 
-
-ObjectModel::ObjectModel() {}
-ObjectModel::~ObjectModel() { /* 析构函数实现不变 */ }
+// 为单个 SubMesh 配置 VAO/VBO/EBO 的实现
 void ObjectModel::setupGpuResourcesForSubMesh(SubMesh& meshToSetup,
-    const std::vector<Vertex>& vertices,
-    const std::vector<unsigned int>& indices) {
-    
-    // 设置indexCount
+                                              const std::vector<Vertex>& vertices,
+                                              const std::vector<unsigned int>& indices) {
     meshToSetup.indexCount = static_cast<GLsizei>(indices.size());
-    
-    // 创建并绑定VAO
+
     glGenVertexArrays(1, &meshToSetup.VAO);
     glGenBuffers(1, &meshToSetup.VBO);
     glGenBuffers(1, &meshToSetup.EBO);
 
     glBindVertexArray(meshToSetup.VAO);
 
-    // 绑定顶点数据
     glBindBuffer(GL_ARRAY_BUFFER, meshToSetup.VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
-    // 绑定索引数据
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshToSetup.EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
-    // 设置顶点属性指针
-    // 位置
+    // 位置属性 (location = 0)
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    // 法线
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Position));
+    // 法线属性 (location = 1)
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-    // 纹理坐标
+    // 纹理坐标属性 (location = 2)
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 
-    // 解绑VAO
     glBindVertexArray(0);
 }
 
-bool ObjectModel::load(const std::string& objFilePath, const std::string& mtlBasePath) {
-    // 1. 清理旧数据 (不变)
-    for (SubMesh& sm : subMeshes) {
-        if (sm.VAO != 0) glDeleteVertexArrays(1, &sm.VAO);
-        if (sm.VBO != 0) glDeleteBuffers(1, &sm.VBO);
-        if (sm.EBO != 0) glDeleteBuffers(1, &sm.EBO);
-        sm.VAO = sm.VBO = sm.EBO = 0;
-    }
-    subMeshes.clear();
-    for (GLuint textureID : uniqueTextureIDsForCleanup) {
-        if (textureID != 0) glDeleteTextures(1, &textureID);
-    }
-    uniqueTextureIDsForCleanup.clear();
-
-    // 2. 使用 OurObjLoader 加载模型数据 (不变)
-    OurObjLoader loaderInstance;
-    std::vector<OurObjMesh> loadedMeshesFromLoader;
-    std::cout << "ObjectModel: Attempting to load model '" << objFilePath << "' with OurObjLoader." << std::endl;
-    if (!loaderInstance.loadObj(objFilePath, mtlBasePath, loadedMeshesFromLoader)) {
-        std::cerr << "OBJECTMODEL ERROR: OurObjLoader failed to load model: " << objFilePath << std::endl;
-        return false;
-    }
-    if (loadedMeshesFromLoader.empty()) {
-        std::cout << "ObjectModel: OurObjLoader returned no meshes for " << objFilePath << "." << std::endl;
-        return true;
-    }
-    std::cout << "ObjectModel: OurObjLoader provided " << loadedMeshesFromLoader.size() << " mesh parts." << std::endl;
-
-    // 3. 为每个 OurObjMesh 创建并设置 ObjectModel::SubMesh
-    std::set<GLuint> tempUniqueTextureIDs;
-    for (const OurObjMesh& sourceMesh : loadedMeshesFromLoader) {
-        if (sourceMesh.vertices.empty() || sourceMesh.indices.empty()) {
-            std::cout << "ObjectModel: Skipping an empty mesh part named '" << sourceMesh.name 
-                      << "' (vertices: " << sourceMesh.vertices.size() 
-                      << ", indices: " << sourceMesh.indices.size() << ")" << std::endl;
-            continue;
-        }
-
-        SubMesh newSubMesh;
-        newSubMesh.diffuseTextureId = sourceMesh.diffuseTextureId;
-        newSubMesh.materialName = sourceMesh.materialName;
-        newSubMesh.indexCount = static_cast<GLsizei>(sourceMesh.indices.size());  // 设置indexCount
-
-        if (newSubMesh.diffuseTextureId != 0) {
-            tempUniqueTextureIDs.insert(newSubMesh.diffuseTextureId);
-        }
-
-        std::vector<Vertex> modelVertices;
-        modelVertices.reserve(sourceMesh.vertices.size());
-        for (const auto& ov : sourceMesh.vertices) {
-            modelVertices.push_back({ ov.position, ov.normal, ov.texCoords });
-        }
-
-        setupGpuResourcesForSubMesh(newSubMesh, modelVertices, sourceMesh.indices);
-        subMeshes.push_back(newSubMesh);
-
-        std::cout << "ObjectModel: Processed submesh '" << sourceMesh.name
-                  << "' (Material: " << newSubMesh.materialName << ")"
-                  << " with " << newSubMesh.indexCount << " indices"
-                  << " and " << modelVertices.size() << " vertices"
-                  << " (TextureID: " << newSubMesh.diffuseTextureId << ")" << std::endl;
-    }
-
-    // 4. 存储唯一的纹理ID以供将来清理 (不变)
-    uniqueTextureIDsForCleanup.assign(tempUniqueTextureIDs.begin(), tempUniqueTextureIDs.end());
-    std::cout << "ObjectModel: Successfully loaded and processed '" << objFilePath << "'." << std::endl;
-    std::cout << "  Total sub-meshes: " << subMeshes.size() << std::endl;
-    std::cout << "  Total unique textures for cleanup: " << uniqueTextureIDsForCleanup.size() << std::endl;
-
-    return !subMeshes.empty();
-}
-
+// 遗留的 draw 方法的简单实现
 void ObjectModel::draw(unsigned int shaderProgram, const glm::mat4& modelMatrix) {
-    // 这个 draw 方法保持原样，用于绘制非水面部分或作为默认绘制方法
-    glUseProgram(shaderProgram); // 确保着色器被激活
+    glUseProgram(shaderProgram);
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, &modelMatrix[0][0]);
 
-    unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
-    if (modelLoc != -1) { // 检查uniform是否存在
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-    } else {
-        // std::cerr << "ObjectModel::draw WARNING: 'model' uniform not found in shader " << shaderProgram << std::endl;
+    for (const auto& mesh : subMeshes) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, mesh.diffuseTextureId);
+
+        glBindVertexArray(mesh.VAO);
+        glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
     }
-
-    // 假设漫反射纹理使用纹理单元0，并且sampler名为 "texture_diffuse1"
-    GLint diffuseSamplerLoc = glGetUniformLocation(shaderProgram, "texture_diffuse1");
-    if (diffuseSamplerLoc != -1) {
-        glUniform1i(diffuseSamplerLoc, 0);
-    }
-
-
-    for (const SubMesh& sm : subMeshes) {
-        if (sm.VAO == 0 || sm.indexCount == 0) continue;
-
-        if (sm.diffuseTextureId != 0) {
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, sm.diffuseTextureId);
-        } else {
-            // 如果没有漫反射纹理，可以考虑绑定一个1x1的白色纹理或不绑定
-            // glActiveTexture(GL_TEXTURE0);
-            // glBindTexture(GL_TEXTURE_2D, 0); // 解绑
-        }
-
-        glBindVertexArray(sm.VAO);
-        glDrawElements(GL_TRIANGLES, sm.indexCount, GL_UNSIGNED_INT, 0);
+}
+// 在 ObjectModel.cpp 中
+void ObjectModel::simpleDraw() {
+    for (const auto& mesh : subMeshes) {
+        glBindVertexArray(mesh.VAO);
+        // 注意：这里不再绑定纹理，因为纹理绑定应该由具体的对象（如AnimatedDog）或更上层的逻辑处理
+        glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
     }
     glBindVertexArray(0);
 }

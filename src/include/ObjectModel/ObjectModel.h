@@ -30,7 +30,7 @@ class ObjectModel {
 public:
     ObjectModel();
     virtual ~ObjectModel(); // <--- 声明为虚析构函数
-
+    void simpleDraw();
     bool load(const std::string& path, const std::string& mtlBasePath);
     // 保持原来的 draw 签名，SwimmingPoolModel 将用自己的 draw 方法
     // 或者也可以将这个 draw 声明为 virtual，如果 SwimmingPoolModel 要覆盖它

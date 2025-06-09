@@ -20,6 +20,14 @@
 #include  "base/ModelTransformPanel.h"
 #include "base/characterPanel.h"
 
+// 生成唯一文件名
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+
+// #define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+#include "base/PathHelper.h"
 // 回调函数
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -75,7 +83,7 @@ int B = 0;
 const char* fonts[] = { "STSONG.TTF", "simfang.ttf", "simhei.ttf", "STKAITI.TTF", "STLITI.TTF" };
 
 // 修改游泳池的初始参数
-static float poolScale = 1.0f;  // 增大初始缩放
+static float poolScale = 0.005f;  // 增大初始缩放
 static glm::vec3 poolPosition = glm::vec3(5.5f, 0.4f, 2.0f);  // 将游泳池放在场景中心
 
 ImGuiController imguiController;
@@ -135,10 +143,10 @@ int main()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // 4. 构建和编译着色器程序
-    Shader objModelShader = Shader("../../media/shader/objModel/objModel.vert.glsl","../../media/shader/objModel/objModel.frag.glsl");
-    Shader skyboxShader("../../media/shader/skybox/skybox.vert.glsl", "../../media/shader/skybox/skybox.frag.glsl");
-    Shader mainShader = Shader("../../media/shader/main/main.vert.glsl", "../../media/shader/main/main.frag.glsl");
-
+    Shader objModelShader(PathHelper::get("media/shader/objModel/objModel.vert.glsl").c_str(), PathHelper::get("media/shader/objModel/objModel.frag.glsl").c_str());
+    Shader skyboxShader(PathHelper::get("media/shader/skybox/skybox.vert.glsl").c_str(), PathHelper::get("media/shader/skybox/skybox.frag.glsl").c_str());
+    Shader mainShader(PathHelper::get("media/shader/main/main.vert.glsl").c_str(), PathHelper::get("media/shader/main/main.frag.glsl").c_str());
+    Shader waterShader(PathHelper::get("media/shader/water/water.vert.glsl").c_str(), PathHelper::get("media/shader/water/water.frag.glsl").c_str());
     // 添加调试信息
     std::cout << "Checking shader uniforms for objModelShader:" << std::endl;
     GLint numUniforms;
@@ -152,9 +160,8 @@ int main()
         glGetActiveUniform(objModelShader.id_, i, sizeof(uniformName), NULL, &size, &type, uniformName);
         std::cout << "Uniform " << i << ": " << uniformName << " (Type: " << type << ", Size: " << size << ")" << std::endl;
     }
+    Shader depthShader(PathHelper::get("media/shader/shadow/shadow.vert.glsl").c_str(), PathHelper::get("media/shader/shadow/shadow.frag.glsl").c_str());
 
-    //Shader waterShader = Shader("", "../../media/shader/water/water_fs.glsl");
-    Shader depthShader("../../media/shader/shadow/shadow.vert.glsl", "../../media/shader/shadow/shadow.frag.glsl");
 
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
@@ -168,18 +175,18 @@ int main()
     imguiController.AddPanel(characterPanel);
 
     // 5. 创建并设置场景中的物体对象
-    SwimmingPool swimmingPool;
-    if (!swimmingPool.initialize()) {
-        std::cerr << "Failed to initialize swimming pool!" << std::endl;
-    }
-    swimmingPool.setPosition(poolPosition);
-    swimmingPool.setScale(poolScale);
-
-    // 添加调试信息
-    std::cout << "Swimming pool initialized with:" << std::endl;
-    std::cout << "Position: (" << poolPosition.x << ", " << poolPosition.y << ", " << poolPosition.z << ")" << std::endl;
-    std::cout << "Scale: " << poolScale << std::endl;
-
+    // SwimmingPool swimmingPool;
+    // if (!swimmingPool.initialize("./../media/textures/Water004_1K_Normal.jpg")) {
+    //     std::cerr << "Failed to initialize swimming pool!" << std::endl;
+    // }
+    // swimmingPool.setPosition(poolPosition);
+    // swimmingPool.setScale(poolScale);
+    //
+    // // 添加调试信息
+    // std::cout << "Swimming pool initialized with:" << std::endl;
+    // std::cout << "Position: (" << poolPosition.x << ", " << poolPosition.y << ", " << poolPosition.z << ")" << std::endl;
+    // std::cout << "Scale: " << poolScale << std::endl;
+    //
     // 导入天空盒
     
     std::vector<std::string> faces = { "right.jpg", "left.jpg", "top.jpg", "down.jpg", "front.jpg", "back.jpg" };
@@ -205,7 +212,7 @@ int main()
     ambientLight.color = glm::vec3(1.0f);
     ambientLight.intensity = 0.2f;
 
-    directionalLight.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
+    directionalLight.direction = glm::vec3(0.4f, -1.0f, 0.5f);
     directionalLight.color = glm::vec3(1.0f);
     directionalLight.intensity = 0.5f;
 
@@ -248,16 +255,16 @@ int main()
         imguiController.NewFrame(); 
         imguiController.DrawUI();
         processInput(window, camera, deltaTime);
-
+        SceneManager::getInstance().update(deltaTime);
         // 修改游泳池控制面板的范围
-        ImGui::Begin("Swimming Pool Control");
-        if (ImGui::SliderFloat3("Position", &poolPosition.x, -20.0f, 20.0f)) {
-            swimmingPool.setPosition(poolPosition);
-        }
-        if (ImGui::SliderFloat("Scale", &poolScale, 0.001f, 0.005f)) {
-            swimmingPool.setScale(poolScale);
-        }
-        ImGui::End();
+        // ImGui::Begin("Swimming Pool Control");
+        // if (ImGui::SliderFloat3("Position", &poolPosition.x, -20.0f, 20.0f)) {
+        //     swimmingPool.setPosition(poolPosition);
+        // }
+        // if (ImGui::SliderFloat("Scale", &poolScale, 0.001f, 0.005f)) {
+        //     swimmingPool.setScale(poolScale);
+        // }
+        // ImGui::End();
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -392,9 +399,14 @@ int main()
         }
 
         // 绘制游泳池
-        swimmingPool.update(deltaTime);
-        swimmingPool.draw(objModelShader.id_, glm::translate(glm::mat4(1.0f), poolPosition) * glm::scale(glm::mat4(1.0f), glm::vec3(poolScale)));
+        // swimmingPool.update(deltaTime);
 
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        // swimmingPool.draw(objModelShader, waterShader, view, projection, camera.Position);
+
+        glDisable(GL_BLEND);
         // 使用objModel着色器渲染树
         objModelShader.use();
         objModelShader.setMat4("view", view);
@@ -422,8 +434,8 @@ int main()
         objModelShader.setFloat("spotLight.kq", spotLight.kq);
 
         // 渲染场景中的所有对象(包括树)
-        SceneManager::getInstance().draw(objModelShader, view, projection);
-
+        // SceneManager::getInstance().draw(objModelShader, view, projection);
+        SceneManager::getInstance().draw(objModelShader, waterShader, view, projection, camera.Position,ambientLight, directionalLight, spotLight);
         // --------------------------------
         // ImGui 渲染绘制的面板数据
         imguiController.Render();
@@ -502,6 +514,33 @@ void scroll_callback(GLFWwindow* window, double xoffsetIn, double yoffsetIn)
     float yoffset = static_cast<float>(yoffsetIn);
     camera.ProcessMouseScroll(yoffset);
 }
+// --- 新增代码：截屏函数 ---
+void takeScreenshot(GLFWwindow* window, const std::string& filename) {
+    int width, height;
+    // 获取帧缓冲区的大小，而不是窗口大小，这对于高DPI显示器很重要
+    glfwGetFramebufferSize(window, &width, &height);
+
+    // 分配内存来存储像素数据 (R, G, B 三个通道)
+    GLubyte* pixels = new GLubyte[3 * width * height];
+
+    // 设置像素打包对齐方式为1字节，防止因行末填充导致图像错乱
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    // 从帧缓冲区读取像素
+    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+
+    // stb_image_write 需要图像是正的 (0,0 在左上角)
+
+    // 使用 stb_image_write 将像素数据保存为 PNG 文件
+    // 参数: 文件名, 宽, 高, 通道数(RGB是3), 像素数据, 每行的字节数
+    if (stbi_write_png(filename.c_str(), width, height, 3, pixels, width * 3)) {
+        std::cout << "Screenshot saved to " << filename << std::endl;
+    } else {
+        std::cerr << "Failed to save screenshot." << std::endl;
+    }
+
+    // 清理内存
+    delete[] pixels;
+}
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -522,5 +561,19 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             std::cout << "Cursor unlocked." << std::endl;
         }
+    }
+
+    // --- 新增代码：F2键触发截屏 ---
+    if (key == GLFW_KEY_F2 && action == GLFW_PRESS)
+    {
+        // 1. 生成基于时间戳的文件名，例如 "screenshot_2025-06-08_05-35-07.png"
+        auto now = std::chrono::system_clock::now();
+        auto in_time_t = std::chrono::system_clock::to_time_t(now);
+
+        std::stringstream ss;
+        ss << "screenshot_" << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d_%H-%M-%S") << ".png";
+
+        // 2. 调用截屏函数
+        takeScreenshot(window, ss.str());
     }
 }

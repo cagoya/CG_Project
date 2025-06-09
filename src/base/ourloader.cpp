@@ -7,12 +7,23 @@
 #include <tuple>
 #include <immintrin.h>  // 添加 SIMD 支持
 #include <glad/gl.h>    // 添加 GLAD 支持
+#include <cstdlib> // 为了使用 atol
 
 #ifndef STB_IMAGE_IMPLEMENTATION // 通常放在一个专门的 .c 或 .cpp 文件，或者确保只在主文件定义一次
 #include "stb_image.h" // 用于加载纹理图片
 #define STB_IMAGE_IMPLEMENTATION
 #endif
 
+// 一个更快的、不创建额外对象的 'f' 行解析函数
+static inline const char* fast_parse_face_component(const char* s, int& val) {
+    // 跳过前导空格
+    while (*s && isspace(*s)) s++;
+    // 使用 C 语言的 atol 进行快速转换
+    val = atol(s);
+    // 移动指针到下一个非数字字符
+    while (*s && isdigit(*s)) s++;
+    return s;
+}
 // 辅助函数：分割字符串
 static inline std::vector<std::string> splitString_OurObj(const std::string& s, char delimiter) {
     std::vector<std::string> tokens;
@@ -24,6 +35,31 @@ static inline std::vector<std::string> splitString_OurObj(const std::string& s, 
     return tokens;
 }
 
+// 一个更快的、不创建额外字符串和向量的 'f' 行解析函数
+static inline bool fast_parse_face_vertex(const char*& s, int& v, int& t, int& n) {
+    v = t = n = 0; // 重置为0，我们将用它来存储1基索引
+
+    // 解析第一个数字 (顶点索引)
+    while (*s && isspace(*s)) s++;
+    if (!*s || !isdigit(*s)) return false; // 必须以数字开头
+    while (*s && isdigit(*s)) v = v * 10 + (*s++ - '0');
+
+    if (*s != '/') return true; // 格式是 f v v v
+    s++; // 跳过第一个 '/'
+
+    // 解析第二个数字 (纹理索引)
+    if (*s != '/') {
+        while (*s && isdigit(*s)) t = t * 10 + (*s++ - '0');
+    }
+
+    if (*s != '/') return true; // 格式是 f v/vt v/vt v/vt
+    s++; // 跳过第二个 '/'
+
+    // 解析第三个数字 (法线索引)
+    while (*s && isdigit(*s)) n = n * 10 + (*s++ - '0');
+
+    return true;
+}
  bool OurObjLoader::objParseFaceVertexIndices(const std::string& faceVertexStr,
                                             int& v_idx, int& vt_idx, int& vn_idx,
                                             size_t max_v, size_t max_vt, size_t max_vn) {
@@ -71,7 +107,6 @@ bool OurObjLoader::parseMtlFile(const std::string& mtlFilePath,
         std::cerr << "OUR OBJ LOADER ERROR: Cannot open MTL file: " << mtlFilePath << std::endl;
         return false;
     }
-    std::cout << "OUR OBJ LOADER: Parsing MTL file: " << mtlFilePath << std::endl;
 
     MaterialInfo currentMaterial;
     std::string currentMaterialNameKey;
@@ -157,14 +192,14 @@ GLuint OurObjLoader::loadTextureFromFile(const char* path) {
 
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        // glGenerateMipmap(GL_TEXTURE_2D);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        std::cout << "OUR OBJ LOADER: Successfully loaded texture: " << path << " (ID: " << textureID << ")" << std::endl;
     }
     else {
         std::cerr << "OUR OBJ LOADER ERROR: Texture failed to load at path: " << path << " (stb_image error: " << stbi_failure_reason() << ")" << std::endl;
@@ -175,55 +210,84 @@ GLuint OurObjLoader::loadTextureFromFile(const char* path) {
     return textureID;
 }
 
-// 添加 SIMD 优化的顶点处理函数
-void OurObjLoader::processVerticesSIMD(std::vector<glm::vec3>& vertices) {
-    if (vertices.empty()) return;  // 添加空检查
-    
-    size_t count = vertices.size();
-    size_t simdCount = count - (count % 4);  // 确保是4的倍数
-    
-    // 确保内存对齐
-    for (size_t i = 0; i < simdCount; i += 4) {
-        // 使用临时变量存储顶点数据
-        glm::vec3 temp[4];
-        for (int j = 0; j < 4; j++) {
-            temp[j] = vertices[i + j];
-        }
-        
-        // 加载4个顶点到SIMD寄存器
-        __m128 v1 = _mm_set_ps(0.0f, temp[0].z, temp[0].y, temp[0].x);
-        __m128 v2 = _mm_set_ps(0.0f, temp[1].z, temp[1].y, temp[1].x);
-        __m128 v3 = _mm_set_ps(0.0f, temp[2].z, temp[2].y, temp[2].x);
-        __m128 v4 = _mm_set_ps(0.0f, temp[3].z, temp[3].y, temp[3].x);
-        
-        // SIMD运算
-        __m128 scale = _mm_set1_ps(1.0f);
-        v1 = _mm_mul_ps(v1, scale);
-        v2 = _mm_mul_ps(v2, scale);
-        v3 = _mm_mul_ps(v3, scale);
-        v4 = _mm_mul_ps(v4, scale);
-        
-        // 存储回临时变量
-        float result1[4], result2[4], result3[4], result4[4];
-        _mm_store_ps(result1, v1);
-        _mm_store_ps(result2, v2);
-        _mm_store_ps(result3, v3);
-        _mm_store_ps(result4, v4);
-        
-        // 更新顶点数据
-        for (int j = 0; j < 4; j++) {
-            vertices[i + j].x = result1[j];
-            vertices[i + j].y = result2[j];
-            vertices[i + j].z = result3[j];
-        }
+
+// 在 OurObjLoader.cpp 中
+
+// --- 使用最终修正版的SIMD代码替换旧的 calculateNormals 函数 ---
+void calculateNormals(OurObjMesh& mesh) {
+    if (mesh.vertices.empty() || mesh.indices.empty()) {
+        return;
     }
-    
-    // 处理剩余的顶点
-    for (size_t i = simdCount; i < count; i++) {
-        vertices[i] *= 1.0f;
+
+    std::vector<glm::vec3> temp_normals(mesh.vertices.size(), glm::vec3(0.0f, 0.0f, 0.0f));
+
+    // --- 第一部分：累加面法线 (这部分保持不变) ---
+    for (size_t i = 0; i < mesh.indices.size(); i += 3) {
+        unsigned int i0 = mesh.indices[i];
+        unsigned int i1 = mesh.indices[i + 1];
+        unsigned int i2 = mesh.indices[i + 2];
+        const glm::vec3& v0 = mesh.vertices[i0].position;
+        const glm::vec3& v1 = mesh.vertices[i1].position;
+        const glm::vec3& v2 = mesh.vertices[i2].position;
+        glm::vec3 edge1 = v1 - v0;
+        glm::vec3 edge2 = v2 - v0;
+        glm::vec3 face_normal = glm::cross(edge2, edge1);
+        temp_normals[i0] += face_normal;
+        temp_normals[i1] += face_normal;
+        temp_normals[i2] += face_normal;
+    }
+
+    // --- 第二部分：使用SIMD批量归一化所有法线 ---
+    size_t i = 0;
+    for (; i + 3 < temp_normals.size(); i += 4) {
+        // 1. 转置加载4个vec3到3个__m128寄存器 (SoA)
+        __m128 v0 = _mm_loadu_ps(&temp_normals[i].x);
+        __m128 v1 = _mm_loadu_ps(&temp_normals[i+1].x);
+        __m128 v2 = _mm_loadu_ps(&temp_normals[i+2].x);
+        __m128 v3 = _mm_loadu_ps(&temp_normals[i+3].x);
+        _MM_TRANSPOSE4_PS(v0, v1, v2, v3);
+
+        __m128 x_vals = v0;
+        __m128 y_vals = v1;
+        __m128 z_vals = v2;
+
+        // 2. 计算长度的平方
+        __m128 x2 = _mm_mul_ps(x_vals, x_vals);
+        __m128 y2 = _mm_mul_ps(y_vals, y_vals);
+        __m128 z2 = _mm_mul_ps(z_vals, z_vals);
+        __m128 length_sq = _mm_add_ps(_mm_add_ps(x2, y2), z2);
+
+        // 3. 计算长度的倒数
+        __m128 inv_length = _mm_rsqrt_ps(length_sq);
+
+        // 4. 完成归一化
+        x_vals = _mm_mul_ps(x_vals, inv_length);
+        y_vals = _mm_mul_ps(y_vals, inv_length);
+        z_vals = _mm_mul_ps(z_vals, inv_length);
+
+        // 5. 将数据转置回来
+        _MM_TRANSPOSE4_PS(x_vals, y_vals, z_vals, v3);
+
+        // +++ 6. 安全地将结果从SIMD寄存器存回内存 +++
+        // 创建一个临时的、16字节对齐的数组来接收SIMD的写入
+        alignas(16) float results[4][4];
+        _mm_store_ps(results[0], x_vals);
+        _mm_store_ps(results[1], y_vals);
+        _mm_store_ps(results[2], z_vals);
+        _mm_store_ps(results[3], v3);
+
+        // 从临时数组中，只把我们需要的x,y,z分量拷贝回去，完美避免内存溢出
+        mesh.vertices[i+0].normal = glm::vec3(results[0][0], results[0][1], results[0][2]);
+        mesh.vertices[i+1].normal = glm::vec3(results[1][0], results[1][1], results[1][2]);
+        mesh.vertices[i+2].normal = glm::vec3(results[2][0], results[2][1], results[2][2]);
+        mesh.vertices[i+3].normal = glm::vec3(results[3][0], results[3][1], results[3][2]);
+    }
+
+    // --- 处理剩余的、不足4个的向量 (收尾工作) ---
+    for (; i < temp_normals.size(); ++i) {
+        mesh.vertices[i].normal = glm::normalize(temp_normals[i]);
     }
 }
-
 // 修改 loadObj 方法以使用 GPU 处理
 bool OurObjLoader::loadObj(const std::string& objFilePath,
     const std::string& mtlFileBasePath,
@@ -267,17 +331,13 @@ bool OurObjLoader::loadObj(const std::string& objFilePath,
         else if (keyword == "mtllib") {
             std::string mtlFilename;
             if (ss >> mtlFilename) {
-                std::cout << "DEBUG: ss: " << ss.str() << std::endl;
-                std::cout << "DEBUG: mtllib - mtlFileBasePath from arg: [" << mtlFileBasePath << "]" << std::endl;
-                std::cout << "DEBUG: mtllib - mtlFilename read from OBJ: [" << mtlFilename << "]" << std::endl;
-                
+
                 // 修复MTL文件路径解析
                 std::string fullMtlPath = mtlFileBasePath;
                 if (!fullMtlPath.empty() && fullMtlPath.back() != '/' && fullMtlPath.back() != '\\') {
                     fullMtlPath += '/';
                 }
                 fullMtlPath += mtlFilename;
-                std::cout << "DEBUG: mtllib - fullMtlPath constructed: [" << fullMtlPath << "]" << std::endl;
 
                 if (!parseMtlFile(fullMtlPath, m_loadedMaterials)) {
                     std::cerr << "OUR OBJ LOADER ERROR: Failed to parse MTL file: " << fullMtlPath << std::endl;
@@ -356,58 +416,77 @@ bool OurObjLoader::loadObj(const std::string& objFilePath,
             if (!(ss >> norm.x >> norm.y >> norm.z)) continue;
             temp_normals.push_back(norm);
         }
-        else if (keyword == "f") { /* 使用有效的 temp_* 容器大小进行索引检查 ... */
-            std::vector<std::string> faceVertexStrings;
-            std::string faceVertexToken;
-            while (ss >> faceVertexToken) faceVertexStrings.push_back(faceVertexToken);
+        else if (keyword == "f") {
+            std::string face_line;
+            std::getline(ss, face_line); // 读取 'f' 之后的所有内容
+            const char* p = face_line.c_str();
 
-            if (faceVertexStrings.size() < 3) continue;
+            // 用数组来存储一行面数据中所有顶点的索引 (最多支持四边形)
+            int face_v_indices[4], face_vt_indices[4], face_vn_indices[4];
+            int vertex_count = 0;
 
-            int v_idx0, vt_idx0, vn_idx0;
-            // 传递 temp 容器的大小用于索引检查
-            if (!objParseFaceVertexIndices(faceVertexStrings[0], v_idx0, vt_idx0, vn_idx0,
-                temp_positions.size(), temp_texCoords.size(), temp_normals.size())) {
-                continue;
+            // 循环解析一行中的所有 v/vt/vn 组合
+            while (*p && vertex_count < 4) {
+                // 使用我们之前添加的快速C风格解析函数
+                p = fast_parse_face_component(p, face_v_indices[vertex_count]);
+                face_vt_indices[vertex_count] = 0; // 默认值为0 (代表不存在)
+                face_vn_indices[vertex_count] = 0; // 默认值为0 (代表不存在)
+
+                if (*p == '/') {
+                    p++;
+                    if (*p != '/') {
+                        p = fast_parse_face_component(p, face_vt_indices[vertex_count]);
+                    }
+                    if (*p == '/') {
+                        p++;
+                        p = fast_parse_face_component(p, face_vn_indices[vertex_count]);
+                    }
+                }
+                vertex_count++;
             }
 
-            for (size_t i = 1; i < faceVertexStrings.size() - 1; ++i) {
-                int v_idx1, vt_idx1, vn_idx1;
-                int v_idx2, vt_idx2, vn_idx2;
-                bool v1_ok = objParseFaceVertexIndices(faceVertexStrings[i], v_idx1, vt_idx1, vn_idx1,
-                    temp_positions.size(), temp_texCoords.size(), temp_normals.size());
-                bool v2_ok = objParseFaceVertexIndices(faceVertexStrings[i + 1], v_idx2, vt_idx2, vn_idx2,
-                    temp_positions.size(), temp_texCoords.size(), temp_normals.size());
-                if (!v1_ok || !v2_ok) break;
+            if (vertex_count < 3) continue; // 如果顶点数少于3，不是一个有效的面，跳过
 
-                std::tuple<int, int, int> face_indices_tuples[3] = {
-                    std::make_tuple(v_idx0, vt_idx0, vn_idx0),
-                    std::make_tuple(v_idx1, vt_idx1, vn_idx1),
-                    std::make_tuple(v_idx2, vt_idx2, vn_idx2)
+            // 将面进行三角化处理 (这样代码也能正确处理四边形面)
+            for (int i = 1; i < vertex_count - 1; ++i) {
+
+                // *** 这里我们定义并初始化了每个三角形的索引元组 ***
+                std::tuple<int, int, int> triangle_vertex_keys[3] = {
+                    // OBJ索引是1基的，我们在这里统一转换为0基
+                    std::make_tuple(face_v_indices[0] - 1,   face_vt_indices[0] - 1,   face_vn_indices[0] - 1),
+                    std::make_tuple(face_v_indices[i] - 1,   face_vt_indices[i] - 1,   face_vn_indices[i] - 1),
+                    std::make_tuple(face_v_indices[i+1] - 1, face_vt_indices[i+1] - 1, face_vn_indices[i+1] - 1)
                 };
 
+                // 后续的 vertexCache 逻辑保持不变，它使用我们刚刚定义的 triangle_vertex_keys
                 for (int j = 0; j < 3; ++j) {
-                    std::tuple<int, int, int> current_key = face_indices_tuples[j];
+                    std::tuple<int, int, int> current_key = triangle_vertex_keys[j];
                     if (vertexCache.find(current_key) == vertexCache.end()) {
                         OurObjVertex new_vert;
                         int p_idx = std::get<0>(current_key);
-                        new_vert.position = temp_positions[p_idx];
+                        if (p_idx >= 0 && static_cast<size_t>(p_idx) < temp_positions.size()) {
+                             new_vert.position = temp_positions[p_idx];
+                        }
+
                         int t_idx = std::get<1>(current_key);
-                        if (t_idx != -1 && static_cast<size_t>(t_idx) < temp_texCoords.size()) { // 再次检查索引
+                        if (t_idx >= 0 && static_cast<size_t>(t_idx) < temp_texCoords.size()) {
                             new_vert.texCoords = temp_texCoords[t_idx];
-                            new_vert.texCoords.y = 1.0f - new_vert.texCoords.y;
+                        } else {
+                            new_vert.texCoords = glm::vec2(0.0f, 0.0f);
                         }
-                        else { new_vert.texCoords = glm::vec2(0.0f, 0.0f); }
+
                         int n_idx = std::get<2>(current_key);
-                        if (n_idx != -1 && static_cast<size_t>(n_idx) < temp_normals.size()) { // 再次检查索引
+                        if (n_idx >= 0 && static_cast<size_t>(n_idx) < temp_normals.size()) {
                             new_vert.normal = temp_normals[n_idx];
+                        } else {
+                            new_vert.normal = glm::vec3(0.0f, 0.0f, 0.0f);
                         }
-                        else { new_vert.normal = glm::vec3(0.0f, 0.0f, 0.0f); }
+
                         currentMesh.vertices.push_back(new_vert);
                         unsigned int new_final_idx = static_cast<unsigned int>(currentMesh.vertices.size() - 1);
                         vertexCache[current_key] = new_final_idx;
                         currentMesh.indices.push_back(new_final_idx);
-                    }
-                    else {
+                    } else {
                         currentMesh.indices.push_back(vertexCache[current_key]);
                     }
                 }
@@ -423,100 +502,11 @@ bool OurObjLoader::loadObj(const std::string& objFilePath,
     if (outMeshes.empty() && temp_positions.empty()) {
         std::cout << "OUR OBJ LOADER: No geometric data or meshes were loaded from file: " << objFilePath << std::endl;
     }
-
-    // 在解析完顶点数据后，使用 SIMD 处理
-    if (!temp_positions.empty()) {
-        processVerticesSIMD(temp_positions);
+    for (auto& mesh : outMeshes) {
+        // 调用我们上面创建的辅助函数
+        calculateNormals(mesh);
     }
-
-    // 创建 GPU 缓冲区
-    GLuint vbo;
-    glGenBuffers(1, &vbo);
-    if (vbo == 0) {
-        std::cerr << "Failed to generate vertex buffer object" << std::endl;
-        return false;
-    }
-    
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    
-    // 计算总顶点数据大小
-    size_t totalVertices = temp_positions.size();
-    if (totalVertices == 0) {
-        std::cerr << "No vertices to process" << std::endl;
-        glDeleteBuffers(1, &vbo);
-        return false;
-    }
-    
-    size_t vertexDataSize = totalVertices * (3 + 2 + 3) * sizeof(float);  // 位置(3) + 纹理坐标(2) + 法线(3)
-    
-    // 分配 GPU 内存
-    glBufferData(GL_ARRAY_BUFFER, vertexDataSize, nullptr, GL_STATIC_DRAW);
-    
-    // 使用映射缓冲区进行数据上传
-    void* bufferData = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-    if (!bufferData) {
-        std::cerr << "Failed to map buffer" << std::endl;
-        glDeleteBuffers(1, &vbo);
-        return false;
-    }
-    
-    float* data = static_cast<float*>(bufferData);
-    size_t offset = 0;
-    
-    // 使用 SIMD 优化的方式复制数据
-    for (size_t i = 0; i < totalVertices; i += 4) {
-        size_t remaining = std::min(4ull, totalVertices - i);
-        
-        // 复制位置数据
-        for (size_t j = 0; j < remaining; j++) {
-            if (i + j < temp_positions.size()) {
-                data[offset++] = temp_positions[i + j].x;
-                data[offset++] = temp_positions[i + j].y;
-                data[offset++] = temp_positions[i + j].z;
-            }
-        }
-        
-        // 复制纹理坐标
-        for (size_t j = 0; j < remaining; j++) {
-            if (i + j < temp_texCoords.size()) {
-                data[offset++] = temp_texCoords[i + j].x;
-                data[offset++] = temp_texCoords[i + j].y;
-            } else {
-                data[offset++] = 0.0f;
-                data[offset++] = 0.0f;
-            }
-        }
-        
-        // 复制法线数据
-        for (size_t j = 0; j < remaining; j++) {
-            if (i + j < temp_normals.size()) {
-                data[offset++] = temp_normals[i + j].x;
-                data[offset++] = temp_normals[i + j].y;
-                data[offset++] = temp_normals[i + j].z;
-            } else {
-                data[offset++] = 0.0f;
-                data[offset++] = 0.0f;
-                data[offset++] = 0.0f;
-            }
-        }
-    }
-    
-    if (!glUnmapBuffer(GL_ARRAY_BUFFER)) {
-        std::cerr << "Failed to unmap buffer" << std::endl;
-        glDeleteBuffers(1, &vbo);
-        return false;
-    }
-    
-    // 设置顶点属性指针
-    size_t stride = (3 + 2 + 3) * sizeof(float);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(5 * sizeof(float)));
-    
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-    
+    // std::cout << "OUR OBJ LOADER: Normal calculation complete." << std::endl;
     return true;
 }
 

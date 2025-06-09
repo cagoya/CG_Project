@@ -63,7 +63,7 @@ set_target_properties(utf8 PROPERTIES FOLDER "lib")
 # === 添加你的主程序 ===
 # 收集所有 src 下的 .cpp 文件（包括 inside, outside 和 base）
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
-
+string(APPEND CMAKE_CXX_FLAGS_DEBUG " -O3")
 # 添加可执行文件
 add_executable(main ${SRC_FILES} "src/include/ObjectModel/ObjectModel.h" 
     "src/base/ourloader.cpp"
@@ -73,6 +73,12 @@ add_executable(main ${SRC_FILES} "src/include/ObjectModel/ObjectModel.h"
     
     "src/include/base/ImGuiController.h" 
      "src/include/OurObjLoader/OurObjLoader.h"
+        "src/base/girraffe.cpp"
+        "src/base/girraffe.h"
+        src/include/base/PathHelper.h
+        src/base/PathHelper.cpp
+        src/base/AnimatedDog.h
+        src/base/AnimatedDog.cpp
 )
 
 # 添加头文件目录
@@ -81,6 +87,7 @@ target_include_directories(main PRIVATE
     src/include/ObjectModel
     src/include/UIsystem
     src/include/OurObjLoader
+        src/include/SceneObject
     src
     external/glad/include
     external/glfw/include

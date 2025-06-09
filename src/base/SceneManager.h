@@ -4,6 +4,9 @@
 #include <string>
 #include <unordered_map>
 #include <glm/glm.hpp>
+
+// 包含了所有需要的对象和工具的头文件
+#include "girraffe.h"
 #include "ObjectModel/ObjectModel.h"
 #include "shader.h"
 #include "SceneObject.h"
@@ -19,31 +22,15 @@ public:
         return instance;
     }
 
-    void initialize() {
-        // 创建游泳池对象
-        auto pool = std::make_shared<PoolObject>("SwimmingPool");
-        pool->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-        pool->setScale(1.0f);
-        pool->initialize();
-        objects_["SwimmingPool"] = pool;
+    // initialize 的声明保持不变
+    void initialize();
 
-        // 创建树对象
-        // auto tree = std::make_shared<TreeObject>("Tree");
-        // tree->setPosition(glm::vec3(5.0f, 0.0f, 5.0f));
-        // tree->setScale(1.0f);
-        // tree->initialize();
-        // objects_["Tree"] = tree;
-    }
+    void update(float deltaTime);
 
-    void update(float deltaTime) {
-        for (auto& [name, object] : objects_) {
-            object->update(deltaTime);
-        }
-    }
+    // *** 修改 draw 函数的声明 ***
+    // 它现在需要接收两个着色器，以及相机位置用于光照计算
+    void draw(const Shader& defaultShader, const Shader& waterShader, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPosition,const AmbientLight& ambientLight, const DirectionalLight& directionalLight, const SpotLight& spotLight);
 
-    void draw(const Shader& shader, const glm::mat4& view, const glm::mat4& projection);
-
-    // 使用模板方法添加对象
     template<typename T, typename... Args>
     std::shared_ptr<T> addObject(const std::string& name, Args&&... args) {
         auto object = std::make_shared<T>(name, std::forward<Args>(args)...);
@@ -51,7 +38,6 @@ public:
         return object;
     }
 
-    // 获取对象
     std::shared_ptr<SceneObject> getObject(const std::string& name) {
         auto it = objects_.find(name);
         if (it != objects_.end()) {
@@ -60,15 +46,15 @@ public:
         return nullptr;
     }
 
-    // 清理所有对象
     void clear() {
         objects_.clear();
     }
 
-    // 设置光照参数
+    // ... 其他函数保持不变 ...
     void setAmbientLight(const AmbientLight& light) { ambientLight = light; }
     void setDirectionalLight(const DirectionalLight& light) { directionalLight = light; }
     void setSpotLight(const SpotLight& light) { spotLight = light; }
+
 
 private:
     SceneManager() = default;
@@ -77,9 +63,8 @@ private:
     SceneManager& operator=(const SceneManager&) = delete;
 
     std::unordered_map<std::string, std::shared_ptr<SceneObject>> objects_;
-    
-    // 光照参数
+
     AmbientLight ambientLight;
     DirectionalLight directionalLight;
     SpotLight spotLight;
-}; 
+};

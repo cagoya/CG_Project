@@ -40,3 +40,6 @@ out/
 # JET
 .idea/
 cmake-build-debug/
+
+.media/
+/media/

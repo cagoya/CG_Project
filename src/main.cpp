@@ -208,6 +208,7 @@ int main()
     // 初始化场景管理器
     SceneManager::getInstance().initialize();
 
+
     // 设置光照参数
     ambientLight.color = glm::vec3(1.0f);
     ambientLight.intensity = 0.2f;
@@ -293,8 +294,9 @@ int main()
         glClear(GL_DEPTH_BUFFER_BIT);
 
 
-        inside.drawShadow(depthShader, model, sentence, fonts[font_choice], font_size, R, G, B,false);
-        outside.drawShadow(depthShader, glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f)),false);
+        inside.draw(depthShader, model, sentence, fonts[font_choice], font_size, R, G, B,false);
+        outside.draw(depthShader, glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f)),false);
+        SceneManager::getInstance().draw(depthShader, waterShader, view, projection, camera.Position,ambientLight, directionalLight, spotLight);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, width, height); // 恢复视口

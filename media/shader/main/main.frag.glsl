@@ -46,22 +46,17 @@ uniform SpotLight spotLight;
 uniform vec3 cameraPosition;
 uniform sampler2D texture_sampler;
 
-// 阴影采样函数（带简单PCF软阴影）
 float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
 {
-    // 透视除法
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    // 转换到[0,1]区间
     projCoords = projCoords * 0.5 + 0.5;
 
-    // 超出阴影贴图范围则不在阴影中
     if(projCoords.z > 1.0 || projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0)
         return 0.0;
 
     float shadow = 0.0;
     float bias = max(0.0015 * (1.0 - dot(normal, lightDir)), 0.001);
 
-    // PCF采样
     float texelSize = 1.0 / 1024.0;
     for(int x = -1; x <= 1; ++x)
     {
@@ -123,7 +118,7 @@ void main() {
 
     vec3 ambient = material.ka * ambientLight.color * ambientLight.intensity * texColor.rgb;
 
-    // 阴影判断
+    // 锟斤拷影锟叫讹拷
     vec3 lightDir = normalize(-directionalLight.direction);
     float shadow = ShadowCalculation(lightSpaceMatrix * vec4(fPosition, 1.0), normal, lightDir);
 
@@ -135,7 +130,6 @@ void main() {
         discard;
     }
 
-    // 只对平行光部分做阴影衰减
     vec3 color = ambient +
                  (1.0 - shadow) * calcDirectionalLightdiff(normal, texColor.rgb) +
                  calcSpotLightdiff(normal, texColor.rgb) +

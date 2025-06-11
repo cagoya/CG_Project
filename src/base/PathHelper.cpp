@@ -1,6 +1,7 @@
 #include "base/PathHelper.h"
 #include <filesystem>
 #include <algorithm>
+#include <iostream>
 
 // 初始化静态成员变量
 std::string PathHelper::rootPath_ = "";
@@ -21,5 +22,6 @@ std::string PathHelper::get(const std::string& relativePathFromRoot) {
     if (rootPath_.empty()) {
         initialize(); // 确保即使忘记调用，也能自动初始化
     }
+    //std::cout << rootPath_ << std::endl;
     return rootPath_ + "/" + relativePathFromRoot;
 }

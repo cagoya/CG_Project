@@ -23,25 +23,17 @@ uniform struct AmbientLight {
 
 void main()
 {
-    // --- UV滚动：模拟水流 ---
     // 为法线贴图（涟漪）创建一个滚动UV，速度可以快一些
     vec2 rippleSpeed = vec2(0.05, 0.03);
     vec2 uv_ripples = TexCoords + time * rippleSpeed;
-
-    // 为颜色贴图（水底图案）创建一个不同的、更慢的滚动UV，产生水流涌动的视差效果
     vec2 flowSpeed = vec2(0.01, 0.005);
     vec2 uv_flow = TexCoords + time * flowSpeed;
 
     // --- 法线计算 ---
-    // 使用涟漪的UV来采样法线贴图
     vec3 normalFromMap = normalize(texture(normalMap, uv_ripples).rgb * 2.0 - 1.0);
     vec3 finalNormal = normalize(Normal + normalFromMap);
 
-    // --- 颜色采样 (已修正) ---
-    // **使用流动的 uv_flow 坐标来采样颜色贴图**
     vec4 baseColor = texture(diffuseTexture, uv_flow);
-
-    // --- 光照计算 (保持不变) ---
     vec3 ambient = ambientLight.intensity * ambientLight.color;
     vec3 lightDir = normalize(-directionalLight.direction);
     float diff = max(dot(finalNormal, lightDir), 0.0);
@@ -56,5 +48,5 @@ void main()
     vec3 result = (ambient + diffuse) * baseColor.rgb + specular;
 
     // 设置水的alpha值，让它半透明
-    FragColor = vec4(brightness*result, 0.65);
+    FragColor = vec4(brightness*result, 0.25);
 }

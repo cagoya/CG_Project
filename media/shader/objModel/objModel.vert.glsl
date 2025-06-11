@@ -37,8 +37,6 @@ void main()
         waterTexCoords.x += time * 0.1;
         waterTexCoords.y += time * 0.05;
         if (gl_VertexID == 0) {
-            // 只在第一个顶点输出一次
-            // 注意：这只是一个示例，实际调试可能需要其他方式
         }
     }
     TexCoords = waterTexCoords;

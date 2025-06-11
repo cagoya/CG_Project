@@ -17,7 +17,7 @@ void main()
 {
     vec3 pos = aPos;
 
-    // --- 顶点位移：模拟波浪 ---
+    // --- 波浪 ---
     float amplitude = 0.9f;
     float frequency = 5.0f;
     float speed = 2.5f;
@@ -25,7 +25,6 @@ void main()
     pos.y += amplitude * sin(pos.x * frequency + time * speed);
     pos.y += amplitude * cos(pos.z * frequency * 0.7 + time * speed * 1.2);
 
-    // --- 标准的顶点变换 ---
     FragPos = vec3(model * vec4(pos, 1.0));
     Normal = normalize(normalMatrix * aNormal);
     TexCoords = aTexCoords;

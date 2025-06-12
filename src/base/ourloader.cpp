@@ -14,17 +14,12 @@
 #define STB_IMAGE_IMPLEMENTATION
 #endif
 
-// 一个更快的、不创建额外对象的 'f' 行解析函数
 static inline const char* fast_parse_face_component(const char* s, int& val) {
-    // 跳过前导空格
     while (*s && isspace(*s)) s++;
-    // 使用 C 语言的 atol 进行快速转换
     val = atol(s);
-    // 移动指针到下一个非数字字符
     while (*s && isdigit(*s)) s++;
     return s;
 }
-// 辅助函数：分割字符串
 static inline std::vector<std::string> splitString_OurObj(const std::string& s, char delimiter) {
     std::vector<std::string> tokens;
     std::string token;
@@ -35,26 +30,21 @@ static inline std::vector<std::string> splitString_OurObj(const std::string& s, 
     return tokens;
 }
 
-// 一个更快的、不创建额外字符串和向量的 'f' 行解析函数
 static inline bool fast_parse_face_vertex(const char*& s, int& v, int& t, int& n) {
     v = t = n = 0; // 重置为0，我们将用它来存储1基索引
 
-    // 解析第一个数字 (顶点索引)
     while (*s && isspace(*s)) s++;
     if (!*s || !isdigit(*s)) return false; // 必须以数字开头
     while (*s && isdigit(*s)) v = v * 10 + (*s++ - '0');
 
     if (*s != '/') return true; // 格式是 f v v v
     s++; // 跳过第一个 '/'
-
     // 解析第二个数字 (纹理索引)
     if (*s != '/') {
         while (*s && isdigit(*s)) t = t * 10 + (*s++ - '0');
     }
-
     if (*s != '/') return true; // 格式是 f v/vt v/vt v/vt
     s++; // 跳过第二个 '/'
-
     // 解析第三个数字 (法线索引)
     while (*s && isdigit(*s)) n = n * 10 + (*s++ - '0');
 
@@ -69,7 +59,6 @@ static inline bool fast_parse_face_vertex(const char*& s, int& v, int& t, int& n
          if (parts.size() > 0 && !parts[0].empty()) v_idx = std::stoi(parts[0]) - 1;
          if (parts.size() > 1 && !parts[1].empty()) vt_idx = std::stoi(parts[1]) - 1;
          if (parts.size() > 2 && !parts[2].empty()) vn_idx = std::stoi(parts[2]) - 1;
-
          // 基础索引有效性检查 (注意OBJ索引是1基的，我们转换为0基)
          if (v_idx >= static_cast<int>(max_v) || v_idx < -1) { /*std::cerr << "Invalid v index" <<std::endl;*/ return false; }
          if (vt_idx >= static_cast<int>(max_vt) || vt_idx < -1) { /*std::cerr << "Invalid vt index" <<std::endl;*/ return false; }
@@ -161,7 +150,6 @@ bool OurObjLoader::parseMtlFile(const std::string& mtlFilePath,
             while (!texFilename.empty() && isspace(texFilename.front())) texFilename.erase(0, 1);
             currentMaterial.diffuseTextureMap = texFilename;
         }
-        // 可以添加对其他 map_ (如 map_Ks, map_Bump) 的解析
     }
     if (materialActive && !currentMaterialNameKey.empty()) {
         materials[currentMaterialNameKey] = currentMaterial;

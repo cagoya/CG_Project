@@ -15,14 +15,12 @@ struct MaterialInfo {
     float dissolve = 1.0f;
     std::string diffuseTextureMap;
 };
-
 // 顶点结构体
 struct OurObjVertex {
     glm::vec3 position;
     glm::vec2 texCoords;
     glm::vec3 normal;
 };
-
 // 网格结构体
 struct OurObjMesh {
     std::string name;

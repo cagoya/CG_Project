@@ -11,21 +11,16 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
     std::ifstream vShaderFile;
     std::ifstream fShaderFile;
 
-    // Ensure ifstream objects can throw exceptions:
     vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try {
-        // Open files
         vShaderFile.open(vertexPath);
         fShaderFile.open(fragmentPath);
         std::stringstream vShaderStream, fShaderStream;
-        // Read file's buffer contents into streams
         vShaderStream << vShaderFile.rdbuf();
         fShaderStream << fShaderFile.rdbuf();
-        // Close file handlers
         vShaderFile.close();
         fShaderFile.close();
-        // Convert stream into string
         vertexCode = vShaderStream.str();
         fragmentCode = fShaderStream.str();
     }
@@ -54,7 +49,6 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
     glLinkProgram(id_);
     checkCompileErrors(id_, "PROGRAM");
 
-    // Delete the shaders as they're linked into our program now and no longer necessary
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 }

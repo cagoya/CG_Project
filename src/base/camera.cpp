@@ -87,3 +87,12 @@ void Camera::updateCameraVectors()
     Right = glm::normalize(glm::cross(Front, WorldUp));
     Up = glm::normalize(glm::cross(Right, Front));
 }
+void Camera::LookAt(glm::vec3 target)
+{
+    this->Front = glm::normalize(target - this->Position);
+
+    this->Yaw = glm::degrees(atan2(this->Front.z, this->Front.x));
+
+    this->Pitch = glm::degrees(asin(this->Front.y));
+
+}

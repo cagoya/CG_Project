@@ -14,12 +14,9 @@ void SceneManager::initialize() {
     pool->initialize(PathHelper::get("media/textures/Water004_1K_Normal.jpg"));
     objects_["SwimmingPool"] = pool;
 
-    // --- 创建带动画的小狗对象 ---
     std::cout << "Creating animated puppy..." << std::endl;
-
     // 1. 定义小狗模型的基础路径
     std::string dogModelBasePath = PathHelper::get("media/model/mycutedog/");
-
     // 2. 动态生成所有帧的文件路径
     std::vector<std::string> puppyFramePaths;
     const int startFrame = 1;
@@ -31,16 +28,13 @@ void SceneManager::initialize() {
         std::string frameFile = "puppy" + frameNumber + ".obj";
         puppyFramePaths.push_back(dogModelBasePath + frameFile);
     }
-
     // 3. 创建 AnimatedDog 实例
     auto dog = std::make_shared<AnimatedDog>("MyPuppy");
     dog->setPosition(glm::vec3(0.5f, 0.05f, 3.0f));  // 设置一个初始位置
     dog->setScale(15.0f);                          // 设置一个合适的缩放
     dog->setFrameDuration(0.05f);                  // 设置动画速度 (20 FPS)
-
     // 4. 初始化小狗，加载所有模型帧
     dog->initialize(puppyFramePaths, dogModelBasePath);
-
     // 5. 将小狗添加到场景中
     objects_["MyPuppy"] = dog;
 }

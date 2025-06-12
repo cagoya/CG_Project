@@ -10,8 +10,6 @@ void PathHelper::initialize() {
     // __FILE__ 是一个宏，它会展开为当前源文件(PathHelper.cpp)的绝对路径
     std::filesystem::path sourceFilePath = __FILE__;
     
-    // sourceFilePath 可能是 "D:/CG_Project/src/base/PathHelper.cpp"
-    // 我们需要向上寻找两次，回到项目根目录 D:/CG_Project
     rootPath_ = sourceFilePath.parent_path().parent_path().parent_path().string();
 
     // 将路径中的反斜杠 \ 替换为正斜杠 /，以保证跨平台兼容性

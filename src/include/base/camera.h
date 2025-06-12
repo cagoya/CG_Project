@@ -57,6 +57,8 @@ public:
     // 根据鼠标滚轮处理视野变化 (缩放) - 影响投影矩阵
     void ProcessMouseScroll(float yoffset);
 
+    void LookAt(glm::vec<3, float> vec);
+
 private:
     // 根据欧拉角更新摄像机的 Front, Right 和 Up 向量
     void updateCameraVectors();

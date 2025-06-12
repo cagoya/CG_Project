@@ -27,6 +27,7 @@
 
 // #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include "base/AnimatedDog.h"
 #include "base/PathHelper.h"
 // 回调函数
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -34,13 +35,23 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window, Camera& camera, float deltaTime);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods); // 增加了一个回调 目的：alt
+void handleDogInput(GLFWwindow* window, float deltaTime);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+enum class CameraMode {
+    FREE_ROAM,
+    DOG_FOLLOW
+};
+CameraMode currentCameraMode = CameraMode::FREE_ROAM;
+float mouseXOffset = 0.0f; // 用于在跟随模式下暂存鼠标X轴偏移
 
 Camera camera(glm::vec3(0.0f, 1.0f, 5.0f));
-
+bool isOrbitingCamera = false;             // 用于记录中键是否被按下
+float cameraOrbitYaw = glm::radians(180.0f); // 相机环绕的水平角度
+float cameraOrbitPitch = glm::radians(20.0f); // 相机环绕的俯仰角度
 // 阴影贴图参数
 const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 unsigned int depthMapFBO;
@@ -66,13 +77,6 @@ SpotLight spotLight;
 DirectionalLight directionalLight;
 Material material;
 
-// 准备实现模型拖动
-bool isInEditMode = false;
-ObjectModel* selectedModel = nullptr; // 指向当前选中的 ObjectModel
-bool isDragging = false;              // 是否正在拖动模型
-glm::vec3 dragInitialIntersectPoint;  // 拖动开始时射线与拖动平面的交点 (世界空间)
-glm::vec3 dragInitialModelPosition;
-
 // 汉字
 std::string sentence;
 int font_choice = 0;
@@ -81,11 +85,6 @@ int R = 0;
 int G = 0;
 int B = 0;
 const char* fonts[] = { "STSONG.TTF", "simfang.ttf", "simhei.ttf", "STKAITI.TTF", "STLITI.TTF" };
-
-// 修改游泳池的初始参数
-static float poolScale = 0.005f;  // 增大初始缩放
-static glm::vec3 poolPosition = glm::vec3(5.5f, 0.4f, 2.0f);  // 将游泳池放在场景中心
-
 ImGuiController imguiController;
 int main()
 {
@@ -114,6 +113,7 @@ int main()
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetKeyCallback(window, key_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
     // 锁定鼠标光标
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -174,19 +174,7 @@ int main()
     auto characterPanel = std::make_shared<CharacterPanel>("CharacterController", imguiController.GetIO(), sentence, font_choice, font_size,R,G,B );
     imguiController.AddPanel(characterPanel);
 
-    // 5. 创建并设置场景中的物体对象
-    // SwimmingPool swimmingPool;
-    // if (!swimmingPool.initialize("./../media/textures/Water004_1K_Normal.jpg")) {
-    //     std::cerr << "Failed to initialize swimming pool!" << std::endl;
-    // }
-    // swimmingPool.setPosition(poolPosition);
-    // swimmingPool.setScale(poolScale);
-    //
-    // // 添加调试信息
-    // std::cout << "Swimming pool initialized with:" << std::endl;
-    // std::cout << "Position: (" << poolPosition.x << ", " << poolPosition.y << ", " << poolPosition.z << ")" << std::endl;
-    // std::cout << "Scale: " << poolScale << std::endl;
-    //
+
     // 导入天空盒
     
     std::vector<std::string> faces = { "right.jpg", "left.jpg", "top.jpg", "down.jpg", "front.jpg", "back.jpg" };
@@ -256,16 +244,8 @@ int main()
         imguiController.NewFrame(); 
         imguiController.DrawUI();
         processInput(window, camera, deltaTime);
+        handleDogInput(window, deltaTime);
         SceneManager::getInstance().update(deltaTime);
-        // 修改游泳池控制面板的范围
-        // ImGui::Begin("Swimming Pool Control");
-        // if (ImGui::SliderFloat3("Position", &poolPosition.x, -20.0f, 20.0f)) {
-        //     swimmingPool.setPosition(poolPosition);
-        // }
-        // if (ImGui::SliderFloat("Scale", &poolScale, 0.001f, 0.005f)) {
-        //     swimmingPool.setScale(poolScale);
-        // }
-        // ImGui::End();
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -273,7 +253,27 @@ int main()
         // 设置视图和投影矩阵
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)width / (float)height, 0.1f, 100.0f);
-        //std::cout << height << " " << width << std::endl;
+
+        if (currentCameraMode == CameraMode::DOG_FOLLOW) {
+            auto dog_ptr = SceneManager::getInstance().getObject("MyPuppy");
+            if (auto dog = std::dynamic_pointer_cast<AnimatedDog>(dog_ptr)) {
+                // 1. 定义相机与小狗的距离
+                float distance = 4.0f;
+                // 2. 定义相机看向的目标点（小狗的头部位置）
+                glm::vec3 targetPos = dog->getPosition() + glm::vec3(0.0f, 0.5f, -1.0f);
+                // 3. 根据环绕角度计算相机的位置偏移量
+                float offsetX = distance * sin(cameraOrbitYaw) * cos(cameraOrbitPitch);
+                float offsetY = distance * sin(cameraOrbitPitch);
+                float offsetZ = distance * cos(cameraOrbitYaw) * cos(cameraOrbitPitch);
+
+                // 4. 计算最终的相机位置
+                camera.Position = targetPos + glm::vec3(offsetX, offsetY, offsetZ);
+                // 5. 强制相机看向目标点，并使用世界空间的垂直向上向量来避免倾斜
+                view = glm::lookAt(camera.Position, targetPos, glm::vec3(0.0f, 1.0f, 0.0f));
+            }
+        } else {
+            view = camera.GetViewMatrix();
+        }
         // --- 绘制阴影贴图 ---
         // 用光源视角渲染深度贴图
 
@@ -288,7 +288,6 @@ int main()
         glm::mat4 model = glm::mat4(1.0f);
         depthShader.use();
         depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-        //glDisable(GL_CULL_FACE);
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
@@ -308,8 +307,6 @@ int main()
         sky.draw(skyboxShader, view, projection);
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
-
-
 
         // --- 绘制场景中的物体 ---
         glm::mat4 houseModel = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
@@ -400,13 +397,9 @@ int main()
             std::cout << "WARNING: Sampler uniform 'texture_diffuse1' not found in objModelShader!" << std::endl;
         }
 
-        // 绘制游泳池
-        // swimmingPool.update(deltaTime);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        // swimmingPool.draw(objModelShader, waterShader, view, projection, camera.Position);
 
         glDisable(GL_BLEND);
         // 使用objModel着色器渲染树
@@ -468,70 +461,159 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow* window, Camera& camera, float deltaTime)
-{
+void processInput(GLFWwindow* window, Camera& camera, float deltaTime) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        camera.ProcessKeyboard(UP, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        camera.ProcessKeyboard(DOWN, deltaTime);
+    // 只有在自由漫游模式下，按键才控制相机
+    if (currentCameraMode == CameraMode::FREE_ROAM) {
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.ProcessKeyboard(FORWARD, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.ProcessKeyboard(BACKWARD, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.ProcessKeyboard(LEFT, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.ProcessKeyboard(RIGHT, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) camera.ProcessKeyboard(UP, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) camera.ProcessKeyboard(DOWN, deltaTime);
+    }
 }
 
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
-{
-    if(!cursorLocked){
-        return;
-    }
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
+    if (!cursorLocked) { firstMouse = true; return; }
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
-
-    if (firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
+    if (firstMouse) { lastX = xpos; lastY = ypos; firstMouse = false; }
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos;
-
     lastX = xpos;
     lastY = ypos;
 
-    camera.ProcessMouseMovement(xoffset, yoffset);
+    if (currentCameraMode == CameraMode::DOG_FOLLOW) {
+        if (isOrbitingCamera) {
+            const float orbitSensitivity = 0.008f;
+            cameraOrbitYaw -= xoffset * orbitSensitivity;
+            cameraOrbitPitch -= yoffset * orbitSensitivity;
+            cameraOrbitPitch = glm::clamp(cameraOrbitPitch, glm::radians(-40.0f), glm::radians(80.0f));
+        } else {
+            mouseXOffset += xoffset;
+        }
+    } else {
+        camera.ProcessMouseMovement(xoffset, yoffset);
+    }
+}
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    // 只关心鼠标中键
+    if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+        if (action == GLFW_PRESS) {
+            isOrbitingCamera = true; // 当中键被按下，设置标志为true
+        } else if (action == GLFW_RELEASE) {
+            isOrbitingCamera = false; // 当中键被抬起，设置标志为false
+        }
+    }
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    if (key == GLFW_KEY_LEFT_ALT && action == GLFW_PRESS) {
+        cursorLocked = !cursorLocked;
+        glfwSetInputMode(window, GLFW_CURSOR, cursorLocked ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+    }
+    if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+        if (currentCameraMode == CameraMode::FREE_ROAM) {
+            currentCameraMode = CameraMode::DOG_FOLLOW;
+            camera.Zoom = 30.0f;
+            // 当切换到跟随模式时，将当前的相机朝向转换为初始的环绕角度
+            auto dog_ptr = SceneManager::getInstance().getObject("MyPuppy");
+            if (auto dog = std::dynamic_pointer_cast<AnimatedDog>(dog_ptr)) {
+                glm::vec3 dir = glm::normalize(dog->getPosition() - camera.Position);
+                cameraOrbitYaw = atan2(dir.x, dir.z);
+                cameraOrbitPitch = asin(dir.y);
+            }
+        } else {
+            currentCameraMode = CameraMode::FREE_ROAM;
+            camera.Zoom = 45.0f;
+        }
+    }
+}
+
+void handleDogInput(GLFWwindow* window, float deltaTime) {
+    auto dog_ptr = SceneManager::getInstance().getObject("MyPuppy");
+    auto dog = std::dynamic_pointer_cast<AnimatedDog>(dog_ptr);
+    if (!dog) return;
+    // 只有在跟随模式下，输入才控制小狗
+    if (currentCameraMode == CameraMode::DOG_FOLLOW) {
+        // --- 鼠标控制转向 ---
+        if (!isOrbitingCamera) {
+            const float mouseSensitivity = 0.008f;
+            dog->rotationY -= mouseXOffset * mouseSensitivity;
+        }
+        mouseXOffset = 0.0f;
+        // --- 键盘输入状态获取 ---
+        bool key_w = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS;
+        bool key_a = glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS;
+        bool key_s = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS;
+        bool key_d = glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS;
+        bool key_shift = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
+        bool isTryingToMove = key_w || key_a || key_s || key_d;
+
+        // --- 移动计算 ---
+        float currentMoveSpeed = (key_w && key_shift) ? dog->runSpeed : dog->walkSpeed;
+        glm::vec3 moveDirection(0.0f);
+
+        // 只有在有移动意图时才计算方向，避免不必要的计算
+        if (isTryingToMove) {
+            glm::vec3 forward(sin(dog->rotationY), 0.0f, cos(dog->rotationY));
+            glm::vec3 right(forward.z, 0.0f, -forward.x);
+            if (key_w) moveDirection += forward;
+            if (key_s) moveDirection -= forward;
+            if (key_a) moveDirection -= right;
+            if (key_d) moveDirection += right;
+        }
+
+        if(glm::length(moveDirection) > 0.0001f) // 用一个很小的数而不是0.0来避免浮点数精度问题
+        {
+             // 只有在向量长度不为0时，才进行归一化和移动
+             dog->setPosition(dog->getPosition() + glm::normalize(moveDirection) * currentMoveSpeed * deltaTime);
+             // 让小狗的身体总是朝向它移动的方向 (仅当不使用鼠标转向时)
+             if(isOrbitingCamera){ // 如果在环绕相机，让身体朝向移动方向
+                 dog->rotationY = atan2(moveDirection.x, moveDirection.z);
+             }
+        }
+        // --- 跳跃逻辑 ---
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+            dog->jump();
+        }
+        // --- 动画状态机 ---
+        if (dog->isOnGround()) {
+            if (key_shift && !isTryingToMove) {
+                dog->setState(DogState::SIT);
+            } else if (key_w && key_shift) {
+                dog->setState(DogState::RUN);
+            } else if (isTryingToMove) {
+                dog->setState(DogState::WALK);
+            } else {
+                if (dog->getCurrentState() != DogState::SIT) {
+                     dog->setState(DogState::IDLE);
+                }
+            }
+        }
+    }
+}
 void scroll_callback(GLFWwindow* window, double xoffsetIn, double yoffsetIn)
 {
     float yoffset = static_cast<float>(yoffsetIn);
     camera.ProcessMouseScroll(yoffset);
 }
-// --- 新增代码：截屏函数 ---
 void takeScreenshot(GLFWwindow* window, const std::string& filename) {
     int width, height;
     // 获取帧缓冲区的大小，而不是窗口大小，这对于高DPI显示器很重要
     glfwGetFramebufferSize(window, &width, &height);
-
     // 分配内存来存储像素数据 (R, G, B 三个通道)
     GLubyte* pixels = new GLubyte[3 * width * height];
-
     // 设置像素打包对齐方式为1字节，防止因行末填充导致图像错乱
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    // 从帧缓冲区读取像素
     glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-
-    // stb_image_write 需要图像是正的 (0,0 在左上角)
-
     // 使用 stb_image_write 将像素数据保存为 PNG 文件
     // 参数: 文件名, 宽, 高, 通道数(RGB是3), 像素数据, 每行的字节数
     if (stbi_write_png(filename.c_str(), width, height, 3, pixels, width * 3)) {
@@ -539,43 +621,5 @@ void takeScreenshot(GLFWwindow* window, const std::string& filename) {
     } else {
         std::cerr << "Failed to save screenshot." << std::endl;
     }
-
-    // 清理内存
     delete[] pixels;
-}
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) // ESC退出功能
-        glfwSetWindowShouldClose(window, true);
-
-    // 关注左Alt键
-    if (key == GLFW_KEY_LEFT_ALT && action == GLFW_PRESS)
-    {
-        cursorLocked = !cursorLocked; // 切换锁定状态
-
-        if (cursorLocked) {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            firstMouse = true; // 重置firstMouse，防止重新锁定时相机跳动
-            std::cout << "Cursor locked." << std::endl;
-        }
-        else {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            std::cout << "Cursor unlocked." << std::endl;
-        }
-    }
-
-    // --- 新增代码：F2键触发截屏 ---
-    if (key == GLFW_KEY_F2 && action == GLFW_PRESS)
-    {
-        // 1. 生成基于时间戳的文件名，例如 "screenshot_2025-06-08_05-35-07.png"
-        auto now = std::chrono::system_clock::now();
-        auto in_time_t = std::chrono::system_clock::to_time_t(now);
-
-        std::stringstream ss;
-        ss << "screenshot_" << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d_%H-%M-%S") << ".png";
-
-        // 2. 调用截屏函数
-        takeScreenshot(window, ss.str());
-    }
 }
